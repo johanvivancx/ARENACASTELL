@@ -12,6 +12,7 @@ Página web para organizar las reservas de la cancha Arena Castell, en Amaguaña
 - Inscribir alumnos de 4 a 17 años y registrar sus mensualidades.
 - Consultar el historial y los comprobantes de cada cuenta.
 - Revisar reservas, pagos y correos desde el panel del administrador.
+- Recibir confirmaciones con el logo, los datos del servicio y un comprobante PDF.
 
 Las páginas usan HTML, CSS y JavaScript. Python 3.14 conecta los formularios con PostgreSQL. No se usa Flask. La apariencia es negra y plateada, con letra Arial y fotos de la cancha.
 
@@ -33,6 +34,8 @@ Los pasos están en [INICIAR.md](INICIAR.md). La base se prepara con los archivo
 | `server.py` | Recibe las solicitudes de la página. |
 | `db.py` | Abre la conexión con PostgreSQL. |
 | `correos.py` | Envía los correos y registra sus intentos. |
+| `comprobantes.py` | Prepara los datos del correo y el PDF adjunto. |
+| `templates/correos/` | Diseño HTML del correo, preparado con Jinja2. |
 | `manage.py` | Comandos para revisar la base y crear el administrador. |
 | `sql/` | Tablas, funciones, triggers, procedimiento y vistas. |
 | `tests/` | Pruebas del funcionamiento. |

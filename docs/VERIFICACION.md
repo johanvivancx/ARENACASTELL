@@ -1,6 +1,6 @@
 # Pruebas del proyecto
 
-La última ejecución completa terminó con **65 pruebas aprobadas**. Se usaron Python 3.14.6 y PostgreSQL 18.6 en una base de prueba separada.
+La última ejecución completa terminó con **75 pruebas aprobadas**. Se usaron Python 3.14.6 y PostgreSQL 18.6 en una base de prueba separada.
 
 ## Qué comprueban
 
@@ -15,9 +15,9 @@ La última ejecución completa terminó con **65 pruebas aprobadas**. Se usaron 
 | Pagos | Tarifas de $27, $30 y $25 por hora según el servicio, rechazo de duplicados y conservación de importes anteriores. |
 | Permisos | Historial de cada titular y reportes solo para el administrador. |
 | Recuperación | Enlace de un solo uso, vencimiento y cierre de sesiones anteriores. |
-| Correo | Envío después de guardar, reintentos, TLS, estados y cancelación de enlaces inválidos. |
+| Correo | Envío después de guardar, reintentos, TLS, estados y cancelación de enlaces inválidos. HTML y PDF de cada servicio, importe guardado, logo adjunto, escape de textos y manejo de errores del diseño. |
 | Páginas | Enlaces locales, etiquetas, idioma e identificación de campos. |
-| Archivos privados | Rechazo de rutas que intentan descargar `.env`, Python o SQL. |
+| Archivos privados | Rechazo de rutas que intentan descargar `.env`, Python, SQL o las plantillas de correo. |
 
 Las pruebas de correo bloquean las conexiones externas. Comprueban la lógica del envío, pero no demuestran que una cuenta real de Gmail esté configurada. Eso se revisa con `manage.py test-email` después de guardar la clave localmente.
 
@@ -56,8 +56,16 @@ a 15 y el administrador vio la operación y su importe. No hubo errores de JavaS
 Se comprobó que la página desactiva la inscripción si no existe la convocatoria, está cerrada
 o tiene sus cupos completos. No se usaron cuentas personales ni se enviaron correos reales.
 
+## Revisión de los correos
+
+Se revisaron las confirmaciones de torneo, reserva y escuela, el mensaje de prueba y la recuperación de contraseña en Chrome, con anchos de 1000, 390 y 320 píxeles. Son 15 vistas sin desbordes horizontales ni imágenes rotas. Se comprobaron los botones con teclado y una vista sin las reglas de CSS para móviles.
+
+Los PDF de torneo, cumpleaños, escuela y vista previa se convirtieron a imágenes para revisar cada página. Los cuatro ejemplos caben en una página y no tienen texto cortado ni datos encimados. Las pruebas también comprueban el importe y que no aparezca la cédula completa.
+
+Esta revisión del HTML en Chrome no garantiza que se vea idéntico en todos los clientes de correo. Falta comprobar el nuevo diseño dentro de Gmail con `manage.py test-email`; ese comando envía un ejemplo a la cuenta configurada, sin registrar operaciones.
+
 ## Qué no está probado todavía
 
-No se ha realizado un cobro bancario: no hay una pasarela integrada. Tampoco se ha confirmado aquí la entrega de correo desde la cuenta personal. Las pruebas automáticas no sustituyen probar la página en un celular ni comprobar su uso desde Internet.
+No se ha realizado un cobro bancario: no hay una pasarela integrada. Las pruebas automáticas no sustituyen revisar Gmail, probar la página en un celular ni comprobar su uso desde Internet.
 
 El diagrama de la base se revisó en sus cuatro páginas. Las guías y el código deben seguir usando los mismos nombres de tablas, campos y archivos.

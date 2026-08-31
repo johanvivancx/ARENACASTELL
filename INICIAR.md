@@ -24,7 +24,7 @@ Instala las dependencias:
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-No hace falta activar el entorno si usas los comandos completos de esta guía.
+No hace falta activar el entorno si usas los comandos completos de esta guía. Si ya tenías el proyecto, vuelve a ejecutar la instalación cuando cambie `requirements.txt`. Ahora incluye Jinja2 para los correos y ReportLab para los PDF. Conserva tu `.env` y reinicia el servidor después de instalar.
 
 ## 3. Configurar la conexión
 

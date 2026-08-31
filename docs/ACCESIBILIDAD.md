@@ -33,6 +33,8 @@ Los campos tienen etiquetas, ejemplos y mensajes de error. Un error no se indica
 
 ## Qué revisar antes de presentar
 
+Los correos usan texto oscuro sobre fondo claro, letra Arial, logo con descripción y un botón amplio. La tabla del servicio tiene encabezados; las tablas que solo ordenan el diseño usan `role="presentation"`. También se envía una versión en texto para quien no pueda leer HTML. Falta revisar estos mensajes con un lector de pantalla dentro del correo.
+
 1. Recorrer la página usando Tab, Shift+Tab y Enter.
 2. Comprobar que el menú móvil abre y cierra sin mouse.
 3. Probar la vista de celular y aumentar el zoom del navegador.

@@ -57,7 +57,8 @@ def test_http_archivos_privados_y_html(conn):
     with client() as request:
         for path in ['/server.py','/.env','/.env.example','/.git/HEAD','/README.md','/configurar_bd.py',
                      '/sql/schema.sql','/../.env','/pages/../.env','/assets/%2e%2e/.env',
-                     '/pages/%2e%2e%5c.env','/assets/','/pages/']:
+                     '/pages/%2e%2e%5c.env','/assets/','/pages/',
+                     '/comprobantes.py','/templates/correos/mensaje.html']:
             assert request(path)[0]==404
             assert request(path,method='HEAD')[0]==404
         status,body,headers=request('/index.html')

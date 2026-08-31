@@ -8,6 +8,8 @@ import pytest
 import correos as mail
 import services as s
 from db import ROOT
+from io import BytesIO
+from pypdf import PdfReader
 
 
 @pytest.fixture
@@ -40,8 +42,11 @@ def test_pago_solo_envia_despues_de_commit_y_no_duplica(conn,user,pay_data,smtp)
     assert 'Reserva:' in smtp[0]['cuerpo'] and str(order['id']) in smtp[0]['cuerpo']
     message=mail.crear_mensaje(smtp[0],mail.ConfiguracionSMTP.desde_entorno())
     attachment=list(message.iter_attachments())[0]
-    assert attachment.get_filename()==f"comprobante-{order['id']}.txt"
-    assert 'ARENA CASTELL' in attachment.get_content()
+    assert attachment.get_filename().endswith('.pdf')
+    assert attachment.get_content_type()=='application/pdf'
+    texto=''.join(p.extract_text() for p in PdfReader(BytesIO(attachment.get_content())).pages)
+    assert 'ARENA CASTELL' in texto and str(order['id']) in texto and '$27.00' in texto
+    assert '$27.00' in message.get_body(preferencelist=('html',)).get_content()
     s.pagar(conn,user['id'],order['id'],pay_data);conn.commit()
     assert mail.procesar_pendientes()['enviados']==0
     assert len(smtp)==1
@@ -156,7 +161,7 @@ def test_transporte_tls_antes_de_login_y_contenido_utf8(monkeypatch,security):
         def send_message(self,message,from_addr,to_addrs):
             assert 'login' in calls
             assert to_addrs==['cliente@example.com'] and from_addr=='arena@example.com'
-            assert 'Amaguaña' in message.get_content()
+            assert 'Amaguaña' in message.get_body(preferencelist=('plain',)).get_content()
             assert b'Content-Type: text/plain; charset="utf-8"' in message.as_bytes()
             calls.append('send');return {}
         def quit(self):calls.append('quit')

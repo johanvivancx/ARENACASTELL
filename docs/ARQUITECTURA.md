@@ -22,6 +22,8 @@ flowchart LR
 | `models.py` | Contiene las clases, validaciones y cálculos de precio. |
 | `db.py` | Abre conexiones con PostgreSQL. |
 | `correos.py` | Lee los correos pendientes y los envía por SMTP. |
+| `comprobantes.py` | Consulta el pago del titular, prepara el HTML con Jinja2 y crea el PDF con ReportLab. |
+| `templates/correos/mensaje.html` | Define el diseño del correo: logo, detalles, importe y botón. |
 
 ## Ejemplo de una reserva
 
@@ -30,6 +32,8 @@ El cliente elige fecha, hora y duración. Python calcula el precio con la tarifa
 Al registrar el pago se vuelve a comprobar el horario. Si está libre, se confirman la reserva y la orden. Si otra persona ocupó el mismo horario, se cancela esa operación completa: no queda un pago separado de una reserva fallida.
 
 El correo se guarda en la misma operación, pero se envía después de que PostgreSQL confirme los cambios. Si falla Gmail, la reserva sigue guardada y el correo queda pendiente de reintento.
+
+Antes de enviarlo, Python consulta el pago de ese usuario y prepara las versiones HTML y texto. El PDF usa el importe registrado, aunque después cambie la tarifa. El logo va dentro del mensaje y el adjunto se crea en memoria. No se añadieron tablas ni carpetas públicas con comprobantes. Los detalles de instalación están en [la guía de Gmail](CORREOS_GMAIL.md).
 
 ## Tablas y relaciones
 

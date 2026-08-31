@@ -1,4 +1,6 @@
 psycopg[binary]==3.3.4
 python-dotenv==1.2.3
-# Correo: smtplib, email y ssl ya están incluidos en Python 3.14.
+# Plantillas de correo y comprobantes PDF. SMTP sigue usando la biblioteca de Python.
+Jinja2==3.1.6
+reportlab==5.0.1
 tzdata==2026.3

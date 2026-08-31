@@ -293,7 +293,7 @@ def pagar(conn, uid, oid, data):
                  f"Horario: {sc['dias']}, {sc['inicio']:%H:%M} a {sc['fin']:%H:%M}\n"
                  f"Mensualidad: {sc['periodo']:%m/%Y}\n")
     body += (f"\nConsulta tus registros en {url_publica()}/pages/mis_reservas_inscripciones.html\n"
-             "Adjuntamos el comprobante de registro. La verificación del abono corresponde a la administración.\n")
+             "Adjuntamos el comprobante de registro en PDF. La verificación del abono corresponde a la administración.\n")
     if order["tipo"] == "TORNEO":
         limit = conn.execute("SELECT t.max_jugadores FROM torneos t JOIN equipos e ON e.torneo_id=t.id WHERE e.orden_id=%s", (order["id"],)).fetchone()["max_jugadores"]
         body += f"\nDebes registrar la lista de jugadores (máximo {limit}) desde Mi actividad > Gestionar equipo antes del inicio del torneo."

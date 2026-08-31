@@ -1,6 +1,6 @@
 """Correo transaccional por SMTP con TLS y una cola persistente en PostgreSQL.
 
-Utiliza smtplib/email de la biblioteca estándar: no requiere Flask ni Flask-Mail.
+Utiliza SMTP con Jinja2 para HTML y ReportLab para PDF; no requiere Flask.
 Un mensaje se envía solamente después de confirmar la transacción que lo creó.
 """
 from dataclasses import dataclass, field
@@ -17,9 +17,16 @@ import smtplib
 import ssl
 
 from db import conectar
+from comprobantes import LOGO, LOGO_CID, contexto_correo, renderizar_html, crear_pdf, datos_comprobante
+from jinja2 import TemplateError
+from reportlab.platypus.doctemplate import LayoutError
 
 
 class ConfiguracionCorreoError(ValueError):
+    pass
+
+
+class ContenidoCorreoError(ValueError):
     pass
 
 
@@ -95,9 +102,17 @@ def crear_mensaje(row, config):
     stamp = int(row["creado_en"].timestamp() * 1_000_000)
     message["Message-ID"] = f"<arena-{row['id']}-{stamp}@{config.usuario.split('@')[1]}>"
     message.set_content(row["cuerpo"], charset="utf-8")
-    if row.get("orden_id"):
-        message.add_attachment(row["cuerpo"], subtype="plain", charset="utf-8",
-                               filename=f"comprobante-{row['orden_id']}.txt")
+    try:
+        contexto = contexto_correo(row, url_publica())
+        message.add_alternative(renderizar_html(contexto), subtype='html', charset='utf-8')
+        message.get_payload()[-1].add_related(LOGO.read_bytes(), maintype='image', subtype='jpeg',
+                                              cid=f'<{LOGO_CID}>', disposition='inline')
+        if contexto['comprobante']:
+            codigo = contexto['comprobante']['codigo'].replace(' ', '-')
+            message.add_attachment(crear_pdf(contexto), maintype='application', subtype='pdf',
+                                   filename=f'comprobante-{codigo}.pdf')
+    except (TemplateError, LayoutError, OSError, ValueError, KeyError, TypeError):
+        raise ContenidoCorreoError('No se pudo preparar el diseño o el comprobante del correo.') from None
     return message
 
 
@@ -135,6 +150,8 @@ def codigo_error(error):
         return "TLS_NO_DISPONIBLE"
     if isinstance(error, ConfiguracionCorreoError):
         return "CONFIGURACION_SMTP"
+    if isinstance(error, ContenidoCorreoError):
+        return "CONTENIDO_CORREO"
     return "CONEXION_SMTP"
 
 
@@ -160,6 +177,11 @@ def procesar_pendientes(limite=10):
                 totals["cancelados"] += 1
                 continue
             try:
+                if row.get('orden_id'):
+                    try:
+                        row['comprobante'] = datos_comprobante(conn, row['orden_id'], row['usuario_id'])
+                    except ValueError:
+                        raise ContenidoCorreoError('No se encontró el pago del titular del mensaje.') from None
                 enviar_smtp(row, config)
             except (OSError, smtplib.SMTPException, ValueError) as error:
                 attempts = row["intentos"] + 1
@@ -196,4 +218,5 @@ def enviar_prueba():
     config = ConfiguracionSMTP.desde_entorno()
     enviar_smtp({"id": "prueba", "creado_en": datetime.now(timezone.utc),
                  "destinatario": config.usuario, "asunto": "Prueba de correo · ARENA CASTELL",
-                 "cuerpo": "La conexión SMTP de ARENA CASTELL funciona.\nEste mensaje fue solicitado desde manage.py test-email."}, config)
+                 "prueba": True,
+                 "cuerpo": "La conexión SMTP de ARENA CASTELL funciona.\nEste mensaje fue solicitado desde manage.py test-email.\nEl diseño y el PDF adjunto usan datos de ejemplo; no corresponden a una operación real."}, config)
