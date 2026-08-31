@@ -10,3 +10,8 @@ y la duración de los cumpleaños sin borrar reservas ni pagos.
 
 Los precios actuales son $27 por hora, $30 por hora para eventos y $25 por hora para el paquete
 de cumpleaños de 3 horas ($75 en total).
+
+El paso 13 agrega Pasochoa Cup sexta edición a una base que ya funciona: inicio el 30 de
+septiembre de 2026, 16 equipos y $30 por inscripción. Es seguro repetirlo: no duplica la
+convocatoria, no aplaza la fecha y no modifica las inscripciones existentes.
+Después de ejecutarlo, actualiza la página local de torneos. El paso 07 actual ya lo incluye.

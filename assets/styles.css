@@ -1741,3 +1741,13 @@ figcaption {
     height: 300px;
   }
 }
+
+/* Datos de la próxima edición de Pasochoa Cup. */
+.tournament-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 12px 24px;
+}
+#pasochoa-sexta {
+  scroll-margin-top: 24px;
+}

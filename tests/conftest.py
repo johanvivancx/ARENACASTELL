@@ -45,7 +45,7 @@ def conn(database_url,monkeypatch):
         assert connection.info.dbname.startswith("test_arena_")
         connection.execute("TRUNCATE usuarios,torneos,canchas,horarios_chaca,intentos_acceso RESTART IDENTITY CASCADE")
         connection.execute((ROOT/"sql/seed.sql").read_text(encoding="utf8"))
-        connection.execute("UPDATE torneos SET nombre='Torneo de prueba', fecha_inicio=current_date+30, abierto=true, max_jugadores=20")
+        connection.execute("UPDATE torneos SET nombre='Torneo de prueba', fecha_inicio=current_date+30, abierto=true, max_jugadores=20 WHERE id=1")
         connection.commit()
         yield connection
 

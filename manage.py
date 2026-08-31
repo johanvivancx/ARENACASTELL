@@ -4,7 +4,7 @@ import getpass
 import sys
 from pathlib import Path
 from db import conectar, ROOT
-from models import Administrador, Cliente
+from models import Administrador, Cliente, ErrorValidacion
 import correos
 
 
@@ -78,6 +78,9 @@ def main():
                     print("No hay mensajes para ese correo.")
                 for row in rows:
                     print(f"\n{row['creado_en']} · {row['asunto']} · {row['estado_envio']} · {row['ultimo_error'] or ''}\n{row['cuerpo']}")
+    except ErrorValidacion as error:
+        print(f"No se completó la operación: {error}", file=sys.stderr)
+        raise SystemExit(1) from None
     except Exception as error:
         print(f"No se completó la operación: {type(error).__name__}. Revisa la configuración o los datos.", file=sys.stderr)
         raise SystemExit(1) from None

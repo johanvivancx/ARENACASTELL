@@ -72,7 +72,8 @@ def test_migracion_repetible_conserva_operaciones_y_horarios_antiguos(conn, user
         conn.execute((ROOT/'sql/migrations/001_flyers.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/seed.sql').read_text(encoding='utf8'))
     catalog = s.catalogo(conn)
-    assert len(catalog['torneos']) == 1 and catalog['torneos'][0]['max_jugadores'] == 15
+    copa = next(t for t in catalog['torneos'] if t['nombre'] == 'Copa Castell · Mundial de Campeones')
+    assert len(catalog['torneos']) == 2 and copa['max_jugadores'] == 15
     assert len(catalog['horarios_chaca']) == 14
     assert all(h['id'] != legacy for h in catalog['horarios_chaca'])
     assert conn.execute('SELECT id FROM horarios_chaca WHERE id=%s', (legacy,)).fetchone()

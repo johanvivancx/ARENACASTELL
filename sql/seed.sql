@@ -1,5 +1,5 @@
 -- Tarifas de Arena Castell: hora $27, evento $30, cumpleaños $25 por hora en paquete de 3 horas.
--- El cupo de 16 equipos queda pendiente de confirmar.
+-- El cupo de Copa Castell sigue pendiente de confirmar; Pasochoa Cup sí tiene 16 equipos.
 INSERT INTO canchas(nombre,tarifa_hora,tarifa_evento,tarifa_cumpleanos)
 VALUES ('Cancha principal · Fútbol 7',27.00,30.00,25.00)
 ON CONFLICT (nombre) DO UPDATE SET
@@ -12,6 +12,13 @@ VALUES ('Copa Castell · Mundial de Campeones',
         'Fútbol 7. Máximo 15 jugadores por equipo. Premio al campeón: $300 + trofeo. Torneo en juego.',
         DATE '2026-08-28',25.00,16,15,false)
 ON CONFLICT DO NOTHING;
+-- Pasochoa Cup: sexta edición, 16 equipos y $30 por inscripción.
+INSERT INTO torneos(nombre,descripcion,fecha_inicio,costo,cupos,max_jugadores,visible,abierto)
+VALUES ('Pasochoa Cup · Sexta edición',
+        'Torneo de fútbol infantojuvenil. Sexta edición: 16 equipos y hasta 20 jugadores por equipo.',
+        DATE '2026-09-30',30.00,16,20,true,true)
+ON CONFLICT (nombre) DO NOTHING;
+
 -- Se elige una jornada preferida; la escuela confirma el grupo y horario definitivo.
 -- Los días de la jornada matutina están por confirmar.
 INSERT INTO horarios_chaca(categoria,dias,inicio,fin)

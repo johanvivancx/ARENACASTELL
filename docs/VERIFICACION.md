@@ -1,6 +1,6 @@
 # Pruebas del proyecto
 
-La última ejecución completa terminó con **61 pruebas aprobadas**. Se usaron Python 3.14.6 y PostgreSQL 18.6 en una base de prueba separada.
+La última ejecución completa terminó con **65 pruebas aprobadas**. Se usaron Python 3.14.6 y PostgreSQL 18.6 en una base de prueba separada.
 
 ## Qué comprueban
 
@@ -10,7 +10,7 @@ La última ejecución completa terminó con **61 pruebas aprobadas**. Se usaron 
 | Clases | Herencia, contraseña privada y cálculo de costos de cada servicio. |
 | Cuentas | Registro como cliente, inicio de sesión y acceso al perfil. |
 | Reservas | Horarios válidos, cruces, reservas seguidas, solicitudes simultáneas y cumpleaños de 3 horas. |
-| Torneos | Cupos, inscripciones cerradas y límites de 15 o 20 jugadores según la convocatoria. |
+| Torneos | Sexta edición de Pasochoa Cup: pago de $30, máximo 16 equipos, cierre al comenzar y script que no duplica ni reabre la convocatoria. Límites de 15 o 20 jugadores según el torneo. |
 | Escuela | Edades de 4 a 17 años, categoría, horario y mensualidad de $50. |
 | Pagos | Tarifas de $27, $30 y $25 por hora según el servicio, rechazo de duplicados y conservación de importes anteriores. |
 | Permisos | Historial de cada titular y reportes solo para el administrador. |
@@ -49,6 +49,12 @@ Estas son algunas combinaciones medidas en el diseño:
 Estas medidas no sustituyen revisar cada pantalla. Falta comprobar el uso con lector de pantalla y hacer una revisión completa en distintos tamaños de pantalla. Los pasos están en [ACCESIBILIDAD.md](ACCESIBILIDAD.md).
 
 Se revisaron Inicio, Reservas, Torneos y el formulario de reserva en Chrome con anchos de 1360 y 390 píxeles. No hubo desbordes horizontales ni imágenes rotas. Se comprobó el menú móvil, el cambio entre servicios y el total de $75 del cumpleaños. Las cinco fotos de Pasochoa Cup cargaron correctamente.
+
+También se revisó la sexta edición en esos dos tamaños. Desde una cuenta de prueba se completó
+la inscripción, revisión, pago de $30, confirmación e historial. El cupo disponible bajó de 16
+a 15 y el administrador vio la operación y su importe. No hubo errores de JavaScript.
+Se comprobó que la página desactiva la inscripción si no existe la convocatoria, está cerrada
+o tiene sus cupos completos. No se usaron cuentas personales ni se enviaron correos reales.
 
 ## Qué no está probado todavía
 

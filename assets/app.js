@@ -463,6 +463,8 @@ function initTournaments() {
       open
         .map((t) => `<option value="${t.id}">${esc(t.nombre)}</option>`)
         .join("") || '<option value="">Sin torneos disponibles</option>';
+    const selected = open.find((t) => String(t.id) === query.get("torneo"));
+    if (selected) $("#torneo_id").value = String(selected.id);
     $("#torneo_id").addEventListener("change", tournamentSummary);
     tournamentSummary();
     const form = $("#tournament-form");
@@ -483,6 +485,29 @@ function initTournaments() {
       : t.fecha_inicio <= catalog.hoy
         ? "En juego · Inscripciones cerradas"
         : "Inscripciones cerradas";
+  }
+  if ($("#pasochoa-next-status")) {
+    const next = catalog.torneos.find(
+      (item) => item.nombre === "Pasochoa Cup · Sexta edición",
+    );
+    const available = next && open.some((item) => item.id === next.id);
+    $("#pasochoa-next-link").hidden = !available;
+    if (next) {
+      $("#pasochoa-next-date").textContent = dates(next.fecha_inicio);
+      $("#pasochoa-next-price").textContent = `${money(next.costo)} por equipo`;
+      $("#pasochoa-next-capacity").textContent = `${next.cupos} equipos`;
+      $("#pasochoa-next-players").textContent = `Hasta ${next.max_jugadores} jugadores`;
+      $("#pasochoa-next-status").textContent = available
+        ? `Inscripciones abiertas · ${next.disponibles} cupos disponibles`
+        : !next.abierto || next.fecha_inicio <= catalog.hoy
+          ? "Inscripciones cerradas"
+          : "Cupos completos";
+      if (available) {
+        $("#pasochoa-next-link").href = `${pageHref("pagos_torneos.html")}?torneo=${next.id}`;
+      }
+    } else {
+      $("#pasochoa-next-status").textContent = "Inscripciones aún no disponibles";
+    }
   }
 }
 function schoolSchedule() {

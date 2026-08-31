@@ -132,5 +132,7 @@ para cumpleaños. El paquete de cumpleaños dura 3 horas y cuesta $75. El formul
 esa duración y Python y el trigger de reservas la comprueban al crear una reserva.
 
 La actualización de tarifas conserva los importes y las duraciones de las reservas anteriores.
-El resumen de Pasochoa Cup está en la página de torneos; no permite pagar inscripciones a una
-sexta edición cuya fecha y tarifa todavía no se conocen.
+La sexta edición de Pasochoa Cup empieza el 30 de septiembre de 2026, con 16 equipos y una
+inscripción de $30. Usa el mismo recorrido de equipos, órdenes, pagos e historial. El administrador
+ve cada inscripción en Operaciones y su comprobante en Pagos. El paso 13 añade la convocatoria
+a una base anterior sin modificar sus registros. La quinta edición conserva su galería de fotos.

@@ -53,9 +53,15 @@ Los precios nuevos no cambian el valor de órdenes o pagos anteriores.
 ## Pasochoa Cup
 
 Es un torneo de fútbol infantojuvenil. Su quinta edición finalizó con **800 niños premiados**.
-La página incluye fotos de los partidos y las premiaciones e invita a la sexta edición.
-Todavía no se publican su fecha, tarifa ni inscripciones. Este resumen no crea una convocatoria
-en la base de datos, porque aún faltan esos datos.
+La página conserva las fotos de los partidos y las premiaciones de esa edición.
+
+Johan confirmó estos datos para la sexta edición: empieza el **30 de septiembre de 2026**,
+tiene **16 equipos** y cuesta **$30 por equipo**. Mantiene el límite general de 20 jugadores.
+Estos datos se añadieron después; no proceden del flyer de Copa Castell.
+
+La inscripción se hace desde la página de torneos. El cupo se confirma al completar el pago.
+En una base ya creada, el paso 13 agrega esta edición sin borrar equipos, reservas ni pagos.
+Repetirlo no duplica el torneo ni cambia su fecha o estado.
 
 ## Datos por confirmar
 

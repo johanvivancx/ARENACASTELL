@@ -12,12 +12,13 @@ La base se llama `arena_castell`. Los scripts están en `sql/pgadmin` y se ejecu
 | 4 | `04_triggers.sql` | Agrega las reglas de reservas, equipos, jugadores y pagos. |
 | 5 | `05_procedimientos.sql` | Crea el procedimiento de mensualidad. |
 | 6 | `06_vistas.sql` | Crea los tres reportes. |
-| 7 | `07_catalogo.sql` | Carga la cancha con las tarifas actuales, la Copa y los horarios. |
+| 7 | `07_catalogo.sql` | Carga la cancha, Copa Castell, Pasochoa Cup sexta edición y horarios. |
 | 8, opcional | `08_datos_de_prueba_opcionales.sql` | Agrega personas y operaciones ficticias para probar. |
 | 9, después del 8 | `09_call_y_consultas.sql` | Ejecuta el procedimiento con CALL y consulta los reportes. |
 | 10 | `10_comprobar_validaciones.sql` | Comprueba la cédula y los elementos creados. |
 | 11, solo para una versión anterior | `11_actualizar_correo_smtp.sql` | Agrega los campos de correo si todavía no existen. |
 | 12, si ya tenías la base creada | `12_actualizar_tarifas_reservas.sql` | Actualiza las tarifas y la regla de 3 horas para cumpleaños. Conserva las órdenes y pagos anteriores. |
+| 13, si ya tenías el catálogo anterior | `13_pasochoa_sexta_edicion.sql` | Agrega Pasochoa Cup sexta edición: 30 de septiembre de 2026, 16 equipos y $30 por equipo. No cambia registros anteriores. |
 
 Después del paso 1, actualiza Databases y abre un nuevo Query Tool sobre **arena_castell**. Los pasos restantes se ejecutan ahí, no en `postgres`.
 
@@ -36,6 +37,11 @@ El paso 11 no hace falta si creaste las tablas con el script 03 actual, que ya i
 Ejecuta el paso 12 si usaste una versión anterior del paso 04 o si la cancha conserva las tarifas anteriores.
 Puedes ejecutarlo después del 07 aunque omitas los ejemplos 08 y 09. No borra datos ni cambia los importes
 de órdenes existentes. Una instalación que use los pasos 04 y 07 actuales ya incluye estos cambios.
+
+Si tu página muestra «Sin torneos disponibles», ejecuta el paso 13 completo sobre `arena_castell`.
+Después actualiza la página local del servidor Python. La sexta edición aparecerá si aún no ha
+empezado, sigue abierta y tiene cupos. No repitas los pasos que crean tablas. El paso 07 actual
+ya incluye esta convocatoria para instalaciones nuevas.
 
 ## Conectar la página
 

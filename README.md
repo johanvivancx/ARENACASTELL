@@ -59,6 +59,6 @@ Los pagos se guardan en la base, pero todavía no están conectados a un banco. 
 
 La cancha cuesta $27 por hora y los eventos deportivos $30 por hora. Los cumpleaños tienen un paquete de 3 horas por $75, con decoración. Hay parqueadero privado y servicio de bar.
 
-La Copa Castell se muestra en juego, con inscripciones cerradas. Pasochoa Cup tiene una sección con fotos y el resumen de su quinta edición: 800 niños premiados. La sexta edición todavía no tiene fecha ni inscripciones publicadas. El mapa señala Amaguaña, no una dirección exacta.
+La Copa Castell se muestra en juego, con inscripciones cerradas. Pasochoa Cup tiene una sección con fotos y el resumen de su quinta edición: 800 niños premiados. La sexta edición empieza el 30 de septiembre de 2026: 16 equipos, $30 por inscripción y hasta 20 jugadores por equipo. Para agregarla a una base ya creada, ejecuta `sql/pgadmin/13_pasochoa_sexta_edicion.sql`. El mapa señala Amaguaña, no una dirección exacta.
 
 El servidor actual funciona en el mismo equipo donde se ejecuta Python. Para publicarlo con acceso desde Internet hace falta preparar el alojamiento y HTTPS. `.env` contiene claves y nunca debe subirse a GitHub.
