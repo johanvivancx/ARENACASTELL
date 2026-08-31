@@ -1,0 +1,4 @@
+psycopg[binary]==3.3.4
+python-dotenv==1.2.3
+# Correo: smtplib, email y ssl ya están incluidos en Python 3.14.
+tzdata==2026.3

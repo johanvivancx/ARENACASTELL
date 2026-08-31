@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ARENA CASTELL, cancha sintética en Amaguaña. Reservas, torneos amateurs y escuela de fútbol Súper Chaca."
+    />
+    <meta name="theme-color" content="#0c0c0c" />
+    <meta property="og:title" content="Crear cuenta | ARENA CASTELL" />
+    <meta
+      property="og:description"
+      content="Tu cancha. Tu equipo. Tu historia. Conoce ARENA CASTELL en Amaguaña."
+    />
+    <title>Crear cuenta | ARENA CASTELL</title>
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../assets/styles.css?v=tarifas-pasochoa-1" />
+    <script src="../assets/app.js?v=tarifas-pasochoa-1" defer></script>
+  </head>
+  <body data-page="register">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a class="brand" href="../index.html" aria-label="Arena Castell, inicio"
+          ><img
+            src="../assets/logo-arena-castell.jpg"
+            alt=""
+            width="56"
+            height="56"
+          /><span
+            ><strong>ARENA CASTELL</strong
+            ><small>CANCHA SINTÉTICA · AMAGUAÑA</small></span
+          ></a
+        ><button
+          class="menu-toggle"
+          type="button"
+          aria-label="Abrir menú"
+          aria-controls="main-nav"
+          aria-expanded="false"
+        >
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <nav class="main-nav" id="main-nav" aria-label="Navegación principal">
+          <a href="../index.html">Inicio</a><a href="reservas.html">Reservas</a
+          ><a href="torneos.html">Torneos</a
+          ><a href="super_chaca.html">Súper Chaca</a
+          ><a href="mis_reservas_inscripciones.html" data-history-link hidden
+            >Mi actividad</a
+          ><a href="admin.html" data-admin-link hidden>Admin</a
+          ><a href="iniciar_sesion.html" class="nav-account" data-account-link
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="7" r="4" />
+              <path d="M4 21v-3a8 8 0 0116 0v3" /></svg
+            ><span>Iniciar sesión</span></a
+          >
+        </nav>
+      </div>
+    </header>
+    <noscript
+      ><div class="container notice warning">
+        Puedes recorrer las páginas informativas sin JavaScript. Para registrar
+        datos y consultar disponibilidad debes activarlo.
+      </div></noscript
+    >
+    <div
+      id="connection-message"
+      class="connection-hint"
+      role="status"
+      hidden
+    ></div>
+    <main id="contenido">
+      <section class="container auth-grid">
+        <div class="auth-story">
+          <img
+            class="mini-brand"
+            src="../assets/logo-arena-castell.jpg"
+            alt="Logotipo oficial de Arena Castell"
+          />
+          <p class="eyebrow">TU EQUIPO EMPIEZA CONTIGO</p>
+          <h2>Nos vemos<br />en la cancha.</h2>
+          <p>
+            Una cuenta para reservar, competir y crecer. Todos tus momentos de
+            fútbol, en un solo lugar.
+          </p>
+          <ul class="check-list">
+            <li>Reservas e inscripciones desde tu cuenta</li>
+            <li>Historial y comprobantes siempre disponibles</li>
+            <li>Una experiencia sencilla de principio a fin</li>
+          </ul>
+        </div>
+        <div class="auth-card">
+          <p class="eyebrow">SÉ PARTE DE ARENA CASTELL</p>
+          <h1>Tu primera jugada.</h1>
+          <p class="small-text muted">
+            Crea tu cuenta con los datos del titular o representante.
+          </p>
+          <div id="form-message" role="alert" tabindex="-1" hidden></div>
+          <form method="post" id="register-form">
+            <div class="form-grid">
+              <div class="field full">
+                <label for="nombre">Nombres y apellidos</label
+                ><input
+                  id="nombre"
+                  name="nombre"
+                  type="text"
+                  required
+                  minlength="2"
+                  maxlength="100"
+                  autocomplete="name"
+                />
+              </div>
+              <div class="field">
+                <label for="cedula">Cédula ecuatoriana</label
+                ><input
+                  id="cedula"
+                  name="cedula"
+                  type="text"
+                  required
+                  pattern="[0-9]{10}"
+                  maxlength="10"
+                  inputmode="numeric"
+                  data-cedula
+                />
+              </div>
+              <div class="field">
+                <label for="telefono">Celular</label
+                ><input
+                  id="telefono"
+                  name="telefono"
+                  type="tel"
+                  required
+                  pattern="09[0-9]{8}"
+                  maxlength="10"
+                  autocomplete="tel"
+                  placeholder="09XXXXXXXX"
+                />
+              </div>
+              <div class="field full">
+                <label for="email">Correo electrónico</label
+                ><input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  maxlength="254"
+                  autocomplete="email"
+                />
+              </div>
+              <div class="field full">
+                <label for="password">Contraseña</label>
+                <div class="input-action">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    minlength="10"
+                    maxlength="128"
+                    autocomplete="current-password"
+                  /><button
+                    type="button"
+                    data-show-password="password"
+                    aria-label="Mostrar contraseña"
+                    aria-pressed="false"
+                  >
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="field full">
+                <label for="confirmacion">Confirma tu contraseña</label>
+                <div class="input-action">
+                  <input
+                    id="confirmacion"
+                    name="confirmacion"
+                    type="password"
+                    required
+                    minlength="10"
+                    maxlength="128"
+                    autocomplete="new-password"
+                  /><button
+                    type="button"
+                    data-show-password="confirmacion"
+                    aria-label="Mostrar confirma tu contraseña"
+                    aria-pressed="false"
+                  >
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p class="small-text muted">
+              Usa entre 10 y 128 caracteres. Puedes pegar o utilizar un gestor
+              de contraseñas.
+            </p>
+            <label class="checkbox"
+              ><input type="checkbox" name="consentimiento" required /><span
+                >He leído la información de privacidad y acepto el uso de mis
+                datos para gestionar mi cuenta.
+                <a href="privacidad.html">Información de privacidad</a>.</span
+              ></label
+            ><button class="btn" type="submit">
+              Crear mi cuenta
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </button>
+          </form>
+          <p class="auth-foot">
+            ¿Ya tienes una cuenta?
+            <a href="iniciar_sesion.html">Inicia sesión</a>
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-main">
+          <div>
+            <a
+              class="brand"
+              href="../index.html"
+              aria-label="Arena Castell, inicio"
+              ><img
+                src="../assets/logo-arena-castell.jpg"
+                alt=""
+                width="56"
+                height="56"
+              /><span
+                ><strong>ARENA CASTELL</strong
+                ><small>CANCHA SINTÉTICA · AMAGUAÑA</small></span
+              ></a
+            >
+            <p class="small-text muted">
+              El fútbol se vive en comunidad.<br />Parqueadero privado y
+              seguro.<br /><a href="tel:+593999901241">099 990 1241</a> ·
+              <a href="tel:+593960153510">096 015 3510</a>
+            </p>
+          </div>
+          <nav class="footer-links" aria-label="Enlaces del pie de página">
+            <a href="reservas.html">Reservas</a
+            ><a href="torneos.html">Torneos</a
+            ><a href="super_chaca.html">Súper Chaca</a
+            ><a href="privacidad.html">Privacidad</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <span>ARENA CASTELL · Amaguaña, Quito, Ecuador</span
+          ><span>Reservas · Torneos · Escuela de fútbol</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

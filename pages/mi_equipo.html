@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ARENA CASTELL, cancha sintética en Amaguaña. Reservas, torneos amateurs y escuela de fútbol Súper Chaca."
+    />
+    <meta name="theme-color" content="#0c0c0c" />
+    <meta property="og:title" content="Mi equipo | ARENA CASTELL" />
+    <meta
+      property="og:description"
+      content="Tu cancha. Tu equipo. Tu historia. Conoce ARENA CASTELL en Amaguaña."
+    />
+    <title>Mi equipo | ARENA CASTELL</title>
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../assets/styles.css?v=tarifas-pasochoa-1" />
+    <script src="../assets/app.js?v=tarifas-pasochoa-1" defer></script>
+  </head>
+  <body data-page="team">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a class="brand" href="../index.html" aria-label="Arena Castell, inicio"
+          ><img
+            src="../assets/logo-arena-castell.jpg"
+            alt=""
+            width="56"
+            height="56"
+          /><span
+            ><strong>ARENA CASTELL</strong
+            ><small>CANCHA SINTÉTICA · AMAGUAÑA</small></span
+          ></a
+        ><button
+          class="menu-toggle"
+          type="button"
+          aria-label="Abrir menú"
+          aria-controls="main-nav"
+          aria-expanded="false"
+        >
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <nav class="main-nav" id="main-nav" aria-label="Navegación principal">
+          <a href="../index.html">Inicio</a><a href="reservas.html">Reservas</a
+          ><a href="torneos.html">Torneos</a
+          ><a href="super_chaca.html">Súper Chaca</a
+          ><a href="mis_reservas_inscripciones.html" data-history-link hidden
+            >Mi actividad</a
+          ><a href="admin.html" data-admin-link hidden>Admin</a
+          ><a href="iniciar_sesion.html" class="nav-account" data-account-link
+            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="7" r="4" />
+              <path d="M4 21v-3a8 8 0 0116 0v3" /></svg
+            ><span>Iniciar sesión</span></a
+          >
+        </nav>
+      </div>
+    </header>
+    <noscript
+      ><div class="container notice warning">
+        Puedes recorrer las páginas informativas sin JavaScript. Para registrar
+        datos y consultar disponibilidad debes activarlo.
+      </div></noscript
+    >
+    <div
+      id="connection-message"
+      class="connection-hint"
+      role="status"
+      hidden
+    ></div>
+    <main id="contenido">
+      <div class="page-intro container">
+        <nav class="breadcrumb" aria-label="Ruta de navegación">
+          <a href="../index.html">Inicio</a><span aria-hidden="true">/</span
+          ><span>Tu equipo, nombre por nombre.</span>
+        </nav>
+        <h1>Tu equipo, nombre por nombre.</h1>
+        <p>
+          Registra tu lista respetando el límite de jugadores de tu torneo antes
+          del inicio del torneo. Puedes corregir la lista retirando y volviendo
+          a ingresar un jugador.
+        </p>
+      </div>
+      <section class="container content-section">
+        <div id="auth-gate" class="notice warning" hidden>
+          <p>
+            Para guardar tu operación,
+            <a data-login-link href="iniciar_sesion.html">inicia sesión</a> o
+            <a data-register-link href="registrarse.html">crea tu cuenta</a>.
+            Así encontrarás tus pagos y comprobantes en un solo lugar.
+          </p>
+        </div>
+        <div id="form-message" role="alert" tabindex="-1" hidden></div>
+        <div class="form-layout">
+          <div class="panel">
+            <p class="eyebrow" id="team-title">LISTA DE JUGADORES</p>
+            <h2 id="roster-count">Lista de jugadores</h2>
+            <div id="roster"></div>
+          </div>
+          <form method="post" class="panel" id="player-form">
+            <h2>Añadir jugador</h2>
+            <div class="form-grid">
+              <div class="field full">
+                <label for="nombre">Nombre completo</label
+                ><input
+                  id="nombre"
+                  name="nombre"
+                  type="text"
+                  required
+                  minlength="2"
+                  maxlength="100"
+                />
+              </div>
+              <div class="field full">
+                <label for="cedula">Cédula ecuatoriana</label
+                ><input
+                  id="cedula"
+                  name="cedula"
+                  type="text"
+                  required
+                  pattern="[0-9]{10}"
+                  maxlength="10"
+                  inputmode="numeric"
+                  data-cedula
+                />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn" type="submit">
+                Registrar jugador
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12l4 4L19 6" />
+                </svg>
+              </button>
+            </div>
+            <a href="mis_reservas_inscripciones.html" class="text-link"
+              >Volver a mi actividad</a
+            >
+          </form>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-main">
+          <div>
+            <a
+              class="brand"
+              href="../index.html"
+              aria-label="Arena Castell, inicio"
+              ><img
+                src="../assets/logo-arena-castell.jpg"
+                alt=""
+                width="56"
+                height="56"
+              /><span
+                ><strong>ARENA CASTELL</strong
+                ><small>CANCHA SINTÉTICA · AMAGUAÑA</small></span
+              ></a
+            >
+            <p class="small-text muted">
+              El fútbol se vive en comunidad.<br />Parqueadero privado y
+              seguro.<br /><a href="tel:+593999901241">099 990 1241</a> ·
+              <a href="tel:+593960153510">096 015 3510</a>
+            </p>
+          </div>
+          <nav class="footer-links" aria-label="Enlaces del pie de página">
+            <a href="reservas.html">Reservas</a
+            ><a href="torneos.html">Torneos</a
+            ><a href="super_chaca.html">Súper Chaca</a
+            ><a href="privacidad.html">Privacidad</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <span>ARENA CASTELL · Amaguaña, Quito, Ecuador</span
+          ><span>Reservas · Torneos · Escuela de fútbol</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
