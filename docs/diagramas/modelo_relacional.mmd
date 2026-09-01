@@ -1,0 +1,145 @@
+erDiagram
+  usuarios ||--o{ ordenes : "usuario_id"
+  canchas ||--o{ reservas : "cancha_id"
+  ordenes ||--o| reservas : "orden_id UQ"
+  ordenes ||--o| pagos : "orden_id UQ"
+  torneos ||--o{ equipos : "torneo_id"
+  ordenes ||--o| equipos : "orden_id UQ"
+  equipos ||--o{ jugadores : "equipo_id"
+  ordenes ||--o| inscripciones_chaca : "orden_id UQ"
+  horarios_chaca ||--o{ inscripciones_chaca : "horario_id + categoria"
+  inscripciones_chaca ||--o{ mensualidades : "inscripcion_id"
+  ordenes ||--o| mensualidades : "orden_id UQ"
+  usuarios ||--o{ correo_salida : "usuario_id"
+  ordenes o|--o{ correo_salida : "orden_id opcional"
+  usuarios ||--o{ restablecimientos : "usuario_id"
+  usuarios o|--o{ sesiones : "usuario_id opcional"
+
+  usuarios {
+    bigint id PK
+    varchar_100 nombre
+    varchar_10 cedula UK
+    varchar_254 email UK
+    varchar_10 telefono
+    text password_hash
+    varchar_10 rol
+    integer session_version
+    timestamptz creado_en
+  }
+  canchas {
+    integer id PK
+    varchar_80 nombre UK
+    numeric_8_2 tarifa_hora
+    numeric_8_2 tarifa_evento
+    numeric_8_2 tarifa_cumpleanos
+  }
+  torneos {
+    integer id PK
+    varchar_100 nombre UK
+    text descripcion
+    date fecha_inicio
+    numeric_8_2 costo
+    integer cupos
+    integer max_jugadores
+    boolean visible
+    boolean abierto
+  }
+  ordenes {
+    uuid id PK
+    bigint usuario_id FK
+    varchar_20 tipo
+    varchar_16 metodo_previsto
+    varchar_250 descripcion
+    numeric_10_2 monto
+    varchar_12 estado
+    timestamptz creado_en
+  }
+  reservas {
+    bigint id PK
+    uuid orden_id FK,UK
+    integer cancha_id FK
+    varchar_12 tipo_evento
+    timestamptz inicio
+    timestamptz fin
+    varchar_12 estado
+  }
+  equipos {
+    bigint id PK
+    uuid orden_id FK,UK
+    integer torneo_id FK
+    varchar_80 nombre
+    varchar_12 estado
+  }
+  jugadores {
+    bigint id PK
+    bigint equipo_id FK
+    varchar_100 nombre
+    varchar_10 cedula
+    integer posicion
+  }
+  horarios_chaca {
+    integer id PK
+    varchar_6 categoria UK
+    varchar_80 dias UK
+    boolean activo
+    time inicio UK
+    time fin
+  }
+  inscripciones_chaca {
+    bigint id PK
+    uuid orden_id FK,UK
+    varchar_100 alumno
+    varchar_10 cedula UK
+    date nacimiento
+    date fecha_inscripcion
+    varchar_6 categoria FK
+    integer horario_id FK
+    varchar_12 estado
+  }
+  mensualidades {
+    bigint id PK
+    uuid orden_id FK,UK
+    bigint inscripcion_id FK
+    date periodo UK
+  }
+  pagos {
+    bigint id PK
+    uuid orden_id FK,UK
+    numeric_10_2 monto
+    varchar_16 metodo
+    varchar_64 referencia UK
+    boolean simulado
+    timestamptz pagado_en
+  }
+  correo_salida {
+    bigint id PK
+    bigint usuario_id FK
+    uuid orden_id FK
+    varchar_180 asunto UK
+    text cuerpo
+    timestamptz creado_en
+    varchar_254 destinatario
+    varchar_12 estado_envio
+    smallint intentos
+    timestamptz proximo_intento
+    timestamptz enviado_en
+    varchar_50 ultimo_error
+    timestamptz vence_en
+  }
+  restablecimientos {
+    char_64 token_hash PK
+    bigint usuario_id FK
+    timestamptz vence_en
+    boolean usado
+  }
+  intentos_acceso {
+    char_64 clave PK
+    integer intentos
+    timestamptz inicio
+  }
+  sesiones {
+    char_64 token_hash PK
+    bigint usuario_id FK
+    varchar_64 csrf_token
+    timestamptz vence_en
+  }

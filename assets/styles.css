@@ -1789,3 +1789,332 @@ figcaption {
   .cash-item { align-items: stretch; flex-direction: column; }
 }
 @media print { .footer-contact, #cash-contact, #change-payment { display: none !important; } }
+
+/* Identidad visual Arena Castell: negro carbón y acero del logotipo. */
+:root {
+  --bg: #0c0e0f;
+  --surface: #171a1b;
+  --surface2: #222628;
+  --line: #454c4f;
+  --text: #f4f5f5;
+  --muted: #bec4c6;
+  --accent: #cbd0d2;
+  --accent-soft: #f0f2f3;
+  --steel: #969ea2;
+  --steel-dark: #626b70;
+  --steel-glow: rgba(205, 212, 215, 0.13);
+  --radius: 12px;
+}
+
+body {
+  background:
+    radial-gradient(circle at 84% 3%, rgba(178, 185, 188, 0.12), transparent 28rem),
+    linear-gradient(180deg, #0e1011 0%, var(--bg) 55%, #0a0c0d 100%);
+  background-attachment: fixed;
+  font-size: 16px;
+}
+
+.site-header {
+  background: rgba(13, 15, 16, 0.96);
+  border-bottom-color: #51595d;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+}
+
+.nav-wrap {
+  min-height: 102px;
+}
+
+.brand {
+  gap: 15px;
+}
+
+.site-header .brand img {
+  width: 72px;
+  height: 68px;
+  border: 1px solid #697175;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 3px rgba(207, 213, 216, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.34);
+}
+
+.site-header .brand strong {
+  font-size: 20px;
+  color: var(--accent-soft);
+}
+
+.site-header .brand small {
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.main-nav a {
+  position: relative;
+  color: #d9ddde;
+  font-size: 13px;
+}
+
+.main-nav a[aria-current="page"],
+.main-nav a:hover {
+  color: #ffffff;
+}
+
+.main-nav a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
+}
+
+.menu-toggle {
+  background: linear-gradient(145deg, #202426, #121415);
+  border-color: var(--steel-dark);
+}
+
+.btn {
+  border-color: #d7dbdd;
+  background: linear-gradient(135deg, #f3f5f5 0%, #cbd0d2 52%, #aeb5b8 100%);
+  color: #0b0d0e;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 9px 24px rgba(0, 0, 0, 0.22);
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #dde1e2 58%, #bdc3c6 100%);
+}
+
+.btn.secondary {
+  border-color: #737c80;
+  background: linear-gradient(145deg, rgba(53, 59, 62, 0.72), rgba(22, 25, 26, 0.9));
+}
+
+.btn.secondary:hover {
+  border-color: var(--accent);
+  background: linear-gradient(145deg, #343a3d, #202425);
+}
+
+.btn.quiet {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--accent-soft);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(188, 196, 199, 0.06), transparent 38%),
+    radial-gradient(circle at 72% 46%, rgba(194, 201, 204, 0.1), transparent 32%);
+}
+
+.hero-photo img,
+.service-photo img,
+.card-photo {
+  border: 1px solid #525a5e;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3);
+}
+
+.section.alt {
+  background: linear-gradient(135deg, #151819 0%, #101213 52%, #1a1d1e 100%);
+  border-color: #3f4649;
+}
+
+.card,
+.service-hero,
+.panel,
+.auth-card,
+.stat,
+.mail-item,
+.category,
+.flyer,
+.map-frame,
+.cash-item {
+  border-color: #485054;
+  background: linear-gradient(145deg, rgba(34, 38, 40, 0.97), rgba(19, 22, 23, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 16px 34px rgba(0, 0, 0, 0.18);
+}
+
+.cta-strip {
+  border-color: #596267;
+  background:
+    linear-gradient(120deg, rgba(95, 105, 110, 0.2), transparent 46%),
+    linear-gradient(145deg, #232729, #151819);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+}
+
+.field input,
+.field select,
+.field textarea {
+  border-color: #697277;
+  background: #111415;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--accent-soft);
+  background: #171a1b;
+}
+
+.field input[readonly] {
+  background: #24282a;
+  color: #d9ddde;
+}
+
+.field label,
+legend {
+  font-size: 13px;
+}
+
+.field small,
+.footer-bottom,
+th,
+.tag,
+.eyebrow {
+  font-size: 11px;
+}
+
+.payment-choice {
+  border-color: #697277;
+  background: rgba(20, 23, 24, 0.72);
+}
+
+.payment-choice:has(input:checked) {
+  border-color: #cbd0d2;
+  background:
+    linear-gradient(110deg, rgba(173, 181, 185, 0.2), transparent 54%),
+    #292e30;
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.bank-details,
+.success-seal,
+.profile-avatar {
+  border-color: #697277;
+  background: linear-gradient(145deg, #292e30, #1c2022);
+}
+
+.table-wrap {
+  border-color: #50585c;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+caption,
+th {
+  background: #262b2d;
+}
+
+td {
+  color: #e3e6e7;
+}
+
+.auth-story .mini-brand {
+  width: 195px;
+  border: 1px solid #697175;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+}
+
+.site-footer {
+  background: linear-gradient(180deg, rgba(17, 20, 21, 0.55), #090b0c);
+  border-top-color: #454c4f;
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: #70797d;
+    box-shadow: 0 20px 42px rgba(0, 0, 0, 0.28);
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 1050px) {
+  .site-header .brand strong {
+    font-size: 17px;
+  }
+
+  .site-header .brand small {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 820px) {
+  .nav-wrap {
+    min-height: 84px;
+  }
+
+  .main-nav {
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+  }
+
+  .main-nav a[aria-current="page"]::after {
+    right: auto;
+    width: 46px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 15px;
+  }
+
+  .brand {
+    gap: 10px;
+  }
+
+  .site-header .brand img {
+    width: 58px;
+    height: 55px;
+    border-radius: 11px;
+  }
+
+  .site-header .brand strong {
+    font-size: 16px;
+  }
+
+  .site-header .brand small {
+    max-width: 145px;
+    font-size: 8px;
+    line-height: 1.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover,
+  .btn:hover {
+    transform: none;
+  }
+}
+
+@media print {
+  body,
+  .site-footer,
+  .section.alt {
+    background: white;
+    color: black;
+  }
+
+  .panel,
+  .card,
+  .service-hero,
+  .confirmation .receipt {
+    background: white;
+    box-shadow: none;
+  }
+}

@@ -1,0 +1,114 @@
+erDiagram
+  USUARIO ||--o{ ORDEN : realiza
+  ORDEN ||--o| RESERVA : origina
+  CANCHA ||--o{ RESERVA : recibe
+  ORDEN ||--o| PAGO : registra
+  ORDEN ||--o| EQUIPO : inscribe
+  TORNEO ||--o{ EQUIPO : agrupa
+  EQUIPO ||--o{ JUGADOR : contiene
+  ORDEN ||--o| INSCRIPCION_CHACA : crea
+  HORARIO_CHACA ||--o{ INSCRIPCION_CHACA : asigna
+  INSCRIPCION_CHACA ||--o{ MENSUALIDAD : genera
+  ORDEN ||--o| MENSUALIDAD : financia
+  USUARIO ||--o{ CORREO_SALIDA : recibe
+  ORDEN o|--o{ CORREO_SALIDA : documenta
+  USUARIO ||--o{ RESTABLECIMIENTO : solicita
+  USUARIO o|--o{ SESION : autentica
+
+  USUARIO {
+    bigint id PK
+    string nombre
+    string cedula UK
+    string email UK
+    string telefono
+    string rol
+  }
+  ORDEN {
+    uuid id PK
+    bigint usuario_id FK
+    string tipo
+    decimal monto
+    string estado
+  }
+  RESERVA {
+    bigint id PK
+    uuid orden_id FK
+    int cancha_id FK
+    datetime inicio
+    datetime fin
+    string estado
+  }
+  CANCHA {
+    int id PK
+    string nombre UK
+    decimal tarifa_hora
+    decimal tarifa_evento
+    decimal tarifa_cumpleanos
+  }
+  PAGO {
+    bigint id PK
+    uuid orden_id FK
+    decimal monto
+    string metodo
+    string referencia UK
+  }
+  TORNEO {
+    int id PK
+    string nombre UK
+    date fecha_inicio
+    decimal costo
+    int cupos
+  }
+  EQUIPO {
+    bigint id PK
+    uuid orden_id FK
+    int torneo_id FK
+    string nombre
+    string estado
+  }
+  JUGADOR {
+    bigint id PK
+    bigint equipo_id FK
+    string nombre
+    string cedula
+  }
+  HORARIO_CHACA {
+    int id PK
+    string categoria
+    string dias
+    time inicio
+    time fin
+  }
+  INSCRIPCION_CHACA {
+    bigint id PK
+    uuid orden_id FK
+    string alumno
+    string cedula UK
+    date nacimiento
+    int horario_id FK
+  }
+  MENSUALIDAD {
+    bigint id PK
+    uuid orden_id FK
+    bigint inscripcion_id FK
+    date periodo
+  }
+  CORREO_SALIDA {
+    bigint id PK
+    bigint usuario_id FK
+    uuid orden_id FK
+    string asunto
+    string estado_envio
+  }
+  RESTABLECIMIENTO {
+    string token_hash PK
+    bigint usuario_id FK
+    datetime vence_en
+    boolean usado
+  }
+  SESION {
+    string token_hash PK
+    bigint usuario_id FK
+    string csrf_token
+    datetime vence_en
+  }

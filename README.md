@@ -48,7 +48,7 @@ Los pasos están en [INICIAR.md](INICIAR.md). La base se prepara con los archivo
 - [Actualizar pagos y enlaces de contacto](docs/PAGOS_Y_CONTACTO.md).
 - [Subir cambios a GitHub](docs/GIT_GITHUB.md).
 - [Cómo funciona el código](docs/ARQUITECTURA.md).
-- [Tablas y relaciones](docs/DIAGRAMA_ENTIDAD_RELACION.md).
+- [Diagramas técnicos: entidad-relación, modelo relacional y clases POO](docs/DIAGRAMAS_PROYECTO.md).
 - [Páginas del sitio](docs/PAGINAS.md).
 - [Diseño y accesibilidad](docs/ACCESIBILIDAD.md).
 - [Datos de las fotos y flyers](docs/CONTENIDO_FLYERS.md).

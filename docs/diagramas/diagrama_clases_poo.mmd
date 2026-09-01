@@ -1,0 +1,59 @@
+classDiagram
+  class ValueError
+  class ErrorValidacion {
+    <<exception>>
+  }
+  ValueError <|-- ErrorValidacion
+
+  class Usuario {
+    +int id
+    +str nombre
+    +str email
+    +str cedula
+    +str telefono
+    -str password_hash
+    +rol str
+    +set_password(password)
+    +get_password_hash() str
+    +verificar_password(password) bool
+    +puede_administrar() bool
+    +desde_fila(fila) Usuario
+  }
+  class Administrador {
+    +rol str
+    +puede_administrar() bool
+  }
+  class Cliente {
+    +puede_administrar() bool
+  }
+  Usuario <|-- Administrador
+  Usuario <|-- Cliente
+  Usuario ..> ErrorValidacion : lanza
+
+  class ServicioArena {
+    <<abstract>>
+    +calcular_costo() Decimal
+    +resumen_costo() str
+  }
+  class ReservaCancha {
+    -int horas
+    -str tipo
+    -dict tarifas
+    +calcular_costo() Decimal
+  }
+  class InscripcionTorneo {
+    -Decimal tarifa
+    +calcular_costo() Decimal
+  }
+  class InscripcionSuperChaca {
+    +Decimal MENSUALIDAD
+    +str categoria
+    +calcular_costo() Decimal
+  }
+  ServicioArena <|-- ReservaCancha
+  ServicioArena <|-- InscripcionTorneo
+  ServicioArena <|-- InscripcionSuperChaca
+  ServicioArena ..> ErrorValidacion : lanza
+
+  note for Usuario "Encapsula password_hash y aplica PBKDF2.\nAdministrador y Cliente redefinen el rol."
+  note for ServicioArena "Abstracción y polimorfismo:\ncada servicio implementa calcular_costo()."
