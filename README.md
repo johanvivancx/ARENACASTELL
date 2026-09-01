@@ -1,46 +1,54 @@
 # Arena Castell
 
-Arena Castell es una aplicación web para organizar las reservas de una cancha sintética en Amaguaña. En el mismo sitio también se pueden manejar inscripciones a torneos y a la escuela de fútbol Súper Chaca.
+Arena Castell es una aplicación web que desarrollé para organizar las reservas de una cancha sintética en Amaguaña. En la misma página también se pueden manejar las inscripciones a torneos y a la escuela de fútbol Súper Chaca.
 
 - **Autor:** Johan Vivanco
 - **Tipo de proyecto:** trabajo individual
-- **Áreas:** Programación Orientada a Objetos, Base de Datos I y Desarrollo Web Frontend UX/UI
+- **Materias integradas:** Programación Orientada a Objetos, Base de Datos I y Desarrollo Web Frontend UX/UI
 
-## Problema que busca resolver
+## Por qué hice este proyecto
 
-Cuando las reservas, los pagos y las inscripciones se coordinan solo por llamadas o mensajes, es fácil perder información o repetir horarios. También cuesta revisar quién pagó, qué equipo se inscribió o qué mensualidad está pendiente.
+Cuando una cancha organiza todo por llamadas o mensajes, es fácil perder información, repetir un horario o no tener claro quién ya pagó. También se vuelve complicado revisar las inscripciones de los equipos y las mensualidades de la escuela.
 
-La propuesta reúne esas tareas en una sola página. El cliente puede crear su cuenta, escoger un servicio y revisar su actividad. El administrador tiene un panel para consultar reservas, pagos, mensualidades, ocupación de la cancha y correos enviados.
+Mi idea fue reunir estas tareas en un solo sistema. El cliente puede crear una cuenta, elegir un servicio y consultar su actividad. El administrador tiene su propio panel para revisar reservas, pagos, mensualidades, ocupación de la cancha y correos enviados.
 
-## Funciones principales
+## Encuesta previa
 
-### Para clientes
+Antes de empezar la página preparé un formulario y lo compartí con un grupo de 20 personas. En la exportación que utilicé para revisar los resultados constan 12 respuestas completas. Eran personas que todavía no habían probado la web, porque el objetivo era conocer qué esperarían encontrar en una página de este tipo.
+
+Las necesidades que más se repitieron fueron consultar horarios disponibles, ver precios claros, evitar la espera por llamadas o mensajes y recibir una confirmación de la reserva. También se pidió información de torneos, categorías y horarios de Súper Chaca, diferentes formas de pago y contacto directo por WhatsApp.
+
+Tomé esas respuestas como guía para decidir las funciones principales. Por eso la página muestra horarios, precios, ubicación, datos de contacto y servicios de la cancha. También permite reservar, inscribir equipos, registrar jugadores, inscribir alumnos, revisar pagos y recibir comprobantes. La mayoría esperaba un estilo oscuro, deportivo y elegante, así que mantuve esos colores junto con la imagen del logo.
+
+No incluí funciones solo porque se vieran llamativas. Primero trabajé en lo que más se repitió en el formulario y en lo que ayuda a completar una reserva o inscripción con menos dudas.
+
+## Qué puede hacer el cliente
 
 - Crear una cuenta e iniciar sesión.
-- Actualizar nombre, cédula, celular y correo.
+- Actualizar su nombre, cédula, celular y correo.
 - Recuperar la contraseña por correo.
-- Consultar horarios y reservar la cancha por hora, para cumpleaños o para eventos.
+- Consultar horarios y reservar la cancha por hora, para eventos o cumpleaños.
 - Inscribir un equipo cuando exista un torneo abierto.
-- Registrar jugadores después de confirmar la inscripción del equipo.
+- Registrar jugadores después de confirmar la inscripción.
 - Inscribir a un alumno en Súper Chaca y renovar mensualidades.
 - Elegir transferencia, efectivo en la cancha o tarjeta de crédito/débito.
-- Revisar el historial, los avisos y los comprobantes.
+- Revisar reservas, inscripciones, pagos y comprobantes.
 
-### Para el administrador
+## Qué puede hacer el administrador
 
 - Consultar todas las reservas y operaciones.
-- Revisar pagos por fechas y exportarlos en CSV.
+- Revisar los pagos por fecha y exportarlos en CSV.
 - Registrar el efectivo recibido en la cancha.
 - Consultar mensualidades, ocupación y estado de los correos.
-- Ver reportes que juntan información de varias tablas.
+- Revisar reportes que reúnen información de varias tablas.
 
 ## Alcance actual
 
-La página registra los métodos de pago, pero no está conectada a un banco. No solicita números de tarjeta, CVV ni claves bancarias. Las transferencias deben comprobarse por fuera del sistema y el efectivo se confirma desde el panel del administrador.
+Los métodos de pago se registran en el sistema, pero la página no está conectada a un banco. Tampoco solicita números de tarjeta, CVV ni claves bancarias. Las transferencias se verifican por fuera de la aplicación y el efectivo se confirma desde el panel del administrador.
 
-El proyecto funciona completo cuando `server.py` y PostgreSQL están activos. Si se publica únicamente el HTML en GitHub Pages, se pueden ver las páginas, pero no funcionan las cuentas, las reservas ni los datos de la base.
+Para que todas las funciones trabajen correctamente deben estar activos `server.py` y PostgreSQL. GitHub Pages permite mostrar los archivos HTML, pero por sí solo no puede ejecutar las cuentas, las reservas ni la conexión con la base de datos.
 
-## Cómo está organizado
+## Cómo funciona el proyecto
 
 ```mermaid
 flowchart LR
@@ -51,84 +59,85 @@ flowchart LR
     C --> F[Correos y comprobantes PDF]
 ```
 
-El navegador muestra las páginas y `assets/app.js` envía los formularios a la API. `server.py` recibe las solicitudes, `services.py` organiza cada operación y `models.py` contiene las clases y las validaciones principales. `db.py` abre la conexión con PostgreSQL.
+El usuario ve las páginas creadas con HTML y CSS. `assets/app.js` toma los datos de los formularios y los envía a la API. `server.py` recibe las solicitudes, mientras que `services.py` organiza cada operación. Las clases y validaciones principales están en `models.py`, y `db.py` se encarga de abrir la conexión con PostgreSQL.
 
-| Archivo o carpeta | Uso |
+| Archivo o carpeta | Para qué sirve |
 |---|---|
 | `index.html` | Página de inicio. |
 | `pages/` | Formularios, cuenta, historial y panel de administración. |
-| `assets/` | CSS, JavaScript, logo, fotos e imágenes de contacto. |
-| `models.py` | Clases, validaciones y cálculos de precios. |
+| `assets/` | Estilos, JavaScript, logo, fotografías e imágenes de contacto. |
+| `models.py` | Clases, validaciones y cálculos. |
 | `services.py` | Registro, reservas, torneos, escuela y pagos. |
 | `server.py` | Servidor local y rutas de la API. |
 | `db.py` | Conexión con PostgreSQL. |
 | `correos.py` | Envío y reintento de correos. |
-| `comprobantes.py` | Contenido del correo y comprobantes PDF. |
-| `manage.py` | Comandos para revisar la base y crear cuentas de administración. |
+| `comprobantes.py` | Contenido de los correos y comprobantes PDF. |
+| `manage.py` | Comandos para revisar la base y crear administradores. |
 | `sql/` | Tablas, restricciones, triggers, procedimiento, vistas y catálogo. |
 | `tests/` | Pruebas de Python, SQL, páginas, pagos y correos. |
 
 ## Base de datos
 
-La base se llama `arena_castell` y tiene 15 tablas. Las principales guardan usuarios, canchas, torneos, órdenes, reservas, equipos, jugadores, alumnos, mensualidades y pagos. Las demás controlan sesiones, recuperación de contraseña, intentos de acceso y salida de correos.
+La base se llama `arena_castell` y tiene 15 tablas. Allí se guardan usuarios, canchas, torneos, órdenes, reservas, equipos, jugadores, alumnos, mensualidades y pagos. Otras tablas controlan las sesiones, la recuperación de contraseñas, los intentos de acceso y la salida de correos.
 
-El diseño separa la información para no repetirla. Por ejemplo, los datos del cliente se guardan una sola vez en `usuarios`, mientras que cada reserva se relaciona con su orden y con la cancha. Los jugadores se guardan en filas separadas y no como una lista dentro del equipo.
+Separé la información para no repetirla. Por ejemplo, los datos del cliente se guardan una sola vez en `usuarios`. Después, cada orden se relaciona con ese usuario y con el servicio correspondiente. Los jugadores también se guardan por separado y se conectan con su equipo.
 
-La integridad se cuida en varias partes:
+Para cuidar la información se utilizan:
 
-- Las claves primarias identifican cada registro y las claves foráneas conectan las tablas.
-- `CHECK`, `UNIQUE`, `DEFAULT` y campos obligatorios evitan datos incompletos o duplicados.
-- Los triggers controlan cruces de horarios, cupos de torneos, límites de jugadores y pagos.
-- El procedimiento `cobrar_mensualidad` registra cuotas de $50 y evita repetir el mismo periodo.
-- Las consultas usan parámetros para no mezclar los datos escritos por el usuario con el código SQL.
+- Claves primarias para identificar cada registro.
+- Claves foráneas para relacionar las tablas.
+- Restricciones `CHECK`, `UNIQUE`, `DEFAULT` y campos obligatorios.
+- Triggers que controlan cruces de horarios, cupos, jugadores y pagos.
+- El procedimiento `cobrar_mensualidad`, que registra una cuota y evita repetir el mismo periodo.
+- Consultas con parámetros para separar los datos escritos por el usuario del código SQL.
 
-Hay tres vistas para reportes:
+También existen tres vistas para los reportes:
 
-1. `vista_reporte_administrador`: pagos con cliente y servicio.
-2. `vista_mensualidades_escuela`: estado de cuotas por alumno.
-3. `vista_ocupacion_cancha`: reservas, horas usadas e ingresos por mes.
+1. `vista_reporte_administrador`: muestra pagos junto con el cliente y el servicio.
+2. `vista_mensualidades_escuela`: permite revisar las cuotas de cada alumno.
+3. `vista_ocupacion_cancha`: resume reservas, horas utilizadas e ingresos por mes.
 
-Los modelos entidad-relación y relacional están en [Diagramas del proyecto](docs/DIAGRAMAS_PROYECTO.md). La instalación detallada está en [Crear la base en pgAdmin](docs/PGADMIN_PASO_A_PASO.md).
+Los diagramas de entidad-relación y el modelo relacional están en [Diagramas del proyecto](docs/DIAGRAMAS_PROYECTO.md). La creación de la base está explicada en [Crear la base en pgAdmin](docs/PGADMIN_PASO_A_PASO.md).
 
 ## Programación Orientada a Objetos
 
-Las clases de `models.py` se usan dentro del funcionamiento real del proyecto:
+La parte de POO está en `models.py` y sí se utiliza en las operaciones del sistema.
 
-- `Usuario` reúne los datos y el manejo de la contraseña.
-- `Cliente` y `Administrador` heredan de `Usuario` y cambian sus permisos.
+- `Usuario` reúne los datos de la cuenta y el manejo de la contraseña.
+- `Cliente` y `Administrador` heredan de `Usuario`, pero tienen permisos distintos.
 - `ServicioArena` es una clase abstracta que define `calcular_costo()`.
-- `ReservaCancha`, `InscripcionTorneo` e `InscripcionSuperChaca` calculan el valor según sus propias reglas.
+- `ReservaCancha`, `InscripcionTorneo` e `InscripcionSuperChaca` calculan sus valores según las reglas de cada servicio.
 
-El encapsulamiento se usa en el hash privado de la contraseña. La herencia aparece en los tipos de usuario y de servicio. La abstracción se encuentra en `ServicioArena`. El polimorfismo permite llamar al mismo método `calcular_costo()` para una reserva, un torneo o la escuela y obtener el resultado correspondiente.
+El encapsulamiento se aplica en el hash privado de la contraseña. La herencia aparece en los tipos de usuario y de servicio. `ServicioArena` representa la abstracción. El polimorfismo se observa cuando cada servicio utiliza el mismo método `calcular_costo()`, pero obtiene un resultado diferente.
 
-El diagrama completo de clases está junto con los [diagramas del proyecto](docs/DIAGRAMAS_PROYECTO.md).
+El diagrama de clases se encuentra junto con los [diagramas del proyecto](docs/DIAGRAMAS_PROYECTO.md).
 
-## Diseño web y experiencia de uso
+## Desarrollo web y experiencia de uso
 
-La apariencia usa negro, gris y tonos plateados tomados del logo. Se mantuvo una sola tipografía y los botones importantes conservan el mismo estilo en todas las páginas.
+El diseño usa negro, gris y tonos plateados para mantener la identidad del logo. Conservé la misma tipografía y el mismo estilo de botones en todas las páginas para que el sitio se sienta como un solo sistema.
 
-El diseño se adapta a computadora y celular mediante Grid, Flexbox y reglas `@media`. En pantallas pequeñas el menú cambia de tamaño, las columnas pasan a una sola y las tablas se pueden desplazar sin cortar el contenido.
+La página se adapta a computadoras y celulares mediante Grid, Flexbox y reglas `@media`. Cuando la pantalla es pequeña, las columnas pasan a una sola, el menú cambia y las tablas se pueden desplazar sin cortar su información.
 
-Los formularios tienen etiquetas, ejemplos y mensajes que explican qué dato se debe corregir. También hay foco visible para navegar con teclado, texto alternativo en imágenes importantes, estructura con `header`, `nav`, `main` y `footer`, y una opción que reduce animaciones cuando el dispositivo lo pide.
+Los formularios tienen etiquetas, ejemplos y mensajes sencillos cuando un dato necesita corrección. También agregué foco visible para usar el teclado, textos alternativos en las imágenes importantes y etiquetas como `header`, `nav`, `main` y `footer`. Las animaciones se reducen si el dispositivo del usuario lo solicita.
 
-Los recorridos mantienen el mismo orden: información, registro de la operación, método de pago y confirmación. Esto ayuda a que el usuario sepa en qué paso está.
+Los procesos mantienen un orden parecido: primero se muestra la información, luego se registra la operación, se escoge el método de pago y finalmente aparece la confirmación. Esta decisión busca que el usuario siempre sepa en qué paso se encuentra.
 
 ## Seguridad y respaldos
 
-- Las contraseñas se guardan como hash y nunca se muestran desde la base.
+- Las contraseñas se guardan como hash y no se muestran desde la base.
 - Las sesiones duran ocho horas y las cookies son `HttpOnly`.
-- Los formularios que cambian datos usan un token CSRF.
-- Un cliente solo puede consultar sus propias operaciones.
-- Las rutas de administración vuelven a comprobar el rol en Python.
+- Los formularios que modifican datos utilizan un token CSRF.
+- Cada cliente solo puede consultar sus propias operaciones.
+- Las rutas administrativas vuelven a revisar el rol desde Python.
 - `.env` está ignorado por Git y no debe compartirse.
-- Antes de cambiar tablas se debe crear un respaldo desde pgAdmin.
-- Para uso diario conviene conectar la aplicación con un usuario de PostgreSQL con permisos limitados. `sql/permisos.sql` sirve como guía.
+- Antes de cambiar las tablas se recomienda crear un respaldo desde pgAdmin.
+- `sql/permisos.sql` sirve como guía para utilizar una cuenta de PostgreSQL con permisos limitados.
 
-El servidor está preparado para trabajo local. Antes de publicarlo en Internet haría falta un alojamiento para Python y PostgreSQL, HTTPS, copias automáticas y una revisión de seguridad.
+El servidor está preparado para ejecutarse de forma local. Para publicarlo completamente en Internet todavía harían falta un alojamiento para Python y PostgreSQL, HTTPS, respaldos automáticos y una revisión de seguridad.
 
-## Instalación rápida
+## Cómo iniciar el proyecto
 
-En Windows y desde la carpeta del proyecto:
+Desde la carpeta del proyecto se crea el entorno virtual y se instalan las dependencias:
 
 ```powershell
 py -3.14 -m venv .venv
@@ -143,40 +152,30 @@ Después se crea la base, se copia `.env.example` como `.env`, se completa `DATA
 .\.venv\Scripts\python.exe server.py
 ```
 
-La página se abre en [http://127.0.0.1:8765/](http://127.0.0.1:8765/). Todos los pasos, incluido el correo, están explicados en [INICIAR.md](INICIAR.md).
+La página se abre en [http://127.0.0.1:8765/](http://127.0.0.1:8765/). La explicación completa, incluida la configuración del correo, está en [INICIAR.md](INICIAR.md).
 
 ## Pruebas
 
-Las pruebas revisan clases, cédulas, cuentas, permisos, reservas, torneos, escuela, métodos de pago, SQL, páginas y correos. Usan una base temporal separada de `arena_castell`.
+Las pruebas revisan las clases, cédulas, cuentas, permisos, reservas, torneos, escuela, pagos, SQL, páginas y correos. Para no afectar la información principal se utiliza una base temporal diferente de `arena_castell`.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Las pruebas de correo no envían mensajes reales. Para probar Gmail se usa `manage.py test-email` después de configurar una contraseña de aplicación.
+Las pruebas automáticas de correo no envían mensajes reales. Para hacer una prueba con Gmail se usa `manage.py test-email` después de configurar una contraseña de aplicación.
 
-## Control de versiones
+## Git y control de versiones
 
-El proyecto se desarrolló de forma individual y los cambios se guardaron con Git. El historial de GitHub permite revisar las mejoras de base de datos, pagos, correos, diseño y diagramas. `.gitignore` evita agregar `.env`, el entorno virtual, respaldos y archivos temporales.
+Este proyecto fue desarrollado de forma individual. Utilicé Git para guardar los cambios y GitHub para mantener el historial. `.gitignore` evita subir `.env`, el entorno virtual, respaldos y archivos temporales.
 
-Antes de cada commit se revisa `git status` para comprobar qué archivos se van a subir. Si se hace una mejora grande después de la entrega, se puede trabajar en una rama y unirla cuando esté probada. No se presenta una distribución de tareas entre integrantes porque este proyecto tiene un solo autor.
+Antes de cada commit reviso `git status` para comprobar qué archivos se van a subir. No incluyo una distribución de tareas entre integrantes porque el proyecto tiene un solo autor.
 
 ## Documentos del proyecto
 
 - [INICIAR.md](INICIAR.md): instalación, conexión, administrador y correo.
-- [Manual de usuario](docs/MANUAL_USUARIO.md): pasos para clientes y administrador.
-- [Manual de usuario en PDF](docs/MANUAL_USUARIO.pdf): versión lista para imprimir o presentar.
+- [Manual de usuario](docs/MANUAL_USUARIO.md): uso de la página para clientes y administrador.
+- [Manual de usuario en PDF](docs/MANUAL_USUARIO.pdf): versión lista para imprimir.
 - [Guía de pgAdmin](docs/PGADMIN_PASO_A_PASO.md): creación y actualización de la base.
 - [Diagramas del proyecto](docs/DIAGRAMAS_PROYECTO.md): entidad-relación, modelo relacional y clases POO.
 - [PDF de los diagramas](docs/DIAGRAMAS_PROYECTO.pdf): versión lista para presentar.
-
-## Datos importantes para la presentación
-
-- Reserva normal: $27 por hora.
-- Evento deportivo: $30 por hora.
-- Cumpleaños: paquete de 3 horas por $75.
-- Mensualidad de Súper Chaca: $50.
-- Pasochoa Cup sexta edición: inscripción de $30, 16 equipos y hasta 20 jugadores.
-
-Estos valores se cargan desde la base. Los importes de órdenes anteriores no cambian cuando se actualiza una tarifa.
