@@ -38,6 +38,7 @@ CREATE TABLE ordenes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   usuario_id bigint NOT NULL REFERENCES usuarios(id),
   tipo varchar(20) NOT NULL CHECK (tipo IN ('RESERVA','TORNEO','ESCUELA','MENSUALIDAD')),
+  metodo_previsto varchar(16) CHECK (metodo_previsto IS NULL OR metodo_previsto = 'EFECTIVO'),
   descripcion varchar(250) NOT NULL,
   monto numeric(10,2) NOT NULL CHECK (monto > 0),
   estado varchar(12) NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE','PAGADA','CANCELADA')),
@@ -117,7 +118,7 @@ CREATE TABLE pagos (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
   monto numeric(10,2) NOT NULL CHECK (monto > 0),
-  metodo varchar(16) NOT NULL CHECK (metodo IN ('TRANSFERENCIA','DEBITO','CREDITO')),
+  metodo varchar(16) NOT NULL CHECK (metodo IN ('TRANSFERENCIA','EFECTIVO','TARJETA','DEBITO','CREDITO')),
   referencia varchar(64) NOT NULL UNIQUE,
   simulado boolean NOT NULL DEFAULT true CHECK (simulado),
   pagado_en timestamptz NOT NULL DEFAULT current_timestamp

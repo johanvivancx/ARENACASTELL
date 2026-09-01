@@ -12,6 +12,10 @@ Si tu base ya tenía las tarifas anteriores, ejecuta el paso 12 para actualizar 
 
 ## 2. Preparar Python
 
+Si actualizaste a las opciones de transferencia, efectivo y tarjeta, ejecuta primero
+`sql/pgadmin/14_metodos_pago.sql` sobre la base existente, después de guardar un respaldo.
+No repitas la creación de tablas. Consulta [Pagos y contacto](docs/PAGOS_Y_CONTACTO.md).
+
 El proyecto usa Python 3.14. Si todavía no tienes la carpeta `.venv`, créala:
 
 ```powershell

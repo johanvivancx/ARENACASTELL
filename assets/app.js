@@ -58,6 +58,8 @@ const kinds = {
 };
 const methods = {
   TRANSFERENCIA: "Transferencia bancaria",
+  EFECTIVO: "Efectivo en cancha",
+  TARJETA: "Tarjeta de crédito/débito",
   DEBITO: "Tarjeta de débito",
   CREDITO: "Tarjeta de crédito",
 };
@@ -243,7 +245,7 @@ function bindForm(id, action) {
     clearMessage();
     if (form.dataset.busy === "true") return;
     const submit = $("[type=submit]", form);
-    const label = submit.textContent;
+    const label = submit.innerHTML;
     form.dataset.busy = "true";
     submit.disabled = true;
     submit.textContent = "Procesando…";
@@ -257,7 +259,8 @@ function bindForm(id, action) {
     } finally {
       form.dataset.busy = "false";
       submit.disabled = form.dataset.locked === "true";
-      submit.textContent = label;
+      submit.innerHTML = label;
+      if (form.id === "payment-form") renderPaymentMethod();
     }
   });
 }
@@ -601,7 +604,33 @@ async function loadOrder() {
     );
     return;
   }
+  if (page === "payment") {
+    if (currentOrder.metodo_previsto === "EFECTIVO")
+      $('input[name="metodo"][value="EFECTIVO"]').checked = true;
+    renderPaymentMethod();
+  }
   if (page === "confirmation") {
+    if (currentOrder.estado === "PENDIENTE" && currentOrder.metodo_previsto === "EFECTIVO") {
+      $(".success-seal").innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 6v6l4 2" /></svg>';
+      $("#confirmation-eyebrow").textContent = "PAGO PRESENCIAL";
+      $("#confirmation-title").textContent = "Tu pago en cancha está pendiente";
+      $("#confirmation-description").textContent =
+        "Elegiste pagar en efectivo al acercarte a Arena Castell. Todavía no se ha recibido ni registrado un pago.";
+      $("#confirmation-notice").className = "notice warning";
+      $("#confirmation-mail").textContent =
+        "Contacta a la cancha y acércate antes del horario solicitado. La reserva o el cupo siguen sujetos a disponibilidad hasta que el administrador registre el cobro.";
+      $("#receipt-kind").textContent = "SOLICITUD PENDIENTE · NO ES UN COMPROBANTE DE PAGO";
+      $("#receipt-details").innerHTML = detailList([
+        ["Titular", session.usuario.nombre], ...pairs,
+        ["Método elegido", "Efectivo en cancha"],
+      ]) + `<div class="total"><span>Importe pendiente</span><strong>${esc(money(currentOrder.monto))}</strong></div>`;
+      $("[data-print]").hidden = true;
+      $("#change-payment").href = `${pageHref("pagos.html")}?orden=${encodeURIComponent(currentOrder.id)}`;
+      $("#change-payment").hidden = false;
+      $("#cash-contact").hidden = false;
+      $("#confirmation-content").hidden = false;
+      return;
+    }
     if (currentOrder.estado !== "PAGADA")
       throw new Error(
         "Esta operación todavía no está pagada. Complétala desde Mi actividad para obtener el comprobante.",
@@ -636,14 +665,20 @@ async function loadOrder() {
     $("#confirmation-content").hidden = false;
   }
 }
-$$("input[name=metodo]").forEach((input) =>
-  input.addEventListener("change", () => {
-    $("#method-info").textContent =
-      input.value === "TRANSFERENCIA"
-        ? "Se registrará transferencia bancaria como método de pago de esta operación."
-        : "Se registrará la tarjeta seleccionada como método de pago. No ingreses números de tarjeta ni CVV en esta página.";
-  }),
-);
+function renderPaymentMethod() {
+  const method = $('input[name="metodo"]:checked')?.value;
+  if (!$("#method-info")) return;
+  $("#transfer-details").hidden = method !== "TRANSFERENCIA";
+  const descriptions = {
+    TRANSFERENCIA: "Usa los datos de Banco Pichincha que aparecen abajo. La administración debe verificar el abono; esta página no lo comprueba automáticamente.",
+    EFECTIVO: "Paga en efectivo al acercarte a la cancha. Tu solicitud seguirá pendiente y no bloqueará horarios ni cupos hasta registrar el cobro. Coordina tu llegada por WhatsApp antes del horario solicitado.",
+    TARJETA: "Puedes coordinar el pago con tarjeta de crédito o débito con la cancha. Esta página solo registra el método: no procesa tarjetas ni pide número, claves o CVV.",
+  };
+  $("#method-info").textContent = descriptions[method] || "Elige cómo deseas realizar el pago de tu operación.";
+  if ($("#pay-button-label"))
+    $("#pay-button-label").textContent = method === "EFECTIVO" ? "Elegir pago en cancha" : "Registrar pago";
+}
+$$("input[name=metodo]").forEach((input) => input.addEventListener("change", renderPaymentMethod));
 function fillProfile() {
   const user = session.usuario;
   if (!user) return;
@@ -670,8 +705,9 @@ function renderHistory(filter = "TODOS") {
     ? rows
         .map((o) => {
           const paid = o.estado === "PAGADA";
-          const href = pageHref(paid ? "confirmacion.html" : "pagos.html");
-          return `<article class="history-item"><div><span class="tag ${paid ? "good" : "gold"}">${paid ? "Confirmado" : "Pendiente de pago"}</span><h3>${esc(o.descripcion)}</h3><p>${esc(kinds[o.tipo])} · ${esc(dates(o.creado_en))}</p></div><div class="history-price"><strong>${esc(money(o.monto))}</strong><div class="actions"><a class="btn small secondary" href="${href}?orden=${o.id}">${paid ? "Ver comprobante" : "Continuar al pago"}</a>${o.equipo_id && paid ? `<a class="text-link" href="${pageHref("mi_equipo.html")}?equipo=${o.equipo_id}">Gestionar equipo</a>` : ""}</div></div></article>`;
+          const cash = o.estado === "PENDIENTE" && o.metodo_previsto === "EFECTIVO";
+          const href = pageHref(paid || cash ? "confirmacion.html" : "pagos.html");
+          return `<article class="history-item"><div><span class="tag ${paid ? "good" : "gold"}">${paid ? "Confirmado" : cash ? "Efectivo pendiente en cancha" : "Pendiente de pago"}</span><h3>${esc(o.descripcion)}</h3><p>${esc(kinds[o.tipo])} · ${esc(dates(o.creado_en))}</p></div><div class="history-price"><strong>${esc(money(o.monto))}</strong><div class="actions"><a class="btn small secondary" href="${href}?orden=${o.id}">${paid ? "Ver comprobante" : cash ? "Ver pago en cancha" : "Continuar al pago"}</a>${o.equipo_id && paid ? `<a class="text-link" href="${pageHref("mi_equipo.html")}?equipo=${o.equipo_id}">Gestionar equipo</a>` : ""}</div></div></article>`;
         })
         .join("")
     : `<div class="empty-state"><h3>Aquí comienza tu historia.</h3><p>No tienes operaciones en esta sección.</p><a class="btn" href="${pageHref("reservas.html")}">Explorar reservas</a></div>`;
@@ -774,6 +810,23 @@ async function loadReports(filters = {}) {
   needUser();
   reportData = await api(`/admin/reports?${new URLSearchParams(filters)}`);
   $("#admin-content").hidden = false;
+  const cashHost = $("#cash-report");
+  cashHost.innerHTML = reportData.efectivo_pendiente.length
+    ? reportData.efectivo_pendiente.map((o) => `<article class="cash-item"><div><h3>${esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><strong>${esc(money(o.monto))} · Efectivo pendiente</strong></div><button class="btn" type="button" data-collect-cash="${esc(o.id)}">Registrar efectivo recibido</button></article>`).join("")
+    : '<p class="muted">No hay pagos en efectivo pendientes.</p>';
+  $$('[data-collect-cash]', cashHost).forEach((button) => button.addEventListener('click', async () => {
+    const order = reportData.efectivo_pendiente.find((o) => o.id === button.dataset.collectCash);
+    if (!order || !confirm(`¿Confirmas que ya recibiste ${money(order.monto)} en efectivo de ${order.titular}? Se volverá a comprobar la disponibilidad antes de confirmar la operación.`)) return;
+    button.disabled = true;
+    try {
+      const result = await api(`/admin/orders/${encodeURIComponent(order.id)}/collect-cash`, {});
+      await loadReports(filters);
+      showMessage(result.message, "success");
+    } catch (error) {
+      showMessage(error.message);
+      button.disabled = false;
+    }
+  }));
   $("#email-report").innerHTML = table(
     ["Asunto", "Destinatario", "Estado", "Intentos", "Último resultado"],
     reportData.correos.map((mail) => [

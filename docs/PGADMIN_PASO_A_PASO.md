@@ -19,6 +19,7 @@ La base se llama `arena_castell`. Los scripts están en `sql/pgadmin` y se ejecu
 | 11, solo para una versión anterior | `11_actualizar_correo_smtp.sql` | Agrega los campos de correo si todavía no existen. |
 | 12, si ya tenías la base creada | `12_actualizar_tarifas_reservas.sql` | Actualiza las tarifas y la regla de 3 horas para cumpleaños. Conserva las órdenes y pagos anteriores. |
 | 13, si ya tenías el catálogo anterior | `13_pasochoa_sexta_edicion.sql` | Agrega Pasochoa Cup sexta edición: 30 de septiembre de 2026, 16 equipos y $30 por equipo. No cambia registros anteriores. |
+| 14, al actualizar los métodos de pago | `14_metodos_pago.sql` | Añade efectivo pendiente y tarjeta de crédito/débito. Conserva pagos anteriores; guardar un respaldo antes de ejecutarlo. |
 
 Después del paso 1, actualiza Databases y abre un nuevo Query Tool sobre **arena_castell**. Los pasos restantes se ejecutan ahí, no en `postgres`.
 

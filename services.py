@@ -11,7 +11,7 @@ from models import (Cliente, Usuario, ReservaCancha, InscripcionTorneo,
                     InscripcionSuperChaca, ErrorValidacion, texto, validar_cedula)
 
 TZ = ZoneInfo("America/Guayaquil")
-METHODS = {"TRANSFERENCIA", "DEBITO", "CREDITO"}
+METHODS = {"TRANSFERENCIA", "EFECTIVO", "TARJETA", "DEBITO", "CREDITO"}
 
 
 class HTTPError(Exception):
@@ -249,10 +249,10 @@ def detalle_orden(conn, uid, oid):
     return order
 
 
-def pagar(conn, uid, oid, data):
+def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
     method = data.get("metodo")
     if method not in METHODS:
-        raise ErrorValidacion("Selecciona transferencia, tarjeta de débito o tarjeta de crédito.")
+        raise ErrorValidacion("Selecciona transferencia, efectivo en cancha o tarjeta de crédito/débito.")
     if data.get("acepta_simulacion") is not True:
         raise ErrorValidacion("Confirma que deseas registrar esta operación.")
     order = orden_usuario(conn, uid, oid, lock=True)
@@ -260,6 +260,11 @@ def pagar(conn, uid, oid, data):
         return {"id": order["id"], "message": "Esta operación ya estaba confirmada; no se duplicó el pago."}
     if order["estado"] != "PENDIENTE":
         raise ErrorValidacion("La operación ya no está pendiente.")
+    if method == "EFECTIVO" and not efectivo_recibido:
+        # Elegir pagar al llegar no constituye un cobro ni ocupa horarios/cupos.
+        conn.execute("UPDATE ordenes SET metodo_previsto='EFECTIVO' WHERE id=%s", (order["id"],))
+        return {"id": order["id"], "pendiente": True,
+                "message": "Pago en efectivo elegido. La operación continúa pendiente hasta que la cancha registre el cobro."}
     if order["tipo"] in ("ESCUELA", "MENSUALIDAD"):
         conn.execute("CALL cobrar_mensualidad(%s,%s)", (order["id"], method))
     else:
@@ -299,6 +304,29 @@ def pagar(conn, uid, oid, data):
         body += f"\nDebes registrar la lista de jugadores (máximo {limit}) desde Mi actividad > Gestionar equipo antes del inicio del torneo."
     encolar_correo(conn, uid, user["email"], "Confirmación Arena Castell", body, order["id"])
     return {"id": order["id"], "message": "Pago registrado."}
+
+
+def exigir_administrador(conn, uid):
+    row = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
+    if not row or not Usuario.desde_fila(row).puede_administrar():
+        raise HTTPError(403, "Esta sección está disponible solo para administradores.")
+
+
+def cobrar_efectivo(conn, admin_uid, oid):
+    """Solo el administrador registra el efectivo que recibió en la cancha."""
+    exigir_administrador(conn, admin_uid)
+    order = conn.execute("SELECT * FROM ordenes WHERE id=%s FOR UPDATE", (identificador(oid),)).fetchone()
+    if not order:
+        raise HTTPError(404, "No encontramos esa operación.")
+    if order["estado"] == "PAGADA":
+        payment = conn.execute("SELECT metodo FROM pagos WHERE orden_id=%s", (order["id"],)).fetchone()
+        if payment and payment["metodo"] == "EFECTIVO":
+            return {"id": order["id"], "message": "El efectivo ya estaba registrado; no se duplicó el pago."}
+        raise ErrorValidacion("La operación ya tiene un pago con otro método.")
+    if order["metodo_previsto"] != "EFECTIVO":
+        raise ErrorValidacion("Esta operación no tiene un pago en efectivo pendiente.")
+    return pagar(conn, order["usuario_id"], order["id"],
+                 {"metodo": "EFECTIVO", "acepta_simulacion": True}, efectivo_recibido=True)
 
 
 def historial(conn, uid):
@@ -377,9 +405,7 @@ def actualizar_perfil(conn, uid, data):
 
 
 def reportes(conn, uid, data):
-    row = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
-    if not row or not Usuario.desde_fila(row).puede_administrar():
-        raise HTTPError(403, "Esta sección está disponible solo para administradores.")
+    exigir_administrador(conn, uid)
     start = fecha(data["desde"]) if data.get("desde") else date(2000,1,1)
     end = fecha(data["hasta"]) if data.get("hasta") else datetime.now(TZ).date()
     if start > end:
@@ -387,6 +413,10 @@ def reportes(conn, uid, data):
     payments = conn.execute("""SELECT * FROM vista_reporte_administrador
        WHERE (pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s ORDER BY pagado_en DESC""", (start,end)).fetchall()
     return {"pagos": payments,
+            "efectivo_pendiente": conn.execute("""SELECT o.id,o.descripcion,o.monto,o.creado_en,
+                u.nombre AS titular FROM ordenes o JOIN usuarios u ON u.id=o.usuario_id
+                WHERE o.estado='PENDIENTE' AND o.metodo_previsto='EFECTIVO'
+                ORDER BY o.creado_en,o.id""").fetchall(),
             "correos": conn.execute("""SELECT id,asunto,destinatario,estado_envio,intentos,ultimo_error,creado_en,enviado_en
                 FROM correo_salida ORDER BY creado_en DESC LIMIT 100""").fetchall(),
             "reservas": conn.execute("""SELECT r.id,r.inicio,r.fin,r.tipo_evento,r.estado,

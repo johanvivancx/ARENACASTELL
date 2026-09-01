@@ -45,6 +45,7 @@ Los pasos están en [INICIAR.md](INICIAR.md). La base se prepara con los archivo
 
 - [Crear la base en pgAdmin](docs/PGADMIN_PASO_A_PASO.md).
 - [Configurar Gmail](docs/CORREOS_GMAIL.md).
+- [Actualizar pagos y enlaces de contacto](docs/PAGOS_Y_CONTACTO.md).
 - [Subir cambios a GitHub](docs/GIT_GITHUB.md).
 - [Cómo funciona el código](docs/ARQUITECTURA.md).
 - [Tablas y relaciones](docs/DIAGRAMA_ENTIDAD_RELACION.md).

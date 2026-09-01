@@ -21,7 +21,8 @@ LOGO_CID = 'logo-arena-castell'
 TZ = ZoneInfo('America/Guayaquil')
 ENV = Environment(loader=FileSystemLoader(ROOT / 'templates/correos'),
                   autoescape=select_autoescape(['html']), undefined=StrictUndefined)
-METODOS = {'TRANSFERENCIA': 'Transferencia bancaria', 'DEBITO': 'Tarjeta de débito', 'CREDITO': 'Tarjeta de crédito'}
+METODOS = {'TRANSFERENCIA': 'Transferencia bancaria', 'EFECTIVO': 'Efectivo en cancha',
+           'TARJETA': 'Tarjeta de crédito/débito', 'DEBITO': 'Tarjeta de débito', 'CREDITO': 'Tarjeta de crédito'}
 TITULOS = {'RESERVA': 'Tu reserva está confirmada', 'TORNEO': 'Tu equipo ya está inscrito',
            'ESCUELA': 'Bienvenido a Súper Chaca', 'MENSUALIDAD': 'Mensualidad registrada'}
 SERVICIOS = {'RESERVA': 'Reserva de cancha', 'TORNEO': 'Inscripción de torneo',

@@ -208,6 +208,9 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if match := re.fullmatch(r"/api/admin/orders/([^/]+)/collect-cash", path):
+            if method == "POST":
+                return s.cobrar_efectivo(conn, uid, match[1])
         if match := re.fullmatch(r"/api/orders/([^/]+)(/pay)?", path):
             if match[2] and method == "POST":
                 return s.pagar(conn, uid, match[1], data)
