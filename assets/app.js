@@ -1047,10 +1047,7 @@ async function initialize() {
   }
   if (results[1].status === "fulfilled") catalog = results[1].value;
   const failure = results.find((r) => r.status === "rejected");
-  if (failure) {
-    showMessage(failure.reason.message);
-    return;
-  }
+  if (failure) return;
   $$("[data-price]").forEach((el) => {
     const value = catalog.canchas[0]?.[el.dataset.price];
     if (value) el.innerHTML = `${esc(money(value))}<small> / hora</small>`;
