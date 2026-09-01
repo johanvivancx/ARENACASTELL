@@ -3,6 +3,7 @@
 Solo escucha en loopback. Para Internet se necesita un servidor de producción,
 HTTPS y una revisión de seguridad; no es una pasarela de pagos real.
 """
+
 from datetime import date, datetime, time
 from decimal import Decimal
 from functools import partial
@@ -34,9 +35,25 @@ for page in (ROOT / "pages").glob("*.html"):
         PUBLIC_FILES["/pages/" + page.name] = page
 for asset in (ROOT / "assets").rglob("*"):
     relative = asset.relative_to(ROOT).as_posix()
-    if (asset.is_file() and asset.suffix.lower() in {".css", ".js", ".jpg", ".jpeg", ".png", ".svg", ".webp", ".ico", ".woff", ".woff2", ".ttf"}
-            and not any(part.startswith(".") for part in asset.relative_to(ROOT).parts)
-            and asset.resolve().is_relative_to((ROOT / "assets").resolve())):
+    if (
+        asset.is_file()
+        and asset.suffix.lower()
+        in {
+            ".css",
+            ".js",
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".svg",
+            ".webp",
+            ".ico",
+            ".woff",
+            ".woff2",
+            ".ttf",
+        }
+        and not any(part.startswith(".") for part in asset.relative_to(ROOT).parts)
+        and asset.resolve().is_relative_to((ROOT / "assets").resolve())
+    ):
         PUBLIC_FILES["/" + relative] = asset
 LEGACY_PAGES = {"/" + page.name: "/pages/" + page.name for page in (ROOT / "pages").glob("*.html")}
 
@@ -60,7 +77,10 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "same-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        )
         super().end_headers()
 
     def log_message(self, fmt, *args):
@@ -110,7 +130,10 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         if cookie:
             flags = "; Secure" if os.environ.get("COOKIE_SECURE", "false").lower() == "true" else ""
-            self.send_header("Set-Cookie", f"arena_session={cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=28800{flags}")
+            self.send_header(
+                "Set-Cookie",
+                f"arena_session={cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=28800{flags}",
+            )
         self.end_headers()
         self.wfile.write(payload)
 
@@ -118,7 +141,7 @@ class Handler(SimpleHTTPRequestHandler):
         cookie_out = None
         try:
             path = urlsplit(self.path).path.rstrip("/")
-            params = {k: v[0] for k,v in parse_qs(urlsplit(self.path).query).items()}
+            params = {k: v[0] for k, v in parse_qs(urlsplit(self.path).query).items()}
             data = {}
             if self.command == "POST":
                 if self.headers.get_content_type() != "application/json":
@@ -140,24 +163,45 @@ class Handler(SimpleHTTPRequestHandler):
                 if self.command == "GET" and path == "/api/session":
                     if not session:
                         cookie_out, session = s.nueva_sesion(conn)
-                    user = conn.execute("SELECT * FROM usuarios WHERE id=%s", (session["usuario_id"],)).fetchone() if session["usuario_id"] else None
-                    result = {"usuario": s.usuario_publico(user), "csrf": session["csrf_token"], "simulacion": True}
+                    user = (
+                        conn.execute(
+                            "SELECT * FROM usuarios WHERE id=%s", (session["usuario_id"],)
+                        ).fetchone()
+                        if session["usuario_id"]
+                        else None
+                    )
+                    result = {
+                        "usuario": s.usuario_publico(user),
+                        "csrf": session["csrf_token"],
+                        "simulacion": True,
+                    }
                 else:
                     if self.command == "POST":
                         csrf = self.headers.get("X-CSRF-Token", "")
                         if not session or not hmac.compare_digest(csrf, session["csrf_token"]):
-                            raise s.HTTPError(403, "La sesión del formulario venció. Recarga la página y vuelve a intentar.")
+                            raise s.HTTPError(
+                                403,
+                                "La sesión del formulario venció. Recarga la página y vuelve a intentar.",
+                            )
                         if self.headers.get("Origin") not in (None, ORIGIN):
                             raise s.HTTPError(403, "El origen del formulario no está permitido.")
-                    if self.command == "POST" and path in ("/api/auth/login", "/api/auth/register", "/api/auth/forgot"):
+                    if self.command == "POST" and path in (
+                        "/api/auth/login",
+                        "/api/auth/register",
+                        "/api/auth/forgot",
+                    ):
                         s.limitar_acceso(conn, self.client_address[0] + path)
                     if path == "/api/auth/register" and self.command == "POST":
                         user = s.registrar(conn, data)
-                        cookie_out, session = s.nueva_sesion(conn, user["id"], session["token_hash"])
+                        cookie_out, session = s.nueva_sesion(
+                            conn, user["id"], session["token_hash"]
+                        )
                         result = {"usuario": s.usuario_publico(user), "csrf": session["csrf_token"]}
                     elif path == "/api/auth/login" and self.command == "POST":
                         user = s.iniciar_sesion(conn, data)
-                        cookie_out, session = s.nueva_sesion(conn, user["id"], session["token_hash"])
+                        cookie_out, session = s.nueva_sesion(
+                            conn, user["id"], session["token_hash"]
+                        )
                         result = {"usuario": s.usuario_publico(user), "csrf": session["csrf_token"]}
                     elif path == "/api/auth/logout" and self.command == "POST":
                         cookie_out, session = s.nueva_sesion(conn, anterior=session["token_hash"])
@@ -175,7 +219,16 @@ class Handler(SimpleHTTPRequestHandler):
                         result = self.private_route(conn, uid, path, data, params)
             self.send_json(200, result, cookie_out)
         except (ErrorValidacion, json.JSONDecodeError, UnicodeDecodeError) as error:
-            self.send_json(400, {"error": str(error) if isinstance(error, ErrorValidacion) else "No pudimos leer el formulario."})
+            self.send_json(
+                400,
+                {
+                    "error": (
+                        str(error)
+                        if isinstance(error, ErrorValidacion)
+                        else "No pudimos leer el formulario."
+                    )
+                },
+            )
         except s.HTTPError as error:
             self.send_json(error.status, {"error": error.message})
         except psycopg.IntegrityError as error:
@@ -183,16 +236,36 @@ class Handler(SimpleHTTPRequestHandler):
                 message = "Ese horario acaba de ocuparse. No se registró ningún pago; selecciona otro horario."
             elif error.sqlstate == "23505":
                 message = "Este registro ya existe. Revisa el correo, cédula, nombre del equipo o período e intenta nuevamente."
-            elif error.diag.message_primary and error.diag.message_primary.startswith(("Elige ", "La cancha ", "Un equipo ", "Primero ", "El torneo ", "Las inscripciones ", "Solo se ")):
+            elif error.diag.message_primary and error.diag.message_primary.startswith(
+                (
+                    "Elige ",
+                    "La cancha ",
+                    "Un equipo ",
+                    "Primero ",
+                    "El torneo ",
+                    "Las inscripciones ",
+                    "Solo se ",
+                )
+            ):
                 message = error.diag.message_primary
             else:
                 message = "Los datos no cumplen las reglas del servicio. Revisa fechas, categoría y valores del formulario."
             self.send_json(409, {"error": message})
         except (psycopg.OperationalError, RuntimeError):
-            self.send_json(503, {"error": "No pudimos conectar con PostgreSQL. El operador debe revisar DATABASE_URL y que la base esté iniciada."})
+            self.send_json(
+                503,
+                {
+                    "error": "No pudimos conectar con PostgreSQL. El operador debe revisar DATABASE_URL y que la base esté iniciada."
+                },
+            )
         except Exception:
             logging.exception("Error interno al procesar %s", urlsplit(self.path).path)
-            self.send_json(500, {"error": "No se completó la operación. Tus cambios no se guardaron; intenta otra vez."})
+            self.send_json(
+                500,
+                {
+                    "error": "No se completó la operación. Tus cambios no se guardaron; intenta otra vez."
+                },
+            )
 
     def private_route(self, conn, uid, path, data, params):
         method = self.command

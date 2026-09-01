@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -8,10 +8,7 @@
       content="ARENA CASTELL, cancha sintética en Amaguaña. Reservas, torneos amateurs y escuela de fútbol Súper Chaca."
     />
     <meta name="theme-color" content="#0c0e0f" />
-    <meta
-      property="og:title"
-      content="Información de tu reserva | ARENA CASTELL"
-    />
+    <meta property="og:title" content="Información de tu reserva | ARENA CASTELL" />
     <meta
       property="og:description"
       content="Tu cancha. Tu equipo. Tu historia. Conoce ARENA CASTELL en Amaguaña."
@@ -21,21 +18,21 @@
     <link rel="stylesheet" href="../assets/styles.css?v=identidad-acero-1" />
     <script src="../assets/app.js?v=pagos-contacto-2" defer></script>
   </head>
+
   <body data-page="reserva-form">
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
     <header class="site-header">
       <div class="container nav-wrap">
-        <a class="brand" href="../index.html" aria-label="Arena Castell, inicio"
-          ><img
-            src="../assets/logo-arena-castell.jpg"
-            alt=""
-            width="72"
-            height="68"
-          /><span
-            ><strong>ARENA CASTELL</strong
-            ><small>CANCHA SINTÉTICA · AMAGUAÑA</small></span
-          ></a
-        ><button
+        <a class="brand" href="../index.html" aria-label="Arena Castell, inicio">
+          <img src="../assets/logo-arena-castell.jpg" alt="" width="72" height="68" />
+          <span>
+            <strong>ARENA CASTELL</strong>
+            <small>CANCHA SINTÉTICA · AMAGUAÑA</small>
+          </span>
+        </a>
+
+        <button
           class="menu-toggle"
           type="button"
           aria-label="Abrir menú"
@@ -46,100 +43,91 @@
             <path d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
+
         <nav class="main-nav" id="main-nav" aria-label="Navegación principal">
-          <a href="../index.html">Inicio</a
-          ><a href="reservas.html" aria-current="page">Reservas</a
-          ><a href="torneos.html">Torneos</a
-          ><a href="super_chaca.html">Súper Chaca</a
-          ><a href="mis_reservas_inscripciones.html" data-history-link hidden
-            >Mi actividad</a
-          ><a href="admin.html" data-admin-link hidden>Admin</a
-          ><a href="iniciar_sesion.html" class="nav-account" data-account-link
-            ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <a href="../index.html">Inicio</a>
+          <a href="reservas.html" aria-current="page">Reservas</a>
+          <a href="torneos.html">Torneos</a>
+          <a href="super_chaca.html">Súper Chaca</a>
+          <a href="mis_reservas_inscripciones.html" data-history-link hidden>Mi actividad</a>
+          <a href="admin.html" data-admin-link hidden>Admin</a>
+          <a href="iniciar_sesion.html" class="nav-account" data-account-link>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="7" r="4" />
-              <path d="M4 21v-3a8 8 0 0116 0v3" /></svg
-            ><span>Iniciar sesión</span></a
-          >
+              <path d="M4 21v-3a8 8 0 0116 0v3" />
+            </svg>
+            <span>Iniciar sesión</span>
+          </a>
         </nav>
       </div>
     </header>
-    <noscript
-      ><div class="container notice warning">
-        Puedes recorrer las páginas informativas sin JavaScript. Para registrar
-        datos y consultar disponibilidad debes activarlo.
-      </div></noscript
-    >
-    <div
-      id="connection-message"
-      class="connection-hint"
-      role="status"
-      hidden
-    ></div>
+
+    <noscript>
+      <div class="container notice warning">
+        Puedes recorrer las páginas informativas sin JavaScript. Para registrar datos y consultar
+        disponibilidad debes activarlo.
+      </div>
+    </noscript>
+
+    <div id="connection-message" class="connection-hint" role="status" hidden></div>
+
     <main id="contenido">
       <div class="page-intro container">
         <nav class="breadcrumb" aria-label="Ruta de navegación">
-          <a href="../index.html">Inicio</a><span aria-hidden="true">/</span
-          ><span>Planea tu próximo partido.</span>
+          <a href="../index.html">Inicio</a>
+          <span aria-hidden="true">/</span>
+          <span>Planea tu próximo partido.</span>
         </nav>
+
         <h1>Planea tu próximo partido.</h1>
         <p>
-          Escoge el día, la hora y la ocasión. Todos los horarios corresponden a
-          Ecuador (UTC−5).
+          Escoge el día, la hora y la ocasión. Todos los horarios corresponden a Ecuador (UTC−5).
         </p>
       </div>
+
       <section class="container content-section">
         <ol class="steps" aria-label="Progreso de la operación">
           <li class="current" aria-current="step">Información</li>
           <li class="">Pago</li>
           <li class="">Confirmación</li>
         </ol>
+
         <div id="auth-gate" class="notice warning" hidden>
           <p>
             Para guardar tu operación,
-            <a data-login-link href="iniciar_sesion.html">inicia sesión</a> o
-            <a data-register-link href="registrarse.html">crea tu cuenta</a>.
-            Así encontrarás tus pagos y comprobantes en un solo lugar.
+            <a data-login-link href="iniciar_sesion.html">inicia sesión</a>
+            o
+            <a data-register-link href="registrarse.html">crea tu cuenta</a>
+            . Así encontrarás tus pagos y comprobantes en un solo lugar.
           </p>
         </div>
+
         <div id="form-message" role="alert" tabindex="-1" hidden></div>
+
         <div class="form-layout">
           <form method="post" id="reservation-form" class="panel">
             <fieldset class="form-block">
               <legend>Datos del titular</legend>
+
               <div class="form-grid">
                 <div class="field">
-                  <label for="nombre">Nombre completo</label
-                  ><input
-                    id="nombre"
-                    name="nombre"
-                    type="text"
-                    readonly
-                    data-profile="nombre"
-                  />
+                  <label for="nombre">Nombre completo</label>
+                  <input id="nombre" name="nombre" type="text" readonly data-profile="nombre" />
                 </div>
+
                 <div class="field">
-                  <label for="email">Correo electrónico</label
-                  ><input
-                    id="email"
-                    name="email"
-                    type="email"
-                    readonly
-                    data-profile="email"
-                  />
+                  <label for="email">Correo electrónico</label>
+                  <input id="email" name="email" type="email" readonly data-profile="email" />
                 </div>
+
                 <div class="field">
-                  <label for="cedula">Cédula</label
-                  ><input
-                    id="cedula"
-                    name="cedula"
-                    type="text"
-                    readonly
-                    data-profile="cedula"
-                  />
+                  <label for="cedula">Cédula</label>
+                  <input id="cedula" name="cedula" type="text" readonly data-profile="cedula" />
                 </div>
+
                 <div class="field">
-                  <label for="telefono">Celular</label
-                  ><input
+                  <label for="telefono">Celular</label>
+                  <input
                     id="telefono"
                     name="telefono"
                     type="tel"
@@ -148,35 +136,41 @@
                   />
                 </div>
               </div>
+
               <p class="small-text muted">
                 Se usarán los datos de tu cuenta.
                 <a href="mi_perfil.html">Actualizar mis datos</a>
               </p>
             </fieldset>
+
             <fieldset class="form-block">
               <legend>Personaliza tu reserva</legend>
+
               <div class="form-grid">
                 <div class="field">
-                  <label for="tipo_evento">¿Qué quieres reservar?</label
-                  ><select id="tipo_evento" name="tipo_evento" required>
+                  <label for="tipo_evento">¿Qué quieres reservar?</label>
+                  <select id="tipo_evento" name="tipo_evento" required>
                     <option value="HORA">Cancha por hora</option>
                     <option value="CUMPLEANOS">Cumpleaños · paquete de 3 horas</option>
                     <option value="EVENTO">Evento deportivo</option>
                   </select>
                 </div>
+
                 <div class="field">
-                  <label for="cancha_id">Cancha</label
-                  ><select id="cancha_id" name="cancha_id" required>
+                  <label for="cancha_id">Cancha</label>
+                  <select id="cancha_id" name="cancha_id" required>
                     <option value="1">Cancha principal · Fútbol 7</option>
                   </select>
                 </div>
+
                 <div class="field">
-                  <label for="fecha">Día de tu reserva</label
-                  ><input id="fecha" name="fecha" type="date" required />
+                  <label for="fecha">Día de tu reserva</label>
+                  <input id="fecha" name="fecha" type="date" required />
                 </div>
+
                 <div class="field">
-                  <label for="horas">Duración</label
-                  ><select id="horas" name="horas" aria-describedby="duration-help" required>
+                  <label for="horas">Duración</label>
+                  <select id="horas" name="horas" aria-describedby="duration-help" required>
                     <option value="1">1 hora</option>
                     <option value="2">2 horas</option>
                     <option value="3">3 horas</option>
@@ -190,20 +184,25 @@
                 </div>
               </div>
             </fieldset>
+
             <fieldset class="form-block">
               <legend>Hora de inicio</legend>
               <p class="small-text muted">
-                Selecciona una hora disponible. La reserva incluye todas las
-                horas consecutivas elegidas.
+                Selecciona una hora disponible. La reserva incluye todas las horas consecutivas
+                elegidas.
               </p>
+
               <div id="availability-status" role="status" class="loading">
                 Selecciona un día para consultar la disponibilidad.
               </div>
+
               <div id="time-slots" class="time-slots"></div>
             </fieldset>
+
             <div class="form-actions">
-              <a href="reservas.html" class="text-link">Volver a reservas</a
-              ><button class="btn" type="submit">
+              <a href="reservas.html" class="text-link">Volver a reservas</a>
+
+              <button class="btn" type="submit">
                 Continuar al pago
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" />
@@ -211,63 +210,84 @@
               </button>
             </div>
           </form>
+
           <aside class="panel summary">
             <p class="eyebrow">ARENA CASTELL</p>
             <h2>Tu próxima jugada</h2>
+
             <div id="summary-details">
-              <p class="muted small-text">
-                Selecciona una fecha y un horario para ver el detalle.
-              </p>
+              <p class="muted small-text">Selecciona una fecha y un horario para ver el detalle.</p>
             </div>
+
             <div class="total">
-              <span>Total</span><strong id="summary-total">—</strong>
+              <span>Total</span>
+              <strong id="summary-total">—</strong>
             </div>
+
             <p class="small-text muted">Valores en dólares (USD).</p>
           </aside>
         </div>
       </section>
     </main>
+
     <footer class="site-footer">
       <div class="container">
         <div class="footer-main">
           <div>
-            <a
-              class="brand"
-              href="../index.html"
-              aria-label="Arena Castell, inicio"
-              ><img
-                src="../assets/logo-arena-castell.jpg"
-                alt=""
-                width="56"
-                height="56"
-              /><span
-                ><strong>ARENA CASTELL</strong
-                ><small>CANCHA SINTÉTICA · AMAGUAÑA</small></span
-              ></a
-            >
+            <a class="brand" href="../index.html" aria-label="Arena Castell, inicio">
+              <img src="../assets/logo-arena-castell.jpg" alt="" width="56" height="56" />
+              <span>
+                <strong>ARENA CASTELL</strong>
+                <small>CANCHA SINTÉTICA · AMAGUAÑA</small>
+              </span>
+            </a>
             <p class="small-text muted">
-              El fútbol se vive en comunidad.<br />Parqueadero privado y
-              seguro.<br /><a href="tel:+593999901241">099 990 1241</a> ·
+              El fútbol se vive en comunidad.
+              <br />
+              Parqueadero privado y seguro.
+              <br />
+              <a href="tel:+593999901241">099 990 1241</a>
+              ·
               <a href="tel:+593960153510">096 015 3510</a>
             </p>
           </div>
+
           <div class="footer-contact">
             <p class="footer-contact-title">Contacto y redes</p>
+
             <div class="social-links">
-              <a class="contact-link" href="https://wa.me/593999901241" target="_blank" rel="noopener noreferrer"><img src="../assets/contacto/whatsapp.png" alt="" width="24" height="24" />Contactar por WhatsApp</a>
-              <a class="contact-link" href="https://www.facebook.com/profile.php?id=61588351320860" target="_blank" rel="noopener noreferrer"><img src="../assets/contacto/facebook.png" alt="" width="24" height="24" />Arena Castell en Facebook</a>
+              <a
+                class="contact-link"
+                href="https://wa.me/593999901241"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img src="../assets/contacto/whatsapp.png" alt="" width="24" height="24" />
+                Contactar por WhatsApp
+              </a>
+              <a
+                class="contact-link"
+                href="https://www.facebook.com/profile.php?id=61588351320860"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img src="../assets/contacto/facebook.png" alt="" width="24" height="24" />
+                Arena Castell en Facebook
+              </a>
             </div>
           </div>
+
           <nav class="footer-links" aria-label="Enlaces del pie de página">
-            <a href="reservas.html">Reservas</a
-            ><a href="torneos.html">Torneos</a
-            ><a href="super_chaca.html">Súper Chaca</a
-            ><a href="privacidad.html">Privacidad</a>
+            <a href="reservas.html">Reservas</a>
+            <a href="torneos.html">Torneos</a>
+            <a href="super_chaca.html">Súper Chaca</a>
+            <a href="privacidad.html">Privacidad</a>
           </nav>
         </div>
+
         <div class="footer-bottom">
-          <span>ARENA CASTELL · Amaguaña, Quito, Ecuador</span
-          ><span>Reservas · Torneos · Escuela de fútbol</span>
+          <span>ARENA CASTELL · Amaguaña, Quito, Ecuador</span>
+          <span>Reservas · Torneos · Escuela de fútbol</span>
         </div>
       </div>
     </footer>

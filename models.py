@@ -1,4 +1,5 @@
 """Modelo de dominio. Los cuatro pilares de POO sin depender de un framework."""
+
 from abc import ABC, abstractmethod
 from datetime import date
 from decimal import Decimal
@@ -28,8 +29,15 @@ def texto(valor, campo, minimo=2, maximo=100):
 
 
 class Usuario:
-    def __init__(self, nombre: str, email: str, cedula: str, telefono: str,
-                 password_hash: str = "", id: int | None = None):
+    def __init__(
+        self,
+        nombre: str,
+        email: str,
+        cedula: str,
+        telefono: str,
+        password_hash: str = "",
+        id: int | None = None,
+    ):
         self.id = id
         self.nombre = texto(nombre, "Nombre")
         self.email = texto(email, "Correo", 5, 254).lower()
@@ -63,7 +71,9 @@ class Usuario:
             algorithm, rounds, salt, digest = self.__password_hash.split("$")
             if algorithm != "pbkdf2_sha256" or not isinstance(password, str) or len(password) > 128:
                 return False
-            candidate = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), int(rounds)).hex()
+            candidate = hashlib.pbkdf2_hmac(
+                "sha256", password.encode(), salt.encode(), int(rounds)
+            ).hex()
             return hmac.compare_digest(digest, candidate)
         except (ValueError, TypeError):
             return False
@@ -74,7 +84,9 @@ class Usuario:
     @classmethod
     def desde_fila(cls, fila):
         clase = Administrador if fila["rol"] == "ADMIN" else Cliente
-        return clase(**{k: fila[k] for k in ("id", "nombre", "email", "cedula", "telefono", "password_hash")})
+        return clase(
+            **{k: fila[k] for k in ("id", "nombre", "email", "cedula", "telefono", "password_hash")}
+        )
 
 
 class Administrador(Usuario):
@@ -93,6 +105,7 @@ class Cliente(Usuario):
 
 class ServicioArena(ABC):
     """Abstracción: todo servicio sabe calcular su costo y describirlo."""
+
     @abstractmethod
     def calcular_costo(self) -> Decimal:
         pass
@@ -114,14 +127,18 @@ class ReservaCancha(ServicioArena):
         self.__tarifas = tarifas
 
     def calcular_costo(self):
-        key = {"HORA": "tarifa_hora", "EVENTO": "tarifa_evento", "CUMPLEANOS": "tarifa_cumpleanos"}[self.__tipo]
+        key = {"HORA": "tarifa_hora", "EVENTO": "tarifa_evento", "CUMPLEANOS": "tarifa_cumpleanos"}[
+            self.__tipo
+        ]
         return (Decimal(str(self.__tarifas[key])) * self.__horas).quantize(Decimal("0.01"))
 
 
 class InscripcionTorneo(ServicioArena):
     def __init__(self, tarifa: Decimal, jugadores: int = 0, max_jugadores: int = 20):
         if not 1 <= max_jugadores <= 20 or not 0 <= jugadores <= max_jugadores:
-            raise ErrorValidacion(f"El límite es de {max_jugadores} jugadores para este torneo; el tope del sistema es 20.")
+            raise ErrorValidacion(
+                f"El límite es de {max_jugadores} jugadores para este torneo; el tope del sistema es 20."
+            )
         self.__tarifa = Decimal(str(tarifa))
         if self.__tarifa <= 0:
             raise ErrorValidacion("La tarifa del torneo debe ser positiva.")
@@ -134,12 +151,18 @@ class InscripcionSuperChaca(ServicioArena):
     MENSUALIDAD = Decimal("50.00")
 
     def __init__(self, nacimiento: date, categoria: str, fecha: date):
-        edad = fecha.year - nacimiento.year - ((fecha.month, fecha.day) < (nacimiento.month, nacimiento.day))
+        edad = (
+            fecha.year
+            - nacimiento.year
+            - ((fecha.month, fecha.day) < (nacimiento.month, nacimiento.day))
+        )
         if not 4 <= edad < 18:
             raise ErrorValidacion("La escuela recibe alumnos de 4 a 17 años.")
         esperada = f"Sub-{2 * (edad // 2 + 1)}"
         if categoria != esperada:
-            raise ErrorValidacion(f"Por su fecha de nacimiento, le corresponde la categoría {esperada}.")
+            raise ErrorValidacion(
+                f"Por su fecha de nacimiento, le corresponde la categoría {esperada}."
+            )
         self.categoria = categoria
 
     def calcular_costo(self):
