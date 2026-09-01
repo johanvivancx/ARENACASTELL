@@ -1,3 +1,5 @@
+# Prueba estructura HTML
+
 from contextlib import contextmanager
 from http.cookiejar import CookieJar
 from http.server import ThreadingHTTPServer

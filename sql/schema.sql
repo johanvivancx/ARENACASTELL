@@ -1,7 +1,10 @@
--- PostgreSQL 18. Ejecutar en una base vacía; no elimina datos existentes.
+-- Crea el esquema completo
 BEGIN;
+
+-- Evita horarios cruzados
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
+-- Valida cédulas ecuatorianas
 CREATE FUNCTION validar_cedula(cedula text) RETURNS boolean
 LANGUAGE plpgsql IMMUTABLE STRICT AS $$
 DECLARE total integer := 0; digito integer; i integer;
@@ -18,6 +21,7 @@ BEGIN
   RETURN (10 - total % 10) % 10 = substring(cedula,10,1)::integer;
 END; $$;
 
+-- Guarda cuentas y roles
 CREATE TABLE usuarios (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   nombre varchar(100) NOT NULL CHECK (length(trim(nombre)) BETWEEN 2 AND 100),
@@ -29,6 +33,8 @@ CREATE TABLE usuarios (
   session_version integer NOT NULL DEFAULT 1 CHECK (session_version > 0),
   creado_en timestamptz NOT NULL DEFAULT current_timestamp
 );
+
+-- Guarda canchas y tarifas
 CREATE TABLE canchas (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   nombre varchar(80) NOT NULL UNIQUE,
@@ -36,6 +42,8 @@ CREATE TABLE canchas (
   tarifa_evento numeric(8,2) NOT NULL CHECK (tarifa_evento > 0),
   tarifa_cumpleanos numeric(8,2) NOT NULL CHECK (tarifa_cumpleanos > 0)
 );
+
+-- Guarda torneos disponibles
 CREATE TABLE torneos (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   nombre varchar(100) NOT NULL UNIQUE,
@@ -47,6 +55,8 @@ CREATE TABLE torneos (
   visible boolean NOT NULL DEFAULT true,
   abierto boolean NOT NULL DEFAULT true
 );
+
+-- Une usuarios con servicios
 CREATE TABLE ordenes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   usuario_id bigint NOT NULL REFERENCES usuarios(id),
@@ -58,6 +68,8 @@ CREATE TABLE ordenes (
   creado_en timestamptz NOT NULL DEFAULT current_timestamp
 );
 CREATE INDEX idx_orden_usuario ON ordenes(usuario_id, creado_en DESC);
+
+-- Guarda horarios reservados
 CREATE TABLE reservas (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -72,11 +84,13 @@ CREATE TABLE reservas (
     cancha_id WITH =, tstzrange(inicio,fin,'[)') WITH &&
   ) WHERE (estado = 'CONFIRMADA')
 );
+
+-- Valida cada reserva
 CREATE FUNCTION controlar_reserva() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE hora_inicio timestamp; hora_fin timestamp;
 BEGIN
-  -- Los cumpleaños nuevos se reservan como paquete de tres horas.
-  -- Cambiar solo el estado de una reserva anterior conserva su duración original.
+  -- Exige tres horas
+  -- Conserva reservas anteriores
   IF NEW.tipo_evento = 'CUMPLEANOS' AND NEW.fin - NEW.inicio <> interval '3 hours' THEN
     IF TG_OP = 'INSERT' THEN
       RAISE EXCEPTION 'El paquete de cumpleaños tiene una duración de 3 horas.' USING ERRCODE='23514';
@@ -105,9 +119,12 @@ BEGIN
   END IF;
   RETURN NEW;
 END; $$;
+
+-- Activa reglas de reserva
 CREATE TRIGGER trg_controlar_reserva BEFORE INSERT OR UPDATE ON reservas
 FOR EACH ROW EXECUTE FUNCTION controlar_reserva();
 
+-- Guarda equipos inscritos
 CREATE TABLE equipos (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -116,6 +133,8 @@ CREATE TABLE equipos (
   estado varchar(12) NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE','CONFIRMADO','CANCELADO'))
 );
 CREATE UNIQUE INDEX uq_equipo_nombre ON equipos(torneo_id, lower(nombre)) WHERE estado <> 'CANCELADO';
+
+-- Controla cupos disponibles
 CREATE FUNCTION controlar_cupo_torneo() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE torneo torneos;
 BEGIN
@@ -130,9 +149,12 @@ BEGIN
   END IF;
   RETURN NEW;
 END; $$;
+
+-- Activa reglas del torneo
 CREATE TRIGGER trg_cupo_torneo BEFORE INSERT OR UPDATE ON equipos
 FOR EACH ROW EXECUTE FUNCTION controlar_cupo_torneo();
 
+-- Guarda jugadores por equipo
 CREATE TABLE jugadores (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   equipo_id bigint NOT NULL REFERENCES equipos(id),
@@ -141,11 +163,13 @@ CREATE TABLE jugadores (
   posicion integer NOT NULL CHECK (posicion BETWEEN 1 AND 20),
   UNIQUE(equipo_id, cedula), UNIQUE(equipo_id, posicion)
 );
+
+-- Limita jugadores inscritos
 CREATE OR REPLACE FUNCTION limitar_jugadores() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE estado_equipo text; limite integer;
 BEGIN
-  -- Bloquear primero el torneo y luego el equipo conserva el mismo orden
-  -- que la confirmación del pago y serializa los últimos puestos de la lista.
+  -- Ordena bloqueos del torneo
+  -- Evita cupos repetidos
   SELECT t.max_jugadores INTO limite FROM torneos t JOIN equipos e ON e.torneo_id=t.id
     WHERE e.id=NEW.equipo_id FOR SHARE OF t;
   SELECT estado INTO estado_equipo FROM equipos WHERE id=NEW.equipo_id FOR UPDATE;
@@ -165,9 +189,12 @@ BEGIN
   END IF;
   RETURN NEW;
 END; $$;
+
+-- Activa límite de jugadores
 CREATE TRIGGER trg_limitar_jugadores BEFORE INSERT OR UPDATE ON jugadores
 FOR EACH ROW EXECUTE FUNCTION limitar_jugadores();
 
+-- Protege límites existentes
 CREATE OR REPLACE FUNCTION proteger_limite_torneo() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
   IF EXISTS (SELECT 1 FROM equipos e JOIN jugadores j ON j.equipo_id=e.id
@@ -176,9 +203,12 @@ BEGIN
   END IF;
   RETURN NEW;
 END; $$;
+
+-- Activa protección del límite
 CREATE TRIGGER trg_proteger_limite BEFORE UPDATE OF max_jugadores ON torneos
 FOR EACH ROW EXECUTE FUNCTION proteger_limite_torneo();
 
+-- Guarda horarios escolares
 CREATE TABLE horarios_chaca (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   categoria varchar(6) NOT NULL CHECK (categoria IN ('Sub-6','Sub-8','Sub-10','Sub-12','Sub-14','Sub-16','Sub-18')),
@@ -188,6 +218,8 @@ CREATE TABLE horarios_chaca (
   fin time NOT NULL CHECK (fin>inicio),
   UNIQUE(categoria,dias,inicio), UNIQUE(id,categoria)
 );
+
+-- Guarda alumnos inscritos
 CREATE TABLE inscripciones_chaca (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -202,6 +234,8 @@ CREATE TABLE inscripciones_chaca (
   CHECK (extract(year FROM age(fecha_inscripcion,nacimiento)) BETWEEN 4 AND 17),
   CHECK (categoria = 'Sub-' || (2 * (extract(year FROM age(fecha_inscripcion,nacimiento))::integer / 2 + 1))::text)
 );
+
+-- Guarda periodos mensuales
 CREATE TABLE mensualidades (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -209,6 +243,8 @@ CREATE TABLE mensualidades (
   periodo date NOT NULL CHECK (extract(day FROM periodo) = 1),
   UNIQUE(inscripcion_id,periodo)
 );
+
+-- Guarda pagos simulados
 CREATE TABLE pagos (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -218,6 +254,8 @@ CREATE TABLE pagos (
   simulado boolean NOT NULL DEFAULT true CHECK (simulado),
   pagado_en timestamptz NOT NULL DEFAULT current_timestamp
 );
+
+-- Valida pagos recibidos
 CREATE FUNCTION validar_pago() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE orden ordenes;
 BEGIN
@@ -227,8 +265,11 @@ BEGIN
   END IF;
   RETURN NEW;
 END; $$;
+
+-- Activa reglas del pago
 CREATE TRIGGER trg_validar_pago BEFORE INSERT ON pagos FOR EACH ROW EXECUTE FUNCTION validar_pago();
 
+-- Cobra mensualidades sin duplicar
 CREATE PROCEDURE cobrar_mensualidad(p_orden uuid, p_metodo text)
 LANGUAGE plpgsql AS $$
 DECLARE orden ordenes; cuota mensualidades; ingreso date;
@@ -249,6 +290,7 @@ BEGIN
   UPDATE inscripciones_chaca SET estado='ACTIVA' WHERE id=cuota.inscripcion_id;
 END; $$;
 
+-- Guarda correos pendientes
 CREATE TABLE correo_salida (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   usuario_id bigint NOT NULL REFERENCES usuarios(id),
@@ -267,17 +309,23 @@ CREATE TABLE correo_salida (
   UNIQUE(orden_id,asunto)
 );
 CREATE INDEX idx_correo_pendiente ON correo_salida(proximo_intento,id) WHERE estado_envio='PENDIENTE';
+
+-- Guarda enlaces temporales
 CREATE TABLE restablecimientos (
   token_hash char(64) PRIMARY KEY,
   usuario_id bigint NOT NULL REFERENCES usuarios(id),
   vence_en timestamptz NOT NULL,
   usado boolean NOT NULL DEFAULT false
 );
+
+-- Controla intentos repetidos
 CREATE TABLE intentos_acceso (
   clave char(64) PRIMARY KEY,
   intentos integer NOT NULL DEFAULT 1 CHECK (intentos > 0),
   inicio timestamptz NOT NULL DEFAULT current_timestamp
 );
+
+-- Guarda sesiones activas
 CREATE TABLE sesiones (
   token_hash char(64) PRIMARY KEY,
   usuario_id bigint REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -286,6 +334,7 @@ CREATE TABLE sesiones (
 );
 CREATE INDEX idx_sesiones_usuario ON sesiones(usuario_id);
 
+-- Reporta pagos registrados
 CREATE VIEW vista_reporte_administrador AS
 SELECT p.id AS pago_id, p.pagado_en, u.id AS usuario_id, u.nombre, u.email,
   o.id AS orden_id, o.tipo, o.descripcion, p.monto, p.metodo, p.referencia,
@@ -296,6 +345,7 @@ LEFT JOIN reservas r ON r.orden_id=o.id LEFT JOIN canchas c ON c.id=r.cancha_id
 LEFT JOIN equipos e ON e.orden_id=o.id LEFT JOIN torneos t ON t.id=e.torneo_id
 LEFT JOIN mensualidades m ON m.orden_id=o.id LEFT JOIN inscripciones_chaca sc ON sc.id=m.inscripcion_id;
 
+-- Reporta mensualidades escolares
 CREATE VIEW vista_mensualidades_escuela AS
 SELECT sc.id AS inscripcion_id, sc.alumno, sc.categoria, u.nombre AS representante,
   u.email, sc.estado, count(p.id) AS cuotas_pagadas, coalesce(sum(p.monto),0) AS total_pagado,
@@ -306,6 +356,7 @@ JOIN usuarios u ON u.id=origen.usuario_id LEFT JOIN mensualidades m ON m.inscrip
 LEFT JOIN pagos p ON p.orden_id=m.orden_id
 GROUP BY sc.id, u.nombre, u.email;
 
+-- Reporta ocupación mensual
 CREATE VIEW vista_ocupacion_cancha AS
 SELECT c.id, c.nombre, date_trunc('month',r.inicio AT TIME ZONE 'America/Guayaquil')::date AS mes,
   count(r.id) AS reservas, coalesce(sum(extract(epoch FROM r.fin-r.inicio)/3600),0) AS horas,

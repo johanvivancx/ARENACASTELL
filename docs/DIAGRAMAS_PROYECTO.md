@@ -1,45 +1,44 @@
-# Diagramas técnicos de Arena Castell
+# Diagramas de Arena Castell
 
-Estos diagramas se generaron a partir de `sql/schema.sql` y `models.py`. Representan la implementación actual del proyecto y sirven como evidencia para Base de Datos I y Programación Orientada a Objetos.
+Los tres diagramas se hicieron a partir de la base y de las clases que usa el proyecto. Las imágenes se pueden colocar en el informe o en la presentación. Los archivos `.mmd` quedan como versión editable.
 
-## 1. Modelo entidad-relación
+## Modelo entidad-relación
 
 ![Modelo entidad-relación de Arena Castell](diagramas/modelo_entidad_relacion.png)
 
-El modelo entidad-relación presenta el núcleo del negocio y sus cardinalidades. `Usuario` es el origen de las órdenes. Cada orden puede materializar una reserva, la inscripción de un equipo, una inscripción de Súper Chaca, una mensualidad o un pago. Las entidades técnicas de correo, sesiones, restablecimiento e intentos de acceso se detallan en el modelo relacional completo.
+Este modelo muestra las partes principales del negocio y cómo se relacionan. Un usuario puede crear varias órdenes. Cada orden pertenece a una reserva, un equipo, una inscripción de Súper Chaca o una mensualidad, y puede tener un pago.
 
-Archivo editable: [`modelo_entidad_relacion.mmd`](diagramas/modelo_entidad_relacion.mmd).
+[Abrir el archivo editable](diagramas/modelo_entidad_relacion.mmd).
 
-## 2. Modelo relacional
+## Modelo relacional
 
 ![Modelo relacional de Arena Castell](diagramas/modelo_relacional.png)
 
-El modelo relacional muestra las 15 tablas implementadas, sus atributos principales y las claves `PK`, `FK` y `UQ`. La relación entre `inscripciones_chaca` y `horarios_chaca` usa la clave foránea compuesta `(horario_id, categoria)`, con referencia a `(id, categoria)`. Las restricciones `CHECK`, exclusiones, triggers, procedimiento y vistas se documentan en `sql/schema.sql` porque no sustituyen relaciones entre tablas.
+Aquí aparecen las 15 tablas con sus claves primarias, foráneas y únicas. También se puede ver cómo se conectan usuarios, órdenes, servicios, pagos, sesiones y correos.
 
-Archivo editable: [`modelo_relacional.mmd`](diagramas/modelo_relacional.mmd).
+Las reglas `CHECK`, los triggers, el procedimiento y las vistas están en `sql/schema.sql` y en los pasos de `sql/pgadmin`.
 
-## 3. Diagrama de clases POO
+[Abrir el archivo editable](diagramas/modelo_relacional.mmd).
+
+## Diagrama de clases POO
 
 ![Diagrama de clases POO de Arena Castell](diagramas/diagrama_clases_poo.png)
 
-El diagrama evidencia los cuatro pilares usados por el proyecto:
+El diagrama representa las clases de `models.py`:
 
-- **Encapsulamiento:** `Usuario` mantiene `password_hash` como atributo privado y controla su acceso mediante métodos.
-- **Herencia:** `Administrador` y `Cliente` heredan de `Usuario`; los tres servicios heredan de `ServicioArena`.
-- **Abstracción:** `ServicioArena` define el contrato abstracto `calcular_costo()`.
-- **Polimorfismo:** `ReservaCancha`, `InscripcionTorneo` e `InscripcionSuperChaca` implementan el mismo método con reglas de precio diferentes.
+- `Cliente` y `Administrador` heredan de `Usuario`.
+- `ReservaCancha`, `InscripcionTorneo` e `InscripcionSuperChaca` heredan de `ServicioArena`.
+- `Usuario` mantiene el hash de la contraseña como dato privado.
+- Cada servicio implementa `calcular_costo()` con una regla diferente.
 
-Archivo editable: [`diagrama_clases_poo.mmd`](diagramas/diagrama_clases_poo.mmd).
+Con esto se muestran encapsulamiento, herencia, abstracción y polimorfismo dentro del código que sí utiliza la aplicación.
 
-## Versiones para entregar
+[Abrir el archivo editable](diagramas/diagrama_clases_poo.mmd).
 
-- [`DIAGRAMAS_PROYECTO.pdf`](DIAGRAMAS_PROYECTO.pdf): documento completo listo para presentar o adjuntar.
-- Los archivos PNG de `docs/diagramas/` pueden insertarse directamente en Word, PowerPoint o Google Docs.
-- Los archivos Mermaid `.mmd` conservan una versión editable y reproducible.
+## Archivos para entregar
 
-## Fuente y alcance
+- [DIAGRAMAS_PROYECTO.pdf](DIAGRAMAS_PROYECTO.pdf): los tres diagramas en un solo PDF.
+- `docs/diagramas/*.png`: imágenes por separado.
+- `docs/diagramas/*.mmd`: fuentes editables en Mermaid.
 
-- Tablas y relaciones: `sql/schema.sql`.
-- Clases, atributos y métodos: `models.py`.
-- Lógica de aplicación que utiliza las clases: `services.py`.
-- Los métodos de pago son registros simulados; el diagrama no representa una pasarela bancaria real.
+El modelo de datos sale de `sql/schema.sql` y el diagrama de clases sale de `models.py`. Los métodos de pago son una demostración académica y no representan una conexión bancaria real.

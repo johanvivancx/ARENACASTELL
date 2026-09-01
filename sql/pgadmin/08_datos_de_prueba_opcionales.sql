@@ -1,7 +1,7 @@
--- OPCIONAL: datos FICTICIOS para sustentar el procedimiento y las vistas.
--- La cédula cumple el algoritmo, pero NO prueba identidad ni Registro Civil.
--- Usuario de prueba: sql.demo@arena.test / PruebaSQL!2026. No usar en producción.
--- Ejecutar una sola vez, después del paso 7. No sobrescribe personas existentes.
+-- Carga datos ficticios opcionales
+-- No confirma identidades reales
+-- Usa una cuenta ficticia
+-- Carga ejemplos una vez
 BEGIN;
 INSERT INTO usuarios(nombre,cedula,email,telefono,password_hash,rol)
 VALUES('Representante de Prueba','1700009200','sql.demo@arena.test','0990000000','pbkdf2_sha256$600000$b82cec5df92a2ba6dfb221081dfde5d2$064b8e98360a8745d1526ee749d734325b6b739ee73f45c67e6a57aab0f8061b','CLIENTE');

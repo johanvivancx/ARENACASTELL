@@ -1,4 +1,4 @@
--- Comprobaciones sin insertar personas ni cobrar dinero.
+-- Comprueba reglas sin guardar
 SELECT validar_cedula('1700009200') AS ejemplo_sintetico_valido,
        validar_cedula('0000000000') AS provincia_invalida,
        validar_cedula('123') AS longitud_invalida;
@@ -12,8 +12,8 @@ WHERE routine_schema='public' AND routine_name IN
  ('validar_cedula','controlar_reserva','controlar_cupo_torneo','limitar_jugadores','validar_pago','cobrar_mensualidad');
 SELECT table_name FROM information_schema.views WHERE table_schema='public';
 
--- Comprobar réplica en BD: intentar un registro inválido debe producir CHECK violation.
--- Este bloque captura únicamente el error esperado y NO deja datos de prueba.
+-- Prueba una restricción CHECK
+-- Captura el error esperado
 DO $$
 BEGIN
   BEGIN

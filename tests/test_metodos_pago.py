@@ -1,3 +1,5 @@
+# Prueba métodos de pago
+
 """Pago presencial: intención, autorización de cobro y compatibilidad histórica."""
 from datetime import date, datetime, timedelta
 from decimal import Decimal

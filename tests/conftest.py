@@ -1,3 +1,5 @@
+# Prepara la base temporal
+
 import os
 from pathlib import Path
 import sys
@@ -27,12 +29,12 @@ def database_url():
     with psycopg.connect(admin,autocommit=True) as conn:
         conn.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(name)))
     with psycopg.connect(url) as conn:
-        # Verificar los mismos pasos independientes que se ejecutan en pgAdmin.
+        # Repite los pasos pgAdmin
         for step in sorted((ROOT/"sql/pgadmin").glob('*.sql')):
             if step.name[:2] in {'02','03','04','05','06'}:
                 conn.execute(step.read_text(encoding='utf8'))
     yield url
-    # Se elimina únicamente la base aleatoria que esta fixture creó.
+    # Borra solo la base temporal
     assert name.startswith("test_arena_") and len(name)==23
     with psycopg.connect(admin,autocommit=True) as conn:
         conn.execute(sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(name)))

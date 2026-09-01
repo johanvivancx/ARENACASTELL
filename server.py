@@ -27,8 +27,8 @@ import correos
 STATIC = ROOT
 ORIGIN = os.environ.get("APP_ORIGIN", "http://127.0.0.1:8765").rstrip("/")
 
-# Lista explícita de recursos públicos. La raíz también contiene Python y .env:
-# nunca se sirve completa, aunque index.html esté junto a esos archivos.
+# Publica solo archivos permitidos
+# Protege archivos privados
 PUBLIC_FILES = {"/index.html": ROOT / "index.html"}
 for page in (ROOT / "pages").glob("*.html"):
     if page.resolve().parent == (ROOT / "pages").resolve():
@@ -58,6 +58,7 @@ for asset in (ROOT / "assets").rglob("*"):
 LEGACY_PAGES = {"/" + page.name: "/pages/" + page.name for page in (ROOT / "pages").glob("*.html")}
 
 
+# Convierte datos para JSON
 def json_default(value):
     if isinstance(value, (date, datetime, time)):
         return value.isoformat()
@@ -66,12 +67,15 @@ def json_default(value):
     raise TypeError(type(value).__name__)
 
 
+# Atiende solicitudes del navegador
 class Handler(SimpleHTTPRequestHandler):
     server_version = "ArenaCastell"
 
+    # Define la carpeta pública
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(STATIC), **kwargs)
 
+    # Agrega cabeceras de seguridad
     def end_headers(self):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
@@ -83,24 +87,28 @@ class Handler(SimpleHTTPRequestHandler):
         )
         super().end_headers()
 
+    # Registra solicitudes sin claves
     def log_message(self, fmt, *args):
-        # No registrar contraseñas, cookies ni parámetros de recuperación.
+        # Oculta datos del registro
         logging.info("%s %s", self.command, urlsplit(self.path).path)
 
+    # Bloquea listas de archivos
     def list_directory(self, path):
         self.send_error(404)
         return None
 
+    # Atiende consultas GET
     def do_GET(self):
         if urlsplit(self.path).path.startswith("/api/"):
             return self.api()
         return super().do_GET()
 
+    # Protege archivos privados
     def send_head(self):
         url = urlsplit(self.path)
         path = unquote(url.path)
         if path in LEGACY_PAGES:
-            # Mantener enlaces antiguos, incluidos los de recuperación de cuenta.
+            # Conserva enlaces anteriores
             destination = LEGACY_PAGES[path] + ("?" + url.query if url.query else "")
             self.send_response(301)
             self.send_header("Location", destination)
@@ -119,9 +127,11 @@ class Handler(SimpleHTTPRequestHandler):
             return None
         return super().send_head()
 
+    # Atiende solicitudes POST
     def do_POST(self):
         return self.api()
 
+    # Devuelve respuestas JSON
     def send_json(self, status, body, cookie=None):
         payload = json.dumps(body, default=json_default, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -137,6 +147,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    # Dirige las rutas API
     def api(self):
         cookie_out = None
         try:
@@ -267,6 +278,7 @@ class Handler(SimpleHTTPRequestHandler):
                 },
             )
 
+    # Protege rutas del cliente
     def private_route(self, conn, uid, path, data, params):
         method = self.command
         if path == "/api/reservations" and method == "POST":
@@ -302,12 +314,13 @@ class Handler(SimpleHTTPRequestHandler):
         raise s.HTTPError(404, "No encontramos esa operación.")
 
 
+# Inicia el servidor local
 def main():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     port = int(urlsplit(ORIGIN).port or 8765)
     httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
-    print("Ctrl+C para detener. Configuración del correo en docs/CORREOS_GMAIL.md.", flush=True)
+    print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)
     worker = correos.iniciar_trabajador() if correos.habilitado() else None
     try:
         httpd.serve_forever()

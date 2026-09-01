@@ -1,3 +1,5 @@
+# Prueba tarifas de reserva
+
 """Precios, duración de cumpleaños y conservación de reservas anteriores."""
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -52,7 +54,7 @@ def test_sql_no_permite_cumpleanos_nuevo_fuera_del_paquete(conn, user):
 def test_actualizacion_repetible_conserva_orden_anterior(conn, user, pay_data):
     conn.execute('UPDATE canchas SET tarifa_hora=30,tarifa_evento=45,tarifa_cumpleanos=40 WHERE id=1')
     order = s.reservar(conn, user['id'], datos('HORA', 2))
-    # Reproduce una reserva de cumpleaños de la versión anterior, que permitía dos horas.
+    # Simula una reserva anterior
     old_function = (ROOT/'sql/schema.sql').read_text(encoding='utf8')
     old_function = old_function.split('CREATE FUNCTION controlar_reserva()', 1)[1].split('END; $$;', 1)[0]
     begin = old_function.index('  -- Los cumpleaños nuevos')

@@ -1,10 +1,13 @@
-/* JavaScript sin frameworks. HTML semántico independiente + API Python local. */
+// Lógica del sitio
 "use strict";
 document.documentElement.classList.add("js");
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-// La raíz se obtiene del script compartido: funciona por HTTP y al abrir el HTML.
+
+// Calcula la ruta base
 const siteRoot = new URL("../", document.currentScript.src);
+
+// Construye enlaces internos
 const pageHref = (name) =>
   new URL(name === "index.html" ? name : `pages/${name}`, siteRoot).href;
 const page = document.body.dataset.page;
@@ -22,10 +25,14 @@ const mailStates = {
   CANCELADO: "Envío cancelado",
 };
 let availabilityRequest = 0;
+
+// Da formato al dinero
 const money = (value) =>
   new Intl.NumberFormat("es-EC", { style: "currency", currency: "USD" }).format(
     Number(value || 0),
   );
+
+// Escapa texto peligroso
 const esc = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -34,6 +41,8 @@ const esc = (value) =>
         char
       ],
   );
+
+// Da formato a fechas
 const dates = (value) =>
   value
     ? new Intl.DateTimeFormat("es-EC", {
@@ -43,6 +52,8 @@ const dates = (value) =>
         new Date(value.length === 10 ? `${value}T12:00:00-05:00` : value),
       )
     : "—";
+
+// Da formato a horas
 const times = (value) =>
   new Intl.DateTimeFormat("es-EC", {
     hour: "2-digit",
@@ -68,9 +79,12 @@ const events = {
   CUMPLEANOS: "Cumpleaños",
   EVENTO: "Evento deportivo",
 };
+
+// Construye listas de datos
 const detailList = (pairs) =>
   `<dl>${pairs.map(([key, value]) => `<div><dt>${esc(key)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>`;
 
+// Habla con el servidor
 async function api(path, data) {
   const options = {
     method: data === undefined ? "GET" : "POST",
@@ -106,6 +120,7 @@ async function api(path, data) {
   return body;
 }
 
+// Muestra mensajes visibles
 function showMessage(text, type = "error") {
   const host = $("#form-message") || $("#connection-message");
   if (!host) return;
@@ -114,9 +129,13 @@ function showMessage(text, type = "error") {
   host.textContent = text;
   if (host.id === "form-message") host.focus();
 }
+
+// Limpia mensajes anteriores
 function clearMessage() {
   if ($("#form-message")) $("#form-message").hidden = true;
 }
+
+// Valida el siguiente enlace
 function safeNext(fallback = "mis_reservas_inscripciones.html") {
   const candidate = query.get("next");
   if (!candidate) return pageHref(fallback);
@@ -134,11 +153,15 @@ function safeNext(fallback = "mis_reservas_inscripciones.html") {
     return pageHref(fallback);
   }
 }
+
+// Construye acceso seguro
 function loginHref() {
   const next =
     page === "home" ? pageHref("index.html") + location.search : location.href;
   return `${pageHref("iniciar_sesion.html")}?next=${encodeURIComponent(next)}`;
 }
+
+// Actualiza el menú personal
 function updateSessionUI() {
   const user = session.usuario;
   $$("[data-admin-link]").forEach((el) => (el.hidden = user?.rol !== "ADMIN"));
@@ -167,6 +190,8 @@ function updateSessionUI() {
         user?.[input.dataset.profile] || "Inicia sesión para completar"),
   );
 }
+
+// Valida cédulas ecuatorianas
 function validCedula(value) {
   if (
     !/^[0-9]{10}$/.test(value) ||
@@ -230,6 +255,7 @@ $$("[data-print]").forEach((button) =>
   button.addEventListener("click", () => window.print()),
 );
 
+// Lee datos del formulario
 function formData(form) {
   const data = Object.fromEntries(new FormData(form));
   $$("input[type=checkbox]", form).forEach(
@@ -237,6 +263,8 @@ function formData(form) {
   );
   return data;
 }
+
+// Conecta formularios con acciones
 function bindForm(id, action) {
   const form = $(id);
   if (!form) return;
@@ -264,6 +292,8 @@ function bindForm(id, action) {
     }
   });
 }
+
+// Exige una sesion activa
 function needUser() {
   if (!session.usuario) {
     const error = new Error(
@@ -273,6 +303,8 @@ function needUser() {
     throw error;
   }
 }
+
+// Abre el paso de pago
 function goPayment(result) {
   location.href = `${pageHref("pagos.html")}?orden=${encodeURIComponent(result.id)}`;
 }
@@ -349,6 +381,7 @@ bindForm("#report-filter", async (data) => {
   await loadReports(data);
 });
 
+// Resume la reserva elegida
 function reservationSummary() {
   if (!catalog || !$("#reservation-form")) return;
   const court = catalog.canchas.find(
@@ -375,6 +408,8 @@ function reservationSummary() {
     ["Tarifa por hora", money(rate)],
   ]);
 }
+
+// Carga horarios disponibles
 async function loadSlots() {
   if (!$("#fecha")?.value) return;
   const request = ++availabilityRequest;
@@ -404,6 +439,8 @@ async function loadSlots() {
       $("#availability-status").textContent = error.message;
   }
 }
+
+// Calcula la duración elegida
 function reservationDuration() {
   const birthday = $("#tipo_evento").value === "CUMPLEANOS";
   const duration = $("#horas");
@@ -421,6 +458,8 @@ function reservationDuration() {
     ? "Paquete de 3 horas. Incluye decoración, parqueadero y servicio de bar. El consumo del bar se paga aparte."
     : "Elige de 1 a 6 horas consecutivas. Contamos con parqueadero y servicio de bar; el consumo se paga aparte.";
 }
+
+// Prepara el formulario reserva
 function initReservation() {
   if (!catalog) return;
   $("#cancha_id").innerHTML = catalog.canchas
@@ -441,6 +480,8 @@ function initReservation() {
   reservationSummary();
   return loadSlots();
 }
+
+// Resume la inscripción deportiva
 function tournamentSummary() {
   const tournament = catalog?.torneos.find(
     (t) => String(t.id) === $("#torneo_id").value,
@@ -455,6 +496,8 @@ function tournamentSummary() {
       ])
     : '<p class="small-text muted">No hay torneos abiertos.</p>';
 }
+
+// Carga los torneos abiertos
 function initTournaments() {
   if (!catalog) return;
   const open = catalog.torneos.filter(
@@ -513,6 +556,8 @@ function initTournaments() {
     }
   }
 }
+
+// Busca el horario escolar
 function schoolSchedule() {
   const group = $("#categoria").value;
   const schedule =
@@ -526,6 +571,8 @@ function schoolSchedule() {
       )
       .join("");
 }
+
+// Prepara la inscripción escolar
 function initSchool() {
   $("#summary-total").textContent = money(50);
   $("#categoria").addEventListener("change", schoolSchedule);
@@ -553,6 +600,8 @@ function initSchool() {
   });
   schoolSchedule();
 }
+
+// Ordena detalles visibles
 function orderPairs(order) {
   const pairs = [
     ["Servicio", kinds[order.tipo]],
@@ -581,6 +630,8 @@ function orderPairs(order) {
     );
   return pairs;
 }
+
+// Carga la operación actual
 async function loadOrder() {
   needUser();
   const id = query.get("orden");
@@ -665,6 +716,8 @@ async function loadOrder() {
     $("#confirmation-content").hidden = false;
   }
 }
+
+// Muestra el método elegido
 function renderPaymentMethod() {
   const method = $('input[name="metodo"]:checked')?.value;
   if (!$("#method-info")) return;
@@ -679,6 +732,8 @@ function renderPaymentMethod() {
     $("#pay-button-label").textContent = method === "EFECTIVO" ? "Elegir pago en cancha" : "Registrar pago";
 }
 $$("input[name=metodo]").forEach((input) => input.addEventListener("change", renderPaymentMethod));
+
+// Completa el perfil guardado
 function fillProfile() {
   const user = session.usuario;
   if (!user) return;
@@ -694,6 +749,8 @@ function fillProfile() {
     .join("")
     .toUpperCase();
 }
+
+// Dibuja el historial filtrado
 function renderHistory(filter = "TODOS") {
   const rows = historyData.ordenes.filter(
     (o) =>
@@ -712,6 +769,8 @@ function renderHistory(filter = "TODOS") {
         .join("")
     : `<div class="empty-state"><h3>Aquí comienza tu historia.</h3><p>No tienes operaciones en esta sección.</p><a class="btn" href="${pageHref("reservas.html")}">Explorar reservas</a></div>`;
 }
+
+// Carga la actividad personal
 async function loadHistory() {
   needUser();
   historyData = await api("/history");
@@ -757,12 +816,16 @@ async function loadHistory() {
         .join("")
     : '<p class="muted small-text">Los avisos aparecerán después de confirmar una operación.</p>';
 }
+
+// Calcula el siguiente período
 function nextMonth(day) {
   const d = new Date(`${day}T12:00:00Z`);
   d.setUTCDate(1);
   d.setUTCMonth(d.getUTCMonth() + 1);
   return d.toISOString().slice(0, 7);
 }
+
+// Carga jugadores del equipo
 async function loadTeam() {
   needUser();
   const id = query.get("equipo");
@@ -801,11 +864,15 @@ async function loadTeam() {
     }),
   );
 }
+
+// Construye tablas accesibles
 function table(headers, rows, caption) {
   if (!rows.length)
     return '<div class="empty-state"><p>No hay registros para mostrar.</p></div>';
   return `<div class="table-wrap" tabindex="0" role="region" aria-label="${esc(caption)}"><table><caption>${esc(caption)}</caption><thead><tr>${headers.map((h) => `<th scope="col">${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
+
+// Carga reportes administrativos
 async function loadReports(filters = {}) {
   needUser();
   reportData = await api(`/admin/reports?${new URLSearchParams(filters)}`);
@@ -952,7 +1019,7 @@ $("#export-report")?.addEventListener("click", () => {
       p.referencia,
     ]),
   ];
-  // Neutraliza fórmulas al abrir CSV en una hoja de cálculo.
+  // Evita fórmulas en CSV
   const safe = (value) => {
     let text = String(value ?? "");
     if (/^[=+@\-\t\r\n]/.test(text)) text = "'" + text;
@@ -970,6 +1037,7 @@ $("#export-report")?.addEventListener("click", () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
+// Inicia la página actual
 async function initialize() {
   if (location.protocol === "file:") return;
   const results = await Promise.allSettled([api("/session"), api("/catalog")]);

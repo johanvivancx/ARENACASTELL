@@ -1,17 +1,18 @@
-# Scripts de pgAdmin
+# Scripts para pgAdmin
 
-Sigue [la guía paso a paso](../../docs/PGADMIN_PASO_A_PASO.md). Ejecuta cada script completo y revisa el resultado antes de continuar.
+La explicación completa está en [Crear la base en pgAdmin](../../docs/PGADMIN_PASO_A_PASO.md).
 
-Los pasos 1 al 7 crean la base y cargan los datos de la cancha. Los pasos 8 y 9 usan ejemplos ficticios y son opcionales. El 10 permite revisar las validaciones.
+Para una base nueva se ejecutan los pasos `01` al `07` en orden. Los pasos `08` y `09` agregan datos ficticios y son opcionales. El paso `10` sirve para revisar las validaciones.
 
-Si la base ya existe, no repitas los pasos que crean tablas ni ejecutes `schema.sql` encima.
-El paso 11 agrega los campos de correo a una versión anterior. El paso 12 actualiza las tarifas
-y la duración de los cumpleaños sin borrar reservas ni pagos.
+Si `arena_castell` ya tiene información, no repitas los archivos que crean tablas. Guarda un respaldo y usa solo la actualización necesaria:
 
-Los precios actuales son $27 por hora, $30 por hora para eventos y $25 por hora para el paquete
-de cumpleaños de 3 horas ($75 en total).
+- `11`: campos para correos.
+- `12`: tarifas y cumpleaños de 3 horas.
+- `13`: Pasochoa Cup sexta edición.
+- `14`: efectivo y tarjeta de crédito/débito.
 
-El paso 13 agrega Pasochoa Cup sexta edición a una base que ya funciona: inicio el 30 de
-septiembre de 2026, 16 equipos y $30 por inscripción. Es seguro repetirlo: no duplica la
-convocatoria, no aplaza la fecha y no modifica las inscripciones existentes.
-Después de ejecutarlo, actualiza la página local de torneos. El paso 07 actual ya lo incluye.
+Cuando termines, vuelve a la carpeta principal y ejecuta:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py check-db
+```

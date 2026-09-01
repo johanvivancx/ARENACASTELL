@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / ".env")
 
 
+# Abre la conexión PostgreSQL
 @contextmanager
 def conectar():
     url = os.environ.get("DATABASE_URL")

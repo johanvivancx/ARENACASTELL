@@ -1,3 +1,5 @@
+# Prueba reglas principales
+
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta
 from decimal import Decimal

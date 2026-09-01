@@ -1,3 +1,5 @@
+# Prueba Pasochoa Cup
+
 """Inscripción de la sexta edición en la base temporal de las pruebas."""
 from datetime import date
 from decimal import Decimal
@@ -17,7 +19,7 @@ SCRIPT = ROOT / 'sql/pgadmin/13_pasochoa_sexta_edicion.sql'
 
 def siguiente_edicion(conn):
     torneo = conn.execute('SELECT * FROM torneos WHERE nombre=%s', (NAME,)).fetchone()
-    # Solo en esta base temporal: mantener la prueba útil después de septiembre.
+    # Ajusta la base temporal
     conn.execute('UPDATE torneos SET fecha_inicio=current_date+30 WHERE id=%s', (torneo['id'],))
     return torneo
 

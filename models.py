@@ -9,10 +9,12 @@ import re
 import secrets
 
 
+# Representa datos incorrectos
 class ErrorValidacion(ValueError):
     """Una regla del dominio no se cumple; el mensaje puede mostrarse al usuario."""
 
 
+# Valida cédulas ecuatorianas
 def validar_cedula(cedula: str) -> bool:
     if not re.fullmatch(r"[0-9]{10}", cedula):
         return False
@@ -22,13 +24,16 @@ def validar_cedula(cedula: str) -> bool:
     return (10 - sum(v - 9 if v > 9 else v for v in valores) % 10) % 10 == int(cedula[-1])
 
 
+# Limpia un texto obligatorio
 def texto(valor, campo, minimo=2, maximo=100):
     if not isinstance(valor, str) or not minimo <= len(valor.strip()) <= maximo:
         raise ErrorValidacion(f"{campo}: escribe entre {minimo} y {maximo} caracteres.")
     return valor.strip()
 
 
+# Encapsula datos del usuario
 class Usuario:
+    # Valida los datos recibidos
     def __init__(
         self,
         nombre: str,
@@ -51,10 +56,12 @@ class Usuario:
         self.telefono = telefono
         self.__password_hash = password_hash
 
+    # Devuelve el rol base
     @property
     def rol(self):
         return "CLIENTE"
 
+    # Protege la contraseña
     def set_password(self, password: str):
         if not isinstance(password, str) or not 10 <= len(password) <= 128:
             raise ErrorValidacion("Usa una contraseña de 10 a 128 caracteres.")
@@ -62,10 +69,12 @@ class Usuario:
         digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 600_000).hex()
         self.__password_hash = f"pbkdf2_sha256$600000${salt}${digest}"
 
+    # Devuelve el hash guardado
     def get_password_hash(self):
         """Acceso explícito para persistencia: nunca se entrega en respuestas HTTP."""
         return self.__password_hash
 
+    # Compara la contraseña escrita
     def verificar_password(self, password: str) -> bool:
         try:
             algorithm, rounds, salt, digest = self.__password_hash.split("$")
@@ -78,9 +87,11 @@ class Usuario:
         except (ValueError, TypeError):
             return False
 
+    # Niega acceso administrativo
     def puede_administrar(self) -> bool:
         return False
 
+    # Crea usuario desde fila
     @classmethod
     def desde_fila(cls, fila):
         clase = Administrador if fila["rol"] == "ADMIN" else Cliente
@@ -89,32 +100,42 @@ class Usuario:
         )
 
 
+# Hereda permisos administrativos
 class Administrador(Usuario):
+    # Devuelve el rol administrador
     @property
     def rol(self):
         return "ADMIN"
 
+    # Permite acceso administrativo
     def puede_administrar(self) -> bool:
         return True
 
 
+# Hereda permisos del cliente
 class Cliente(Usuario):
+    # Mantiene acceso de cliente
     def puede_administrar(self) -> bool:
         return False
 
 
+# Define una clase abstracta
 class ServicioArena(ABC):
     """Abstracción: todo servicio sabe calcular su costo y describirlo."""
 
+    # Exige calcular cada costo
     @abstractmethod
     def calcular_costo(self) -> Decimal:
         pass
 
+    # Resume el costo calculado
     def resumen_costo(self):
         return f"USD {self.calcular_costo():.2f}"
 
 
+# Calcula reservas con polimorfismo
 class ReservaCancha(ServicioArena):
+    # Valida horas y tarifas
     def __init__(self, horas: int, tipo_evento: str, tarifas: dict):
         if type(horas) is not int or not 1 <= horas <= 6:
             raise ErrorValidacion("Elige una duración de 1 a 6 horas.")
@@ -126,6 +147,7 @@ class ReservaCancha(ServicioArena):
         self.__tipo = tipo_evento
         self.__tarifas = tarifas
 
+    # Calcula el valor reservado
     def calcular_costo(self):
         key = {"HORA": "tarifa_hora", "EVENTO": "tarifa_evento", "CUMPLEANOS": "tarifa_cumpleanos"}[
             self.__tipo
@@ -133,7 +155,9 @@ class ReservaCancha(ServicioArena):
         return (Decimal(str(self.__tarifas[key])) * self.__horas).quantize(Decimal("0.01"))
 
 
+# Calcula torneos con polimorfismo
 class InscripcionTorneo(ServicioArena):
+    # Valida tarifa y jugadores
     def __init__(self, tarifa: Decimal, jugadores: int = 0, max_jugadores: int = 20):
         if not 1 <= max_jugadores <= 20 or not 0 <= jugadores <= max_jugadores:
             raise ErrorValidacion(
@@ -143,13 +167,16 @@ class InscripcionTorneo(ServicioArena):
         if self.__tarifa <= 0:
             raise ErrorValidacion("La tarifa del torneo debe ser positiva.")
 
+    # Devuelve la tarifa torneo
     def calcular_costo(self):
         return self.__tarifa.quantize(Decimal("0.01"))
 
 
+# Calcula escuela con polimorfismo
 class InscripcionSuperChaca(ServicioArena):
     MENSUALIDAD = Decimal("50.00")
 
+    # Valida edad y categoría
     def __init__(self, nacimiento: date, categoria: str, fecha: date):
         edad = (
             fecha.year
@@ -165,5 +192,6 @@ class InscripcionSuperChaca(ServicioArena):
             )
         self.categoria = categoria
 
+    # Devuelve la mensualidad escolar
     def calcular_costo(self):
         return self.MENSUALIDAD

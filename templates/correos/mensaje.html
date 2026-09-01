@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
     <title>{{ asunto }}</title>
+    <!-- Ajustes para celulares -->
     <style>
       @media only screen and (max-width: 600px) {
         .outer {
@@ -36,12 +37,14 @@
   <body
     style="margin:0;padding:0;background-color:#eeeeec;color:#202020;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;"
   >
+    <!-- Vista previa del correo -->
     <div
       style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;"
     >
       {{ preencabezado }}
     </div>
 
+    <!-- Fondo del correo -->
     <table
       role="presentation"
       width="100%"
@@ -54,6 +57,7 @@
         <td align="center" class="outer" style="padding:36px 12px;">
           <!--[if mso]><table role="presentation" width="660" align="center"><tr><td><![endif]-->
 
+          <!-- Tarjeta del correo -->
           <table
             role="presentation"
             width="100%"
@@ -68,6 +72,7 @@
                 bgcolor="#111111"
                 style="padding:26px 36px;background-color:#111111;"
               >
+                <!-- Marca del negocio -->
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                   <tr>
                     <td width="80" style="width:80px;vertical-align:middle;">
@@ -97,6 +102,7 @@
               </td>
             </tr>
             <tr>
+              <!-- Contenido del mensaje -->
               <td class="content" style="padding:34px 36px 32px;">
                 <p
                   style="margin:0 0 12px;color:#606060;font-size:11px;line-height:17px;letter-spacing:1.4px;font-weight:700;"
@@ -128,6 +134,7 @@
                   {{ parrafo }}
                 </p>{% endif %}{% endfor %}
                 {% if comprobante %}
+                  <!-- Datos del cliente -->
                   <table
                     role="presentation"
                     width="100%"
@@ -194,6 +201,7 @@
                     </tr>{% endfor %}
                   </table>
 
+                  <!-- Detalle del servicio -->
                   <table
                     width="100%"
                     cellspacing="0"
@@ -261,6 +269,7 @@
                     </tbody>
                   </table>
 
+                  <!-- Total registrado -->
                   <table
                     role="presentation"
                     width="100%"
@@ -293,6 +302,7 @@
                     {{ indicacion }}
                   </p>
                 {% endif %}
+                <!-- Enlace de seguimiento -->
                 {% if url_accion %}<table
                   role="presentation"
                   cellspacing="0"
@@ -325,6 +335,7 @@
                 </p>{% endif %}{% endif %}
               </td>
             </tr>
+            <!-- Pie del correo -->
             <tr>
               <td
                 align="center"

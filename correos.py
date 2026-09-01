@@ -30,18 +30,22 @@ from jinja2 import TemplateError
 from reportlab.platypus.doctemplate import LayoutError
 
 
+# Indica configuracion incorrecta
 class ConfiguracionCorreoError(ValueError):
     pass
 
 
+# Indica contenido incorrecto
 class ContenidoCorreoError(ValueError):
     pass
 
 
+# Revisa si envia correos
 def habilitado():
     return os.environ.get("SMTP_ENABLED", "false").strip().lower() == "true"
 
 
+# Valida una dirección web
 def direccion(value):
     value = str(value).strip().lower()
     if not re.fullmatch(r"[^\s@<>;,\"]+@[^\s@<>;,\"]+\.[^\s@<>;,\"]+", value) or len(value) > 254:
@@ -49,6 +53,7 @@ def direccion(value):
     return value
 
 
+# Construye enlaces públicos
 def url_publica():
     value = os.environ.get("PUBLIC_BASE_URL", "").strip() or os.environ.get(
         "APP_ORIGIN", "http://127.0.0.1:8765"
@@ -70,6 +75,7 @@ def url_publica():
     return value.rstrip("/")
 
 
+# Guarda opciones del correo
 @dataclass(frozen=True)
 class ConfiguracionSMTP:
     host: str
@@ -79,6 +85,7 @@ class ConfiguracionSMTP:
     seguridad: str = "starttls"
     nombre: str = "ARENA CASTELL"
 
+    # Lee opciones del entorno
     @classmethod
     def desde_entorno(cls):
         if not habilitado():
@@ -112,8 +119,9 @@ class ConfiguracionSMTP:
         return cls(host, port, user, password, security, name)
 
 
+# Guarda un correo pendiente
 def encolar_correo(conn, user_id, email, subject, body, order_id=None, expires=None):
-    # LOCAL evita enviar mensajes históricos al activar SMTP posteriormente.
+    # LOCAL no envia mensajes
     state = "PENDIENTE" if habilitado() else "LOCAL"
     recipient = direccion(email)
     conn.execute(
@@ -124,6 +132,7 @@ def encolar_correo(conn, user_id, email, subject, body, order_id=None, expires=N
     )
 
 
+# Construye el mensaje completo
 def crear_mensaje(row, config):
     message = EmailMessage()
     message["From"] = Address(display_name=config.nombre, addr_spec=config.usuario)
@@ -158,6 +167,7 @@ def crear_mensaje(row, config):
     return message
 
 
+# Envia mediante correo seguro
 def enviar_smtp(row, config):
     message = crear_mensaje(row, config)
     context = ssl.create_default_context()  # Verificar certificado y nombre del servidor.
@@ -177,15 +187,16 @@ def enviar_smtp(row, config):
         if refused:
             raise smtplib.SMTPRecipientsRefused(refused)
     finally:
-        # Un fallo al cerrar después de DATA aceptado no debe provocar duplicados.
+        # Evita correos duplicados
         try:
             smtp.quit()
         except (OSError, smtplib.SMTPException):
             smtp.close()
 
 
+# Resume el error recibido
 def codigo_error(error):
-    # Nunca guardar la respuesta completa de SMTP: puede contener datos personales.
+    # Oculta respuestas del servidor
     if isinstance(error, smtplib.SMTPAuthenticationError):
         return "AUTENTICACION_SMTP"
     if isinstance(error, smtplib.SMTPRecipientsRefused):
@@ -199,6 +210,7 @@ def codigo_error(error):
     return "CONEXION_SMTP"
 
 
+# Reintenta correos pendientes
 def procesar_pendientes(limite=10):
     """Una fila bloqueada por envío; varios procesos no toman la misma fila."""
     totals = {"enviados": 0, "fallidos": 0, "cancelados": 0}
@@ -261,6 +273,7 @@ def procesar_pendientes(limite=10):
     return totals
 
 
+# Inicia envíos automáticos
 def iniciar_trabajador():
     stop = Event()
 
@@ -269,7 +282,7 @@ def iniciar_trabajador():
             try:
                 procesar_pendientes()
             except Exception:
-                # No exponer DATABASE_URL, contraseñas, destinatarios ni tokens.
+                # Oculta datos privados
                 logging.warning(
                     "Cola de correo pendiente: revisa PostgreSQL y la configuración SMTP."
                 )
@@ -280,6 +293,7 @@ def iniciar_trabajador():
     return stop, thread
 
 
+# Envia un correo ficticio
 def enviar_prueba():
     """Envío explícito desde la terminal, solo a la propia cuenta configurada."""
     config = ConfiguracionSMTP.desde_entorno()

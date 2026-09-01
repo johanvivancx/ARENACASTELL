@@ -23,15 +23,19 @@ TZ = ZoneInfo("America/Guayaquil")
 METHODS = {"TRANSFERENCIA", "EFECTIVO", "TARJETA", "DEBITO", "CREDITO"}
 
 
+# Representa errores de solicitud
 class HTTPError(Exception):
+    # Guarda código y mensaje
     def __init__(self, status, message):
         self.status, self.message = status, message
 
 
+# Protege tokens con hash
 def sha(value):
     return hashlib.sha256(value.encode()).hexdigest()
 
 
+# Valida numeros recibidos
 def numero(value, field, minimum=1, maximum=2**31 - 1):
     try:
         n = int(str(value))
@@ -42,6 +46,7 @@ def numero(value, field, minimum=1, maximum=2**31 - 1):
     return n
 
 
+# Valida fechas recibidas
 def fecha(value):
     try:
         return date.fromisoformat(str(value))
@@ -49,6 +54,7 @@ def fecha(value):
         raise ErrorValidacion("Selecciona una fecha válida.") from None
 
 
+# Valida identificadores recibidos
 def identificador(value):
     try:
         return uuid.UUID(str(value))
@@ -56,12 +62,14 @@ def identificador(value):
         raise ErrorValidacion("La referencia de la operación no es válida.") from None
 
 
+# Oculta datos privados
 def usuario_publico(row):
     return (
         {k: row[k] for k in ("id", "nombre", "email", "cedula", "telefono", "rol")} if row else None
     )
 
 
+# Exige una sesion activa
 def exigir_usuario(session):
     if not session or not session.get("usuario_id"):
         raise HTTPError(
@@ -70,6 +78,7 @@ def exigir_usuario(session):
     return session["usuario_id"]
 
 
+# Crea una sesion segura
 def nueva_sesion(conn, usuario_id=None, anterior=None):
     token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
     if anterior:
@@ -81,6 +90,7 @@ def nueva_sesion(conn, usuario_id=None, anterior=None):
     return token, {"token_hash": sha(token), "usuario_id": usuario_id, "csrf_token": csrf}
 
 
+# Busca la sesion actual
 def obtener_sesion(conn, token):
     if not token or len(token) > 100:
         return None
@@ -89,8 +99,9 @@ def obtener_sesion(conn, token):
     ).fetchone()
 
 
+# Frena intentos repetidos
 def limitar_acceso(conn, key):
-    # Se confirma independientemente para que los intentos fallidos no se reviertan.
+    # Conserva intentos fallidos
     row = conn.execute(
         """INSERT INTO intentos_acceso(clave) VALUES(%s)
       ON CONFLICT(clave) DO UPDATE SET
@@ -106,6 +117,7 @@ def limitar_acceso(conn, key):
         )
 
 
+# Crea una cuenta cliente
 def registrar(conn, data):
     user = Cliente(
         data.get("nombre"),
@@ -125,13 +137,14 @@ def registrar(conn, data):
     ).fetchone()
 
 
+# Comprueba correo y contraseña
 def iniciar_sesion(conn, data):
     email = str(data.get("email", "")).strip().lower()[:254]
     row = conn.execute("SELECT * FROM usuarios WHERE email=%s", (email,)).fetchone()
     if row:
         valid = Usuario.desde_fila(row).verificar_password(data.get("password", ""))
     else:
-        # Trabajo comparable incluso cuando el correo no existe.
+        # Mantiene tiempos parecidos
         hashlib.pbkdf2_hmac(
             "sha256", str(data.get("password", ""))[:128].encode(), b"arena-login-dummy", 600_000
         )
@@ -141,6 +154,7 @@ def iniciar_sesion(conn, data):
     return row
 
 
+# Crea enlace de recuperación
 def solicitar_restablecimiento(conn, data):
     email = str(data.get("email", "")).strip().lower()[:254]
     user = conn.execute("SELECT id,email FROM usuarios WHERE email=%s", (email,)).fetchone()
@@ -174,6 +188,7 @@ def solicitar_restablecimiento(conn, data):
     }
 
 
+# Cambia la contraseña olvidada
 def restablecer_password(conn, data):
     if data.get("password") != data.get("confirmacion"):
         raise ErrorValidacion("Las contraseñas no coinciden.")
@@ -203,6 +218,7 @@ def restablecer_password(conn, data):
     return {"message": "Contraseña actualizada. Inicia sesión con tu nueva contraseña."}
 
 
+# Consulta servicios disponibles
 def catalogo(conn):
     return {
         "canchas": conn.execute("SELECT * FROM canchas ORDER BY id").fetchall(),
@@ -220,6 +236,7 @@ def catalogo(conn):
     }
 
 
+# Busca horarios libres
 def disponibilidad(conn, data):
     day = fecha(data.get("fecha"))
     cid = numero(data.get("cancha", 1), "Cancha")
@@ -241,8 +258,8 @@ def disponibilidad(conn, data):
     return {"horarios": slots}
 
 
+# Usa costos polimórficos
 def crear_orden(conn, uid, kind, description, service):
-    # Polimorfismo real: los tres servicios se procesan mediante la misma interfaz.
     return conn.execute(
         """INSERT INTO ordenes(usuario_id,tipo,descripcion,monto)
       VALUES(%s,%s,%s,%s) RETURNING *""",
@@ -250,6 +267,7 @@ def crear_orden(conn, uid, kind, description, service):
     ).fetchone()
 
 
+# Crea una reserva pendiente
 def reservar(conn, uid, data):
     court = conn.execute(
         "SELECT * FROM canchas WHERE id=%s", (numero(data.get("cancha_id", 1), "Cancha"),)
@@ -275,6 +293,7 @@ def reservar(conn, uid, data):
     return {"id": order["id"]}
 
 
+# Crea un equipo pendiente
 def inscribir_torneo(conn, uid, data):
     tournament = conn.execute(
         "SELECT * FROM torneos WHERE id=%s FOR UPDATE", (numero(data.get("torneo_id"), "Torneo"),)
@@ -302,6 +321,7 @@ def inscribir_torneo(conn, uid, data):
     return {"id": order["id"]}
 
 
+# Crea una inscripción escolar
 def inscribir_escuela(conn, uid, data):
     born = fecha(data.get("nacimiento"))
     today = datetime.now(TZ).date()
@@ -333,6 +353,7 @@ def inscribir_escuela(conn, uid, data):
     return {"id": order["id"]}
 
 
+# Protege operaciones ajenas
 def orden_usuario(conn, uid, oid, lock=False):
     sql = "SELECT * FROM ordenes WHERE id=%s AND usuario_id=%s" + (" FOR UPDATE" if lock else "")
     order = conn.execute(sql, (identificador(oid), uid)).fetchone()
@@ -341,6 +362,7 @@ def orden_usuario(conn, uid, oid, lock=False):
     return order
 
 
+# Consulta una operación propia
 def detalle_orden(conn, uid, oid):
     order = orden_usuario(conn, uid, oid)
     order["pago"] = conn.execute(
@@ -366,6 +388,7 @@ def detalle_orden(conn, uid, oid):
     return order
 
 
+# Confirma una operación pagada
 def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
     method = data.get("metodo")
     if method not in METHODS:
@@ -383,7 +406,7 @@ def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
     if order["estado"] != "PENDIENTE":
         raise ErrorValidacion("La operación ya no está pendiente.")
     if method == "EFECTIVO" and not efectivo_recibido:
-        # Elegir pagar al llegar no constituye un cobro ni ocupa horarios/cupos.
+        # Efectivo mantiene todo pendiente
         conn.execute("UPDATE ordenes SET metodo_previsto='EFECTIVO' WHERE id=%s", (order["id"],))
         return {
             "id": order["id"],
@@ -394,9 +417,8 @@ def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
         conn.execute("CALL cobrar_mensualidad(%s,%s)", (order["id"], method))
     else:
         if order["tipo"] == "RESERVA":
-            # Serializar confirmaciones por cancha evita interbloqueos entre
-            # dos UPDATE simultáneos del índice de exclusión. La exclusión
-            # permanece como garantía para escrituras SQL externas al servicio.
+            # Ordena reservas simultáneas
+            # Conserva la regla SQL
             conn.execute(
                 "SELECT c.id FROM canchas c JOIN reservas r ON r.cancha_id=c.id WHERE r.orden_id=%s FOR UPDATE OF c",
                 (order["id"],),
@@ -405,7 +427,7 @@ def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
                 "UPDATE reservas SET estado='CONFIRMADA' WHERE orden_id=%s", (order["id"],)
             )
         elif order["tipo"] == "TORNEO":
-            # Bloquear el torneo antes del trigger serializa el último cupo.
+            # Protege el último cupo
             conn.execute(
                 "SELECT t.id FROM torneos t JOIN equipos e ON e.torneo_id=t.id WHERE e.orden_id=%s FOR UPDATE OF t",
                 (order["id"],),
@@ -450,12 +472,14 @@ def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
     return {"id": order["id"], "message": "Pago registrado."}
 
 
+# Exige rol administrador
 def exigir_administrador(conn, uid):
     row = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
     if not row or not Usuario.desde_fila(row).puede_administrar():
         raise HTTPError(403, "Esta sección está disponible solo para administradores.")
 
 
+# Registra efectivo recibido
 def cobrar_efectivo(conn, admin_uid, oid):
     """Solo el administrador registra el efectivo que recibió en la cancha."""
     exigir_administrador(conn, admin_uid)
@@ -485,6 +509,7 @@ def cobrar_efectivo(conn, admin_uid, oid):
     )
 
 
+# Consulta actividad personal
 def historial(conn, uid):
     return {
         "ordenes": conn.execute(
@@ -506,6 +531,7 @@ def historial(conn, uid):
     }
 
 
+# Protege equipos ajenos
 def equipo_usuario(conn, uid, team_id):
     team = conn.execute(
         """SELECT e.*,t.nombre AS torneo,t.fecha_inicio,t.max_jugadores FROM equipos e JOIN ordenes o ON o.id=e.orden_id
@@ -517,6 +543,7 @@ def equipo_usuario(conn, uid, team_id):
     return team
 
 
+# Consulta jugadores inscritos
 def lista_equipo(conn, uid, team_id):
     team = equipo_usuario(conn, uid, team_id)
     team["jugadores"] = conn.execute(
@@ -526,6 +553,7 @@ def lista_equipo(conn, uid, team_id):
     return team
 
 
+# Agrega un jugador
 def agregar_jugador(conn, uid, team_id, data):
     team = equipo_usuario(conn, uid, team_id)
     if team["fecha_inicio"] <= datetime.now(TZ).date():
@@ -541,6 +569,7 @@ def agregar_jugador(conn, uid, team_id, data):
     return {"message": "Jugador registrado."}
 
 
+# Retira un jugador
 def retirar_jugador(conn, uid, team_id, data):
     team = equipo_usuario(conn, uid, team_id)
     if team["fecha_inicio"] <= datetime.now(TZ).date():
@@ -552,6 +581,7 @@ def retirar_jugador(conn, uid, team_id, data):
     return {"message": "Jugador retirado de la lista."}
 
 
+# Crea otra mensualidad
 def renovar_escuela(conn, uid, inscription_id, data):
     inscription = conn.execute(
         """SELECT sc.* FROM inscripciones_chaca sc JOIN ordenes o ON o.id=sc.orden_id
@@ -571,7 +601,7 @@ def renovar_escuela(conn, uid, inscription_id, data):
     ).fetchone()
     if existing:
         return {"id": existing["orden_id"]}
-    # La categoría de ingreso se conserva como dato histórico.
+    # Conserva la categoría inicial
     service = InscripcionSuperChaca(
         inscription["nacimiento"], inscription["categoria"], inscription["fecha_inscripcion"]
     )
@@ -585,6 +615,7 @@ def renovar_escuela(conn, uid, inscription_id, data):
     return {"id": order["id"]}
 
 
+# Actualiza datos personales
 def actualizar_perfil(conn, uid, data):
     row = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
     user = Cliente(
@@ -604,6 +635,7 @@ def actualizar_perfil(conn, uid, data):
     return {"message": "Tu perfil se actualizó correctamente."}
 
 
+# Consulta reportes administrativos
 def reportes(conn, uid, data):
     exigir_administrador(conn, uid)
     start = fecha(data["desde"]) if data.get("desde") else date(2000, 1, 1)

@@ -1,12 +1,13 @@
--- Reservas sin solapamiento, cupos y jugadores de torneo, y validación de pagos.
--- Ejecutar sobre arena_castell, después del paso anterior.
+-- Crea reglas del negocio
+-- Ejecuta después del anterior
 BEGIN;
 
+-- Valida cada reserva
 CREATE FUNCTION controlar_reserva() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE hora_inicio timestamp; hora_fin timestamp;
 BEGIN
-  -- Los cumpleaños nuevos se reservan como paquete de tres horas.
-  -- Cambiar solo el estado de una reserva anterior conserva su duración original.
+  -- Exige tres horas
+  -- Conserva reservas anteriores
   IF NEW.tipo_evento = 'CUMPLEANOS' AND NEW.fin - NEW.inicio <> interval '3 hours' THEN
     IF TG_OP = 'INSERT' THEN
       RAISE EXCEPTION 'El paquete de cumpleaños tiene una duración de 3 horas.' USING ERRCODE='23514';
@@ -36,9 +37,11 @@ BEGIN
   RETURN NEW;
 END; $$;
 
+-- Activa reglas de reserva
 CREATE TRIGGER trg_controlar_reserva BEFORE INSERT OR UPDATE ON reservas
 FOR EACH ROW EXECUTE FUNCTION controlar_reserva();
 
+-- Controla cupos disponibles
 CREATE FUNCTION controlar_cupo_torneo() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE torneo torneos;
 BEGIN
@@ -54,14 +57,16 @@ BEGIN
   RETURN NEW;
 END; $$;
 
+-- Activa reglas del torneo
 CREATE TRIGGER trg_cupo_torneo BEFORE INSERT OR UPDATE ON equipos
 FOR EACH ROW EXECUTE FUNCTION controlar_cupo_torneo();
 
+-- Limita jugadores inscritos
 CREATE OR REPLACE FUNCTION limitar_jugadores() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE estado_equipo text; limite integer;
 BEGIN
-  -- Bloquear primero el torneo y luego el equipo conserva el mismo orden
-  -- que la confirmación del pago y serializa los últimos puestos de la lista.
+  -- Ordena bloqueos del torneo
+  -- Evita cupos repetidos
   SELECT t.max_jugadores INTO limite FROM torneos t JOIN equipos e ON e.torneo_id=t.id
     WHERE e.id=NEW.equipo_id FOR SHARE OF t;
   SELECT estado INTO estado_equipo FROM equipos WHERE id=NEW.equipo_id FOR UPDATE;
@@ -82,9 +87,11 @@ BEGIN
   RETURN NEW;
 END; $$;
 
+-- Activa límite de jugadores
 CREATE TRIGGER trg_limitar_jugadores BEFORE INSERT OR UPDATE ON jugadores
 FOR EACH ROW EXECUTE FUNCTION limitar_jugadores();
 
+-- Protege límites existentes
 CREATE OR REPLACE FUNCTION proteger_limite_torneo() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
   IF EXISTS (SELECT 1 FROM equipos e JOIN jugadores j ON j.equipo_id=e.id
@@ -94,9 +101,11 @@ BEGIN
   RETURN NEW;
 END; $$;
 
+-- Activa protección del límite
 CREATE TRIGGER trg_proteger_limite BEFORE UPDATE OF max_jugadores ON torneos
 FOR EACH ROW EXECUTE FUNCTION proteger_limite_torneo();
 
+-- Valida pagos recibidos
 CREATE FUNCTION validar_pago() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE orden ordenes;
 BEGIN
@@ -107,6 +116,7 @@ BEGIN
   RETURN NEW;
 END; $$;
 
+-- Activa reglas del pago
 CREATE TRIGGER trg_validar_pago BEFORE INSERT ON pagos FOR EACH ROW EXECUTE FUNCTION validar_pago();
 
 COMMIT;

@@ -1,6 +1,6 @@
--- Actualiza los precios y el paquete de cumpleaños sin borrar reservas ni pagos.
--- Ejecutar sobre arena_castell si la base se creó con los precios anteriores.
--- Las órdenes existentes conservan el valor con el que fueron creadas.
+-- Actualiza tarifas y cumpleaños
+-- Actualiza una base anterior
+-- Conserva valores anteriores
 BEGIN;
 
 INSERT INTO canchas(nombre,tarifa_hora,tarifa_evento,tarifa_cumpleanos)
@@ -10,11 +10,12 @@ ON CONFLICT (nombre) DO UPDATE SET
   tarifa_evento=EXCLUDED.tarifa_evento,
   tarifa_cumpleanos=EXCLUDED.tarifa_cumpleanos;
 
+-- Valida cada reserva
 CREATE OR REPLACE FUNCTION controlar_reserva() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE hora_inicio timestamp; hora_fin timestamp;
 BEGIN
-  -- Los cumpleaños nuevos se reservan como paquete de tres horas.
-  -- Cambiar solo el estado de una reserva anterior conserva su duración original.
+  -- Exige tres horas
+  -- Conserva reservas anteriores
   IF NEW.tipo_evento = 'CUMPLEANOS' AND NEW.fin - NEW.inicio <> interval '3 hours' THEN
     IF TG_OP = 'INSERT' THEN
       RAISE EXCEPTION 'El paquete de cumpleaños tiene una duración de 3 horas.' USING ERRCODE='23514';

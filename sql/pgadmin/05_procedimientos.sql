@@ -1,7 +1,8 @@
--- Procedimiento de cobro de mensualidad de $50, sin pagos duplicados.
--- Ejecutar sobre arena_castell, después del paso anterior.
+-- Crea el cobro mensual
+-- Ejecuta después del anterior
 BEGIN;
 
+-- Cobra mensualidades sin duplicar
 CREATE PROCEDURE cobrar_mensualidad(p_orden uuid, p_metodo text)
 LANGUAGE plpgsql AS $$
 DECLARE orden ordenes; cuota mensualidades; ingreso date;

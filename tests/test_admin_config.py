@@ -1,3 +1,5 @@
+# Prueba opciones administrativas
+
 from datetime import datetime, timedelta
 import pytest
 from manage import cedula_demo, insert_user

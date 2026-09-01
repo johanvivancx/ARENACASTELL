@@ -1,8 +1,9 @@
--- Ejecutar sobre arena_castell. No borra ni cambia inscripciones o pagos anteriores.
--- La fecha es fija: repetir el script no aplaza el torneo ni vuelve a abrirlo.
+-- Actualiza sin borrar datos
+-- Conserva la fecha fija
 BEGIN;
 
--- Pasochoa Cup: sexta edición, 16 equipos y $30 por inscripción.
+-- Carga Pasochoa Cup
+-- Agrega la nueva edición
 INSERT INTO torneos(nombre,descripcion,fecha_inicio,costo,cupos,max_jugadores,visible,abierto)
 VALUES ('Pasochoa Cup · Sexta edición',
         'Torneo de fútbol infantojuvenil. Sexta edición: 16 equipos y hasta 20 jugadores por equipo.',

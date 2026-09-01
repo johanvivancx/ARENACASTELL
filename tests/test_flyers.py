@@ -1,3 +1,5 @@
+# Prueba contenido visual
+
 """Reglas nuevas de los flyers; todas las escrituras usan la base aislada."""
 from datetime import date, datetime
 from decimal import Decimal

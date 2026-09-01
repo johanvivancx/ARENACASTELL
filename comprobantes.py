@@ -46,10 +46,12 @@ SERVICIOS = {
 }
 
 
+# Da formato al valor
 def moneda(value):
     return f"${Decimal(value):,.2f}"
 
 
+# Da formato a fechas
 def fecha(value):
     if isinstance(value, datetime):
         value = value.astimezone(TZ)
@@ -57,6 +59,7 @@ def fecha(value):
     return value.strftime("%d/%m/%Y")
 
 
+# Consulta datos del comprobante
 def datos_comprobante(conn, orden_id, usuario_id):
     """Consultar solo el pago del titular del mensaje; no tomar tarifas actuales."""
     dato = conn.execute(
@@ -129,6 +132,7 @@ def datos_comprobante(conn, orden_id, usuario_id):
     return dato
 
 
+# Crea un comprobante ficticio
 def ejemplo_comprobante(creado_en):
     """Datos ficticios solo para el comando test-email y las vistas previas."""
     return {
@@ -153,6 +157,7 @@ def ejemplo_comprobante(creado_en):
     }
 
 
+# Prepara contenido del correo
 def contexto_correo(row, base_url):
     dato = row.get("comprobante")
     if row.get("prueba"):
@@ -211,7 +216,7 @@ def contexto_correo(row, base_url):
             texto_accion="Ir a Mi actividad" if dato["prueba"] else "Ver mi comprobante",
         )
     elif row.get("vence_en"):
-        # La recuperación ya guarda su enlace en texto. Solo aceptar la ruta y origen de la aplicación.
+        # Valida enlaces de recuperación
         for link in re.findall(r"https?://[^\s<>]+", row["cuerpo"]):
             url, base = urlsplit(link), urlsplit(base_url)
             if (
@@ -235,10 +240,12 @@ def contexto_correo(row, base_url):
     return contexto
 
 
+# Genera el correo HTML
 def renderizar_html(contexto):
     return ENV.get_template("mensaje.html").render(**contexto)
 
 
+# Genera el comprobante PDF
 def crear_pdf(contexto):
     """Crear en memoria; no guardar datos personales en carpetas públicas."""
     dato = contexto["comprobante"]
@@ -265,7 +272,7 @@ def crear_pdf(contexto):
     blanco = ParagraphStyle("Blanco", parent=negrita, textColor=colors.white, fontSize=9)
 
     def p(text, style=normal):
-        # ReportLab interpreta etiquetas XML; todos los valores externos se escapan.
+        # Escapa valores del PDF
         return Paragraph(escape(str(text)).replace("\n", "<br/>"), style)
 
     ancho = A4[0] - 88

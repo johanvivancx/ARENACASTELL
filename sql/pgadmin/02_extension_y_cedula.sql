@@ -1,9 +1,11 @@
--- Extensión para reservas sin solapamiento y función matemática de cédula ecuatoriana.
--- Ejecutar sobre arena_castell, después del paso anterior.
+-- Prepara reservas y cédulas
+-- Ejecuta después del anterior
 BEGIN;
 
+-- Evita horarios cruzados
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
+-- Valida cédulas ecuatorianas
 CREATE FUNCTION validar_cedula(cedula text) RETURNS boolean
 LANGUAGE plpgsql IMMUTABLE STRICT AS $$
 DECLARE total integer := 0; digito integer; i integer;

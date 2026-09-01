@@ -1,3 +1,5 @@
+# Prueba diseño del correo
+
 """Comprobar contenido, PDF, permisos y datos no confiables sin usar Gmail."""
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
@@ -51,7 +53,7 @@ def test_html_y_pdf_reflejan_el_pago_de_cada_servicio(conn,user,pay_data,tipo,to
             siguiente = (hoy.replace(day=1)+timedelta(days=32)).replace(day=1)
             orden = s.renovar_escuela(conn,user['id'],escuela,{'periodo':siguiente.strftime('%Y-%m')})
     s.pagar(conn,user['id'],orden['id'],pay_data)
-    # Un cambio de precios posterior no cambia el comprobante de la operación.
+    # Conserva el precio guardado
     conn.execute('UPDATE canchas SET tarifa_hora=99,tarifa_cumpleanos=99')
     conn.execute('UPDATE torneos SET costo=99')
     mensaje = mensaje_de_orden(conn,user,orden)

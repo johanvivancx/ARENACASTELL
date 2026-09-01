@@ -9,6 +9,7 @@ from models import Administrador, Cliente, ErrorValidacion
 import correos
 
 
+# Ejecuta comandos administrativos
 def main():
     parser = argparse.ArgumentParser(description="Administración local de ARENA CASTELL, sin Flask")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -138,6 +139,7 @@ def main():
         raise SystemExit(1) from None
 
 
+# Crea una cédula ficticia
 def cedula_demo(index):
     base = "17" + f"{index:07d}"
     total = 0
@@ -147,6 +149,7 @@ def cedula_demo(index):
     return base + str((10 - total % 10) % 10)
 
 
+# Guarda un usuario local
 def insert_user(conn, user):
     conn.execute(
         """INSERT INTO usuarios(nombre,email,cedula,telefono,password_hash,rol)

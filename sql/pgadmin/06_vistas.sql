@@ -1,7 +1,8 @@
--- Tres reportes con JOIN: pagos, mensualidades y ocupación de cancha.
--- Ejecutar sobre arena_castell, después del paso anterior.
+-- Crea tres reportes
+-- Ejecuta después del anterior
 BEGIN;
 
+-- Reporta pagos registrados
 CREATE VIEW vista_reporte_administrador AS
 SELECT p.id AS pago_id, p.pagado_en, u.id AS usuario_id, u.nombre, u.email,
   o.id AS orden_id, o.tipo, o.descripcion, p.monto, p.metodo, p.referencia,
@@ -12,6 +13,7 @@ LEFT JOIN reservas r ON r.orden_id=o.id LEFT JOIN canchas c ON c.id=r.cancha_id
 LEFT JOIN equipos e ON e.orden_id=o.id LEFT JOIN torneos t ON t.id=e.torneo_id
 LEFT JOIN mensualidades m ON m.orden_id=o.id LEFT JOIN inscripciones_chaca sc ON sc.id=m.inscripcion_id;
 
+-- Reporta mensualidades escolares
 CREATE VIEW vista_mensualidades_escuela AS
 SELECT sc.id AS inscripcion_id, sc.alumno, sc.categoria, u.nombre AS representante,
   u.email, sc.estado, count(p.id) AS cuotas_pagadas, coalesce(sum(p.monto),0) AS total_pagado,
@@ -22,6 +24,7 @@ JOIN usuarios u ON u.id=origen.usuario_id LEFT JOIN mensualidades m ON m.inscrip
 LEFT JOIN pagos p ON p.orden_id=m.orden_id
 GROUP BY sc.id, u.nombre, u.email;
 
+-- Reporta ocupación mensual
 CREATE VIEW vista_ocupacion_cancha AS
 SELECT c.id, c.nombre, date_trunc('month',r.inicio AT TIME ZONE 'America/Guayaquil')::date AS mes,
   count(r.id) AS reservas, coalesce(sum(extract(epoch FROM r.fin-r.inicio)/3600),0) AS horas,

@@ -1,53 +1,104 @@
 # Crear la base en pgAdmin4
 
-La base se llama `arena_castell`. Los scripts están en `sql/pgadmin` y se ejecutan uno por uno. No borres una base que ya tenga datos para repetir la instalación.
+La base del proyecto se llama `arena_castell`. Los scripts están en `sql/pgadmin` y se ejecutan uno por uno. Antes de comenzar, confirma si vas a crear una base nueva o actualizar una que ya tiene datos.
 
-## Orden de los scripts
+## Base nueva
 
-| Paso | Archivo | Qué hace |
+### 1. Crear `arena_castell`
+
+1. Abre pgAdmin4 y conecta tu servidor de PostgreSQL.
+2. Selecciona la base `postgres`.
+3. Abre **Query Tool**.
+4. Activa **Auto-commit**.
+5. Abre y ejecuta completo `sql/pgadmin/01_crear_base.sql`.
+
+Cuando termine, actualiza **Databases**. Debe aparecer `arena_castell`.
+
+### 2. Crear las tablas y reglas
+
+Abre otro Query Tool, esta vez sobre `arena_castell`, y ejecuta estos archivos en orden:
+
+| Paso | Archivo | Resultado |
 |---|---|---|
-| 1 | `01_crear_base.sql` | Crea la base. Se ejecuta desde Query Tool de `postgres`, con Auto-commit activado. |
-| 2 | `02_extension_y_cedula.sql` | Prepara la extensión y la función de cédula. |
-| 3 | `03_tablas_y_relaciones.sql` | Crea las 15 tablas y sus relaciones. |
-| 4 | `04_triggers.sql` | Agrega las reglas de reservas, equipos, jugadores y pagos. |
-| 5 | `05_procedimientos.sql` | Crea el procedimiento de mensualidad. |
-| 6 | `06_vistas.sql` | Crea los tres reportes. |
-| 7 | `07_catalogo.sql` | Carga la cancha, Copa Castell, Pasochoa Cup sexta edición y horarios. |
-| 8, opcional | `08_datos_de_prueba_opcionales.sql` | Agrega personas y operaciones ficticias para probar. |
-| 9, después del 8 | `09_call_y_consultas.sql` | Ejecuta el procedimiento con CALL y consulta los reportes. |
-| 10 | `10_comprobar_validaciones.sql` | Comprueba la cédula y los elementos creados. |
-| 11, solo para una versión anterior | `11_actualizar_correo_smtp.sql` | Agrega los campos de correo si todavía no existen. |
-| 12, si ya tenías la base creada | `12_actualizar_tarifas_reservas.sql` | Actualiza las tarifas y la regla de 3 horas para cumpleaños. Conserva las órdenes y pagos anteriores. |
-| 13, si ya tenías el catálogo anterior | `13_pasochoa_sexta_edicion.sql` | Agrega Pasochoa Cup sexta edición: 30 de septiembre de 2026, 16 equipos y $30 por equipo. No cambia registros anteriores. |
-| 14, al actualizar los métodos de pago | `14_metodos_pago.sql` | Añade efectivo pendiente y tarjeta de crédito/débito. Conserva pagos anteriores; guardar un respaldo antes de ejecutarlo. |
+| 02 | `02_extension_y_cedula.sql` | Extensión necesaria y validación de cédula. |
+| 03 | `03_tablas_y_relaciones.sql` | Las 15 tablas, claves y restricciones. |
+| 04 | `04_triggers.sql` | Reglas para reservas, torneos, jugadores y pagos. |
+| 05 | `05_procedimientos.sql` | Procedimiento de mensualidades. |
+| 06 | `06_vistas.sql` | Tres vistas para reportes. |
+| 07 | `07_catalogo.sql` | Cancha, precios, torneos y horarios de Súper Chaca. |
 
-Después del paso 1, actualiza Databases y abre un nuevo Query Tool sobre **arena_castell**. Los pasos restantes se ejecutan ahí, no en `postgres`.
+Reemplaza el contenido del editor antes de abrir el siguiente archivo. Si aparece un error, detente y revisa ese paso. No sigas con los demás hasta corregirlo.
 
-Para cada paso, reemplaza el texto del editor por el nuevo script y ejecútalo completo. Espera el resultado antes de pasar al siguiente. Si un bloque termina correctamente con `COMMIT`, sus cambios quedaron guardados. Si aparece un error, no sigas ejecutando otros scripts hasta revisarlo.
+Los pasos `08` y `09` son opcionales. Crean datos ficticios para practicar consultas. No los ejecutes en una base que usarás con información real. El paso `10` sirve para comprobar los objetos y las validaciones.
 
-Los pasos 2 al 6 crean lo mismo que `sql/schema.sql`. Usa una sola forma de instalación: no ejecutes después ese archivo completo ni `manage.py init-db` sobre las tablas que acabas de crear.
+## Base que ya existe
 
-## Qué revisar
+No ejecutes otra vez los pasos `01` al `07` sobre una base con datos. Primero crea un respaldo y después aplica solo la actualización que te falte:
 
-En **Schemas → public** deben aparecer las tablas, funciones, procedimientos y vistas. La función `validar_cedula` comprueba diez dígitos, provincia y módulo 10. No consulta el Registro Civil.
+| Paso | Cuándo se usa |
+|---|---|
+| 11 | Si la base antigua no tiene los campos de envío de correos. |
+| 12 | Si todavía tiene las tarifas anteriores o no controla las 3 horas de cumpleaños. |
+| 13 | Si falta Pasochoa Cup sexta edición. |
+| 14 | Si faltan efectivo y la opción unificada de tarjeta de crédito/débito. |
 
-El paso 8 es opcional y se ejecuta una sola vez. Sus nombres y cédulas son ficticios; no representan personas cuya identidad se haya verificado. Si no quieres esos ejemplos en tu base, puedes omitir los pasos 8 y 9 y probar luego con registros propios.
+Estas actualizaciones están pensadas para conservar los registros anteriores. Aun así, guarda siempre una copia antes de cambiar la estructura.
 
-El paso 11 no hace falta si creaste las tablas con el script 03 actual, que ya incluye los campos de correo.
+## Revisar que todo esté creado
 
-Ejecuta el paso 12 si usaste una versión anterior del paso 04 o si la cancha conserva las tarifas anteriores.
-Puedes ejecutarlo después del 07 aunque omitas los ejemplos 08 y 09. No borra datos ni cambia los importes
-de órdenes existentes. Una instalación que use los pasos 04 y 07 actuales ya incluye estos cambios.
+En pgAdmin abre **Schemas → public**. Debes encontrar tablas, funciones, procedimientos y vistas.
 
-Si tu página muestra «Sin torneos disponibles», ejecuta el paso 13 completo sobre `arena_castell`.
-Después actualiza la página local del servidor Python. La sexta edición aparecerá si aún no ha
-empezado, sigue abierta y tiene cupos. No repitas los pasos que crean tablas. El paso 07 actual
-ya incluye esta convocatoria para instalaciones nuevas.
+También puedes ejecutar:
 
-## Conectar la página
+```sql
+SELECT current_database();
 
-Después del paso 7, y del 12 si estás actualizando una base anterior, sigue [INICIAR.md](../INICIAR.md) para completar `.env`, comprobar la conexión y crear tu administrador.
+SELECT count(*) AS tablas
+FROM information_schema.tables
+WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
 
-La conexión funciona así: la página envía una solicitud a Python y Python consulta PostgreSQL. VS Code sirve para editar y ejecutar el proyecto; pgAdmin permite administrar la base.
+SELECT * FROM vista_reporte_administrador LIMIT 5;
+SELECT * FROM vista_mensualidades_escuela LIMIT 5;
+SELECT * FROM vista_ocupacion_cancha LIMIT 5;
+```
 
-No compartas la contraseña de PostgreSQL ni el archivo `.env`. Para activar el envío desde tu correo, sigue [la guía de Gmail](CORREOS_GMAIL.md).
+La primera consulta debe mostrar `arena_castell`. En una instalación nueva deben existir 15 tablas. Las vistas pueden aparecer vacías mientras no haya operaciones.
+
+## Crear un usuario para la aplicación
+
+Para no usar la cuenta principal de PostgreSQL todos los días, puedes crear `arena_app` desde **Login/Group Roles** en pgAdmin:
+
+1. En **General** escribe `arena_app`.
+2. En **Definition** asigna una contraseña propia.
+3. En **Privileges** activa únicamente **Can login**. No le des permisos de superusuario ni para crear bases.
+4. Guarda el rol.
+5. Vuelve al Query Tool de `arena_castell` con la cuenta dueña de la base y ejecuta `sql/permisos.sql`.
+
+Ese archivo permite consultar y guardar datos, pero no borrar tablas ni cambiar la estructura.
+
+## Conectar Python con PostgreSQL
+
+La página no se conecta directamente con pgAdmin. El navegador habla con Python y Python usa `DATABASE_URL` para conectarse a PostgreSQL.
+
+En `.env` coloca tus propios datos:
+
+```dotenv
+DATABASE_URL=postgresql://arena_app:TU_CLAVE@127.0.0.1:5432/arena_castell
+```
+
+Después ejecuta:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py check-db
+```
+
+Si todavía no creaste el usuario limitado `arena_app`, puedes conectarte de forma local con un usuario existente y luego preparar los permisos con `sql/permisos.sql`. Nunca subas la clave ni `.env` a GitHub.
+
+## Crear un respaldo
+
+1. Haz clic derecho sobre `arena_castell` y elige **Backup**.
+2. Usa formato **Custom**.
+3. Guarda el archivo fuera del repositorio, con la fecha en el nombre.
+4. Confirma que pgAdmin termine sin errores.
+
+Antes de una presentación conviene guardar una copia y comprobar que el servidor, la base y una cuenta de administrador funcionan en la misma computadora.

@@ -1,3 +1,5 @@
+# Prueba envíos de correo
+
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
@@ -199,7 +201,7 @@ def test_configuracion_no_expone_clave_y_rechaza_inyeccion(smtp,monkeypatch):
 def test_migracion_conserva_correo_previo_y_es_repetible(conn,user):
     mail.encolar_correo(conn,user['id'],user['email'],'Anterior','Conservar')
     for column in ['destinatario','estado_envio','intentos','proximo_intento','enviado_en','ultimo_error','vence_en']:
-        # Nombres estáticos de esta prueba; solo se ejecuta en la BD test_arena_*.
+        # Usa nombres ficticios
         conn.execute(f'ALTER TABLE correo_salida DROP COLUMN {column}')
     migration=(ROOT/'sql/pgadmin/11_actualizar_correo_smtp.sql').read_text(encoding='utf8')
     conn.execute(migration);conn.execute(migration)

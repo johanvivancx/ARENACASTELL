@@ -1,3 +1,4 @@
+/* Variables compartidas */
 :root {
   color-scheme: dark;
   --font: Arial, Helvetica, sans-serif;
@@ -16,14 +17,23 @@
 * {
   box-sizing: border-box;
 }
+
+/* Base de la página */
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 100px;
 }
 body {
+  /* Quita el margen exterior */
   margin: 0;
+
+  /* Define el fondo oscuro */
   background: var(--bg);
+
+  /* Define el texto claro */
   color: var(--text);
+
+  /* Usa la tipografía principal */
   font: 400 15px/1.7 var(--font);
 }
 h1,
@@ -72,6 +82,8 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
+
+/* Acceso por teclado */
 a,
 button,
 input,
@@ -109,10 +121,19 @@ svg.icon {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* Ancho del contenido */
+
+/* Centra el contenido principal */
 .container {
+  /* Limita el ancho disponible */
   width: min(1180px, calc(100% - 40px));
+
+  /* Centra el contenido */
   margin-inline: auto;
 }
+
+/* Permite saltar al contenido */
 .skip-link {
   clip-path: inset(50%);
   position: fixed;
@@ -127,12 +148,23 @@ svg.icon {
   clip-path: none;
   top: 12px;
 }
+
+/* Encabezado y menú */
+
+/* Diseña el encabezado */
 .site-header {
+  /* Dibuja una línea inferior */
   border-bottom: 1px solid var(--line);
+
+  /* Permite ordenar sus capas */
   position: relative;
   z-index: 10;
+
+  /* Mantiene el fondo oscuro */
   background: #0c0c0c;
 }
+
+/* Ordena logo y menú */
 .nav-wrap {
   display: flex;
   align-items: center;
@@ -140,24 +172,41 @@ svg.icon {
   min-height: 90px;
   gap: 25px;
 }
+
+/* Alinea logo y nombre */
 .brand {
+  /* Coloca logo y texto */
   display: flex;
+
+  /* Separa logo y texto */
   gap: 12px;
+
+  /* Centra ambos elementos */
   align-items: center;
+
+  /* Quita el subrayado */
   text-decoration: none;
+
+  /* Conserva el tamaño */
   flex-shrink: 0;
 }
+
+/* Ajusta el logo */
 .brand img {
   width: 56px;
   height: 56px;
   border-radius: 50%;
   object-fit: cover;
 }
+
+/* Destaca el nombre */
 .brand strong {
   font: 500 19px/1.1 var(--font);
   letter-spacing: 0.03em;
   display: block;
 }
+
+/* Muestra la ubicación */
 .brand small {
   display: block;
   font-size: 9px;
@@ -165,12 +214,16 @@ svg.icon {
   color: var(--muted);
   margin-top: 7px;
 }
+
+/* Ordena enlaces principales */
 .main-nav {
   display: flex;
   align-items: center;
   gap: 24px;
   flex-wrap: wrap;
 }
+
+/* Diseña enlaces del menú */
 .main-nav a {
   font-size: 12px;
   font-weight: 550;
@@ -180,16 +233,24 @@ svg.icon {
   align-items: center;
   gap: 6px;
 }
+
+/* Marca la página actual */
 .main-nav a[aria-current="page"] {
   color: var(--accent);
 }
+
+/* Resalta enlaces señalados */
 .main-nav a:hover {
   color: var(--accent);
 }
+
+/* Separa acceso de cuenta */
 .main-nav .nav-account {
   border-left: 1px solid var(--line);
   padding-left: 24px;
 }
+
+/* Diseña el menú móvil */
 .menu-toggle {
   display: none;
   color: var(--text);
@@ -199,25 +260,50 @@ svg.icon {
   min-width: 46px;
   min-height: 46px;
 }
+
+/* Botones reutilizables */
+
+/* Diseña botones principales */
 .btn {
+  /* Mantiene una altura cómoda */
   min-height: 48px;
+
+  /* Alinea texto e icono */
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  /* Separa texto e icono */
   gap: 11px;
+
+  /* Redondea las esquinas */
   border-radius: 7px;
+
+  /* Agrega espacio interior */
   padding: 12px 21px;
+
+  /* Quita el subrayado */
   text-decoration: none;
+
+  /* Reserva el borde */
   border: 1px solid transparent;
+
+  /* Ajusta el texto */
   font-size: 13px;
   font-weight: 650;
   line-height: 1.5;
+
+  /* Aplica colores visibles */
   background: var(--accent);
   color: #111111;
 }
+
+/* Aclara el botón señalado */
 .btn:hover {
   background: #ededed;
 }
+
+/* Diseña botones secundarios */
 .btn.secondary {
   background: transparent;
   border-color: #858585;
@@ -227,22 +313,30 @@ svg.icon {
   background: var(--surface2);
   border-color: var(--muted);
 }
+
+/* Diseña botones discretos */
 .btn.quiet {
   background: transparent;
   color: var(--accent);
   padding-inline: 0;
   justify-content: flex-start;
 }
+
+/* Reduce botones pequeños */
 .btn.small {
   min-height: 44px;
   padding: 10px 15px;
   font-size: 12px;
 }
+
+/* Marca acciones delicadas */
 .btn.danger {
   background: transparent;
   border-color: #805052;
   color: var(--red);
 }
+
+/* Agrupa botones disponibles */
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -275,11 +369,17 @@ svg.icon {
 .small-text {
   font-size: 12px;
 }
+
+/* Presentacion de inicio */
+
+/* Crea la portada principal */
 .hero {
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
 }
+
+/* Divide texto e imagen */
 .hero-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -288,6 +388,8 @@ svg.icon {
   gap: 15px;
   position: relative;
 }
+
+/* Ordena el mensaje principal */
 .hero-copy {
   z-index: 1;
   padding-block: 56px;
@@ -307,6 +409,7 @@ svg.icon {
   margin-bottom: 30px;
 }
 
+/* Da espacio al contenido */
 .card-content {
   display: flex;
   flex-direction: column;
@@ -316,12 +419,16 @@ svg.icon {
 .card-content > .btn {
   margin-top: auto;
 }
+
+/* Distribuye beneficios principales */
 .benefit-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   padding-block: 23px;
   gap: 20px;
 }
+
+/* Alinea cada beneficio */
 .benefit {
   display: flex;
   align-items: center;
@@ -337,13 +444,21 @@ svg.icon {
   display: block;
   font-size: 12px;
 }
+
+/* Secciones de contenido */
+
+/* Separa cada sección */
 .section {
   padding-block: 76px;
 }
+
+/* Cambia el fondo alterno */
 .section.alt {
   background: #111111;
   border-block: 1px solid var(--line);
 }
+
+/* Ordena título y texto */
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -360,17 +475,32 @@ svg.icon {
   color: var(--muted);
   margin-bottom: 5px;
 }
+
+/* Cuadricula de tarjetas */
+
+/* Distribuye las tarjetas */
 .cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 23px;
 }
+
+/* Diseña cada tarjeta */
 .card {
+  /* Aplica fondo a tarjeta */
   background: var(--surface);
+
+  /* Dibuja el contorno */
   border: 1px solid var(--line);
+
+  /* Redondea las esquinas */
   border-radius: var(--radius);
+
+  /* Recorta contenido sobrante */
   overflow: hidden;
 }
+
+/* Da espacio al contenido */
 .card-content {
   padding: 26px;
 }
@@ -378,6 +508,8 @@ svg.icon {
   color: var(--muted);
   font-size: 13px;
 }
+
+/* Destaca enlaces internos */
 .text-link {
   display: inline-flex;
   align-items: center;
@@ -388,6 +520,8 @@ svg.icon {
   text-decoration: none;
   min-height: 44px;
 }
+
+/* Diseña etiquetas pequeñas */
 .tag {
   display: inline-flex;
   align-items: center;
@@ -408,6 +542,8 @@ svg.icon {
   color: var(--accent);
   border-color: #796332;
 }
+
+/* Divide información y mapa */
 .visit-grid,
 .split {
   display: grid;
@@ -419,6 +555,8 @@ svg.icon {
   color: var(--muted);
   font-size: 14px;
 }
+
+/* Enmarca el mapa */
 .map-frame {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -433,6 +571,8 @@ svg.icon {
   border: 0;
   filter: saturate(0.6);
 }
+
+/* Ordena datos importantes */
 .info-list {
   list-style: none;
   padding: 0;
@@ -449,6 +589,8 @@ svg.icon {
   color: var(--accent-soft);
   margin-top: 2px;
 }
+
+/* Destaca la invitación final */
 .cta-strip {
   display: flex;
   justify-content: space-between;
@@ -468,16 +610,27 @@ svg.icon {
   font-size: 12px;
   color: var(--muted);
 }
+
+/* Pie de página */
+
+/* Diseña el pie de página */
 .site-footer {
+  /* Agrega espacio al pie */
   padding: 45px 0 22px;
+
+  /* Dibuja una línea superior */
   border-top: 1px solid var(--line);
 }
+
+/* Distribuye datos del pie */
 .footer-main {
   display: flex;
   justify-content: space-between;
   gap: 30px;
   align-items: flex-start;
 }
+
+/* Ordena enlaces del pie */
 .footer-links {
   display: flex;
   gap: 24px;
@@ -490,6 +643,8 @@ svg.icon {
   align-items: center;
   color: var(--muted);
 }
+
+/* Muestra datos finales */
 .footer-bottom {
   margin-top: 30px;
   padding-top: 18px;
@@ -500,9 +655,15 @@ svg.icon {
   font-size: 10px;
   color: var(--muted);
 }
+
+/* Presenta cada página */
 .page-intro {
   padding: 52px 0 34px;
 }
+
+/* Ruta de navegación */
+
+/* Muestra la ruta actual */
 .breadcrumb {
   display: flex;
   gap: 9px;
@@ -523,9 +684,13 @@ svg.icon {
   color: var(--muted);
   font-size: 14px;
 }
+
+/* Separa contenido interno */
 .content-section {
   padding-bottom: 70px;
 }
+
+/* Presenta cada servicio */
 .service-hero {
   display: grid;
   grid-template-columns: 1fr;
@@ -535,6 +700,8 @@ svg.icon {
   background: var(--surface);
   margin-bottom: 32px;
 }
+
+/* Ordena datos del servicio */
 .service-copy {
   padding: 40px;
 }
@@ -545,6 +712,8 @@ svg.icon {
   font-size: 13px;
   color: var(--muted);
 }
+
+/* Destaca el precio */
 .price {
   font: 500 35px var(--font);
   color: var(--accent-soft);
@@ -554,6 +723,8 @@ svg.icon {
   font: 12px var(--font);
   color: var(--muted);
 }
+
+/* Ordena ventajas del servicio */
 .check-list {
   list-style: none;
   padding: 0;
@@ -570,6 +741,10 @@ svg.icon {
   content: "✓";
   color: var(--accent);
 }
+
+/* Mensajes para usuarios */
+
+/* Muestra mensajes importantes */
 .notice {
   display: flex;
   gap: 12px;
@@ -603,6 +778,8 @@ svg.icon {
 .notice .icon {
   flex-shrink: 0;
 }
+
+/* Muestra avance del proceso */
 .steps {
   display: flex;
   gap: 0;
@@ -611,6 +788,8 @@ svg.icon {
   margin: 5px 0 30px;
   counter-reset: step;
 }
+
+/* Diseña cada paso */
 .steps li {
   display: flex;
   align-items: center;
@@ -646,16 +825,31 @@ svg.icon {
   border-color: var(--accent);
   color: #111111;
 }
+
+/* Distribucion de formularios */
+
+/* Divide formulario y resumen */
 .form-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
   gap: 30px;
   align-items: start;
 }
+
+/* Paneles de información */
+
+/* Agrupa contenido relacionado */
 .panel {
+  /* Agrega espacio interior */
   padding: 30px;
+
+  /* Diferencia el panel */
   background: var(--surface);
+
+  /* Dibuja el contorno */
   border: 1px solid var(--line);
+
+  /* Redondea las esquinas */
   border-radius: var(--radius);
 }
 .panel h2 {
@@ -664,17 +858,23 @@ svg.icon {
 .panel h3 {
   margin-bottom: 20px;
 }
+
+/* Ordena campos del formulario */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
+
+/* Agrupa etiqueta y campo */
 .field {
   display: flex;
   flex-direction: column;
   gap: 7px;
   min-width: 0;
 }
+
+/* Extiende el campo completo */
 .field.full {
   grid-column: 1/-1;
 }
@@ -683,16 +883,31 @@ legend {
   font-size: 12px;
   font-weight: 600;
 }
+
+/* Diseña campos editables */
 .field input,
 .field select,
 .field textarea {
+  /* Ocupa todo el ancho */
   width: 100%;
+
+  /* Mantiene una altura cómoda */
   min-height: 49px;
+
+  /* Dibuja un borde visible */
   border: 1px solid #858585;
+
+  /* Redondea los campos */
   border-radius: 7px;
+
+  /* Aplica colores del formulario */
   background: #101010;
   color: var(--text);
+
+  /* Separa texto del borde */
   padding: 12px 14px;
+
+  /* Mejora lectura del texto */
   line-height: 1.4;
 }
 .field input::placeholder {
@@ -714,6 +929,8 @@ legend {
 .field-error {
   color: var(--red) !important;
 }
+
+/* Separa grupos del formulario */
 .form-block {
   border: 0;
   padding: 0;
@@ -727,6 +944,8 @@ legend {
   padding-bottom: 13px;
   border-bottom: 1px solid var(--line);
 }
+
+/* Alinea casilla y texto */
 .checkbox {
   display: flex;
   gap: 10px;
@@ -743,6 +962,10 @@ legend {
   flex-shrink: 0;
   margin-top: 2px;
 }
+
+/* Acciones del formulario */
+
+/* Ordena acciones finales */
 .form-actions {
   display: flex;
   justify-content: space-between;
@@ -754,6 +977,8 @@ legend {
 .form-actions .btn {
   margin-left: auto;
 }
+
+/* Muestra resumen lateral */
 .summary {
   position: sticky;
   top: 20px;
@@ -783,6 +1008,8 @@ legend {
   margin: 0;
   text-align: right;
 }
+
+/* Destaca el total */
 .total {
   display: flex;
   justify-content: space-between;
@@ -795,12 +1022,16 @@ legend {
   font: 30px var(--font);
   color: var(--accent);
 }
+
+/* Distribuye horarios disponibles */
 .time-slots {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   margin-top: 10px;
 }
+
+/* Prepara cada horario */
 .slot {
   position: relative;
 }
@@ -828,6 +1059,8 @@ legend {
   margin-top: 3px;
   color: var(--muted);
 }
+
+/* Marca el horario elegido */
 .slot input:checked + span {
   background: var(--accent);
   color: #111111;
@@ -848,6 +1081,10 @@ legend {
   outline: 3px solid var(--accent);
   outline-offset: 4px;
 }
+
+/* Pantallas de acceso */
+
+/* Divide acceso e información */
 .auth-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -869,6 +1106,8 @@ legend {
   border-radius: 16px;
   margin-bottom: 20px;
 }
+
+/* Enmarca formulario de acceso */
 .auth-card {
   padding: 35px;
   border: 1px solid var(--line);
@@ -895,6 +1134,8 @@ legend {
 .auth-foot a {
   color: var(--accent);
 }
+
+/* Une campo y botón */
 .input-action {
   display: flex;
   gap: 8px;
@@ -910,47 +1151,85 @@ legend {
   border-radius: 7px;
   color: var(--text);
 }
+
+/* Opciones de pago */
+
+/* Ordena métodos de pago */
 .payment-methods {
   display: grid;
   gap: 12px;
 }
+
+/* Diseña cada opción */
 .payment-choice {
+  /* Coloca elementos en fila */
   display: flex;
+
+  /* Separa icono y texto */
   gap: 14px;
+
+  /* Centra todos los elementos */
   align-items: center;
+
+  /* Agrega espacio interior */
   padding: 17px;
+
+  /* Dibuja un borde visible */
   border: 1px solid #858585;
+
+  /* Redondea las esquinas */
   border-radius: 10px;
+
+  /* Muestra que puede pulsarse */
   cursor: pointer;
 }
+
+/* Resalta la opción elegida */
 .payment-choice:has(input:checked) {
+  /* Cambia el fondo elegido */
   background: #303030;
+
+  /* Resalta el borde elegido */
   border-color: var(--accent);
 }
+
+/* Ajusta el selector circular */
 .payment-choice input {
   width: 18px;
   height: 18px;
   accent-color: var(--accent);
 }
+
+/* Ajusta el icono de pago */
 .payment-choice .icon {
   width: 27px;
   height: 27px;
   color: var(--accent-soft);
 }
+
+/* Destaca nombre del método */
 .payment-choice strong {
   display: block;
   font-size: 12px;
 }
+
+/* Explica cada método */
 .payment-choice small {
   color: var(--muted);
   font-size: 10px;
 }
+
+/* Pantalla de confirmación */
+
+/* Centra la confirmación */
 .confirmation {
   max-width: 770px;
   margin: auto;
   text-align: center;
   padding: 55px 0 75px;
 }
+
+/* Marca la operación exitosa */
 .success-seal {
   width: 80px;
   height: 80px;
@@ -969,6 +1248,8 @@ legend {
 .confirmation h1 {
   font-size: 2.6rem;
 }
+
+/* Presenta datos del comprobante */
 .confirmation .receipt {
   text-align: left;
   margin: 30px 0;
@@ -976,6 +1257,8 @@ legend {
 .receipt .brand {
   margin-bottom: 24px;
 }
+
+/* Ordena título del comprobante */
 .receipt-heading {
   display: flex;
   justify-content: space-between;
@@ -987,6 +1270,10 @@ legend {
 .receipt-heading .brand {
   margin: 0;
 }
+
+/* Tablas con desplazamiento */
+
+/* Permite desplazar tablas */
 .table-wrap {
   overflow-x: auto;
   margin-top: 22px;
@@ -1031,6 +1318,8 @@ td small {
   display: block;
   color: var(--muted);
 }
+
+/* Muestra una lista vacía */
 .empty-state {
   padding: 45px 22px;
   border: 1px dashed #707070;
@@ -1042,6 +1331,8 @@ td small {
   color: var(--muted);
   font-size: 13px;
 }
+
+/* Agrupa filtros de actividad */
 .tabs {
   display: flex;
   gap: 8px;
@@ -1063,6 +1354,10 @@ td small {
   background: #303030;
   border-color: #808080;
 }
+
+/* Historial del cliente */
+
+/* Ordena cada registro */
 .history-item {
   padding: 22px;
   border: 1px solid var(--line);
@@ -1095,12 +1390,16 @@ td small {
 .history-price .actions {
   justify-content: flex-end;
 }
+
+/* Distribuye estadísticas */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
   margin-bottom: 28px;
 }
+
+/* Diseña cada indicador */
 .stat {
   padding: 22px;
   border: 1px solid var(--line);
@@ -1117,6 +1416,8 @@ td small {
   color: var(--accent-soft);
   margin-top: 8px;
 }
+
+/* Agrupa cada correo */
 .mail-item {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1151,6 +1452,10 @@ td small {
   color: var(--muted);
   margin: 16px 0 0;
 }
+
+/* Resumen del perfil */
+
+/* Muestra inicial del usuario */
 .profile-avatar {
   display: grid;
   place-items: center;
@@ -1163,12 +1468,16 @@ td small {
   border-radius: 50%;
   margin-bottom: 20px;
 }
+
+/* Distribuye las categorías */
 .category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
   margin-block: 30px;
 }
+
+/* Diseña cada categoría */
 .category {
   padding: 20px 8px;
   text-align: center;
@@ -1185,6 +1494,8 @@ td small {
   font-size: 10px;
   color: var(--muted);
 }
+
+/* Muestra estado de carga */
 .loading {
   color: var(--muted);
   font-size: 12px;
@@ -1195,6 +1506,8 @@ td small {
 .notice a {
   color: var(--accent);
 }
+
+/* Muestra estado del servidor */
 .connection-hint {
   max-width: 1180px;
   margin: 16px auto;
@@ -1206,9 +1519,14 @@ td small {
   scroll-margin-top: 30px;
 }
 
+/* Navegación de torneos */
+
+/* Permite navegar torneos */
 .tournament-nav {
   margin-bottom: 28px;
 }
+
+/* Agrupa el torneo Pasochoa */
 .pasochoa-section {
   border-top: 1px solid var(--line);
   margin-top: 48px;
@@ -1229,6 +1547,8 @@ td small {
 .pasochoa-section h3 {
   margin-bottom: 16px;
 }
+
+/* Enmarca foto del torneo */
 .pasochoa-photo {
   margin: 0;
   min-width: 0;
@@ -1248,6 +1568,8 @@ td small {
   color: var(--muted);
   font-size: 14px;
 }
+
+/* Ajusta fotos del torneo */
 .pasochoa-gallery img {
   aspect-ratio: 3 / 2;
   object-fit: contain;
@@ -1257,6 +1579,8 @@ td small {
   object-fit: cover;
   object-position: center 66%;
 }
+
+/* Ajustes para escritorio */
 @media (min-width: 760px) {
   .pasochoa-intro,
   .pasochoa-gallery {
@@ -1264,46 +1588,71 @@ td small {
   }
 }
 
+/* Ajustes para portátil */
 @media (max-width: 1050px) {
+
+  /* Ordena enlaces principales */
   .main-nav {
     gap: 15px;
   }
+
+  /* Separa acceso de cuenta */
   .main-nav .nav-account {
     padding-left: 15px;
   }
+
+  /* Destaca el nombre */
   .brand strong {
     font-size: 16px;
   }
+
+  /* Muestra la ubicación */
   .brand small {
     font-size: 8px;
   }
+
+  /* Divide texto e imagen */
   .hero-layout {
     min-height: 460px;
   }
   .hero-copy h1 {
     font-size: 3.3rem;
   }
+
+  /* Divide formulario y resumen */
   .form-layout {
     grid-template-columns: minmax(0, 1.4fr) minmax(255px, 1fr);
     gap: 20px;
   }
+
+  /* Agrupa contenido relacionado */
   .panel {
     padding: 24px;
   }
+
+  /* Distribuye horarios disponibles */
   .time-slots {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* Ajustes para tableta */
 @media (max-width: 820px) {
+
+  /* Diseña el menú móvil */
   .menu-toggle {
     display: inline-grid;
     place-items: center;
   }
+
+  /* Ordena logo y menú */
   .nav-wrap {
     min-height: 78px;
     flex-wrap: wrap;
     padding-block: 10px;
   }
+
+  /* Ordena enlaces principales */
   .main-nav {
     display: none;
     width: 100%;
@@ -1315,17 +1664,25 @@ td small {
   .main-nav.open {
     display: flex;
   }
+
+  /* Diseña enlaces del menú */
   .main-nav a {
     padding: 10px 8px;
   }
+
+  /* Separa acceso de cuenta */
   .main-nav .nav-account {
     border-left: 0;
     padding-left: 8px;
   }
+
+  /* Divide texto e imagen */
   .hero-layout {
     grid-template-columns: 1fr;
     gap: 0;
   }
+
+  /* Ordena el mensaje principal */
   .hero-copy {
     padding: 45px 0 0;
   }
@@ -1336,23 +1693,34 @@ td small {
     max-width: 540px;
   }
 
+  /* Distribuye beneficios principales */
   .benefit-bar {
     grid-template-columns: 1fr 1fr;
   }
+
+  /* Distribuye las tarjetas */
   .cards {
     gap: 15px;
     grid-template-columns: 1fr;
   }
+
+  /* Diseña cada tarjeta */
   .card {
     display: grid;
     grid-template-columns: 1fr;
   }
+
+  /* Da espacio al contenido */
   .card-content {
     padding: 24px;
   }
+
+  /* Separa cada sección */
   .section {
     padding-block: 50px;
   }
+
+  /* Ordena título y texto */
   .section-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -1361,18 +1729,26 @@ td small {
   .section-heading p {
     max-width: none;
   }
+
+  /* Divide información y mapa */
   .visit-grid,
   .split {
     grid-template-columns: 1fr;
     gap: 30px;
   }
+
+  /* Divide formulario y resumen */
   .form-layout {
     grid-template-columns: 1fr;
   }
+
+  /* Muestra resumen lateral */
   .summary {
     position: static;
     order: 2;
   }
+
+  /* Divide acceso e información */
   .auth-grid {
     grid-template-columns: 1fr;
     max-width: 600px;
@@ -1382,29 +1758,45 @@ td small {
   .auth-story {
     display: none;
   }
+
+  /* Presenta cada servicio */
   .service-hero {
     grid-template-columns: 1fr;
   }
+
+  /* Ordena datos del servicio */
   .service-copy {
     padding: 28px;
   }
+
+  /* Distribuye estadísticas */
   .stats-grid {
     grid-template-columns: 1fr 1fr;
   }
+
+  /* Distribuye las categorías */
   .category-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  /* Distribuye datos del pie */
   .footer-main {
     flex-direction: column;
   }
+
+  /* Muestra datos finales */
   .footer-bottom {
     flex-direction: column;
   }
+
+  /* Destaca la invitación final */
   .cta-strip {
     padding: 25px;
     flex-direction: column;
     align-items: flex-start;
   }
+
+  /* Presenta cada página */
   .page-intro {
     padding-top: 35px;
   }
@@ -1412,17 +1804,25 @@ td small {
     border-top: 1px solid var(--line);
   }
 }
+
+/* Ajustes para celular */
 @media (max-width: 480px) {
   body {
     font-size: 14px;
   }
+
+  /* Centra el contenido principal */
   .container {
     width: calc(100% - 32px);
   }
+
+  /* Ajusta el logo */
   .brand img {
     width: 48px;
     height: 48px;
   }
+
+  /* Destaca el nombre */
   .brand strong {
     font-size: 16px;
   }
@@ -1434,9 +1834,13 @@ td small {
     padding-inline: 13px;
     font-size: 11px;
   }
+
+  /* Distribuye beneficios principales */
   .benefit-bar {
     gap: 18px 9px;
   }
+
+  /* Alinea cada beneficio */
   .benefit {
     gap: 8px;
     font-size: 9px;
@@ -1447,22 +1851,31 @@ td small {
   .benefit .icon {
     width: 18px;
   }
+
+  /* Diseña cada tarjeta */
   .card {
     grid-template-columns: 1fr;
   }
+
+  /* Ordena campos del formulario */
   .form-grid {
     grid-template-columns: 1fr;
   }
+
+  /* Extiende el campo completo */
   .field.full {
     grid-column: auto;
   }
   .panel,
+
   .auth-card {
     padding: 22px 18px;
   }
   .page-intro h1 {
     font-size: 2rem;
   }
+
+  /* Diseña cada paso */
   .steps li {
     font-size: 9px;
     gap: 5px;
@@ -1474,9 +1887,13 @@ td small {
     min-width: 23px;
     height: 23px;
   }
+
+  /* Distribuye horarios disponibles */
   .time-slots {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  /* Ordena acciones finales */
   .form-actions {
     flex-direction: column;
     align-items: stretch;
@@ -1484,6 +1901,8 @@ td small {
   .form-actions .btn {
     margin-left: 0;
   }
+
+  /* Ordena cada registro */
   .history-item {
     align-items: stretch;
     flex-direction: column;
@@ -1498,6 +1917,8 @@ td small {
   .confirmation h1 {
     font-size: 2rem;
   }
+
+  /* Ordena título del comprobante */
   .receipt-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -1510,15 +1931,21 @@ td small {
     text-align: left;
     overflow-wrap: anywhere;
   }
+
+  /* Ordena enlaces del pie */
   .footer-links {
     gap: 10px 22px;
   }
+
+  /* Diseña cada indicador */
   .stat {
     padding: 18px;
   }
   .stat strong {
     font-size: 24px;
   }
+
+  /* Distribuye las categorías */
   .category-grid {
     gap: 8px;
   }
@@ -1526,6 +1953,8 @@ td small {
     font-size: 1.8rem;
   }
 }
+
+/* Reduce movimientos opcionales */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -1548,6 +1977,8 @@ td small {
     display: none;
   }
 }
+
+/* Estilos para imprimir */
 @media print {
   body {
     background: white;
@@ -1563,16 +1994,23 @@ td small {
   .notice,
   .skip-link,
   .no-print,
+
   .steps {
     display: none !important;
   }
+
+  /* Centra el contenido principal */
   .container {
     width: 100%;
   }
+
+  /* Centra la confirmación */
   .confirmation {
     max-width: none;
     padding: 0;
   }
+
+  /* Agrupa contenido relacionado */
   .panel {
     border: 1px solid #999;
     background: white;
@@ -1586,6 +2024,8 @@ td small {
   .print-only {
     display: block;
   }
+
+  /* Marca la operación exitosa */
   .success-seal {
     display: none;
   }
@@ -1596,6 +2036,8 @@ td small {
   .receipt .brand strong {
     color: black;
   }
+
+  /* Diseña etiquetas pequeñas */
   .tag {
     color: #222;
     border-color: #666;
@@ -1606,6 +2048,8 @@ td small {
   .total strong {
     color: black;
   }
+
+  /* Ordena título del comprobante */
   .receipt-heading {
     display: flex;
   }
@@ -1615,13 +2059,18 @@ td small {
   }
 }
 
-/* Fotografías del complejo y flyers proporcionados por Arena Castell. */
+/* Fotos y anuncios reales */
+
+/* Ajusta imágenes principales */
 .hero-photo,
 .service-photo,
+
 .flyer {
   margin: 0;
   min-width: 0;
 }
+
+/* Presenta la foto principal */
 .hero-photo {
   padding: 30px 0 30px 20px;
 }
@@ -1658,6 +2107,8 @@ figcaption {
   height: auto;
   flex: 1;
 }
+
+/* Recorta fotos de tarjetas */
 .card-photo {
   display: block;
   width: 100%;
@@ -1668,6 +2119,8 @@ figcaption {
   grid-template-columns: 1fr 1fr;
   align-items: stretch;
 }
+
+/* Enmarca imagen del servicio */
 .service-photo {
   display: flex;
   flex-direction: column;
@@ -1690,6 +2143,8 @@ figcaption {
   object-fit: contain;
   flex: none;
 }
+
+/* Distribuye anuncio y datos */
 .flyer-feature {
   display: grid;
   grid-template-columns: minmax(240px, 390px) minmax(0, 1fr);
@@ -1698,6 +2153,8 @@ figcaption {
   margin-block: 48px;
   scroll-margin-top: 30px;
 }
+
+/* Enmarca cada anuncio */
 .flyer {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1709,6 +2166,8 @@ figcaption {
   width: 100%;
   height: auto;
 }
+
+/* Ordena datos del evento */
 .event-facts {
   margin: 24px 0;
 }
@@ -1729,6 +2188,8 @@ figcaption {
 .school-flyers {
   margin-block: 42px;
 }
+
+/* Distribuye los anuncios */
 .flyer-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1741,6 +2202,8 @@ figcaption {
   color: var(--muted);
 }
 @media (max-width: 820px) {
+
+  /* Presenta la foto principal */
   .hero-photo {
     padding: 12px 0 30px;
   }
@@ -1748,9 +2211,12 @@ figcaption {
     height: 340px;
   }
   .with-photo,
+
   .flyer-feature {
     grid-template-columns: 1fr;
   }
+
+  /* Distribuye anuncio y datos */
   .flyer-feature {
     gap: 28px;
   }
@@ -1762,11 +2228,15 @@ figcaption {
     height: 340px;
     flex: none;
   }
+
+  /* Recorta fotos de tarjetas */
   .card-photo {
     height: 240px;
   }
 }
 @media (max-width: 540px) {
+
+  /* Distribuye los anuncios */
   .flyer-grid {
     grid-template-columns: 1fr;
   }
@@ -1775,7 +2245,9 @@ figcaption {
   }
 }
 
-/* Datos de la próxima edición de Pasochoa Cup. */
+/* Datos del próximo torneo */
+
+/* Ordena datos del torneo */
 .tournament-facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
@@ -1785,35 +2257,49 @@ figcaption {
   scroll-margin-top: 24px;
 }
 
-/* Pagos y contacto: conservar la identidad negra y plateada. */
+/* Pagos y contacto */
+
+/* Ajusta el selector circular */
 .payment-choice input {
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
 }
+
+/* Evita desbordar el texto */
 .payment-choice > span {
   min-width: 0;
 }
+
+/* Ajusta imagen del método */
 .payment-choice .payment-icon {
   width: 44px;
   height: 44px;
   flex: 0 0 44px;
   object-fit: contain;
 }
+
+/* Destaca nombre del método */
 .payment-choice strong {
   font-size: 15px;
   line-height: 1.45;
 }
+
+/* Explica cada método */
 .payment-choice small {
   display: block;
   font-size: 13px;
   line-height: 1.6;
   margin-top: 4px;
 }
+
+/* Marca la opción enfocada */
 .payment-choice:focus-within {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
+
+/* Enmarca los datos bancarios */
 .bank-details {
   padding: 22px;
   margin: 18px 0;
@@ -1825,6 +2311,8 @@ figcaption {
 .bank-details h2 {
   font-size: 1.15rem;
 }
+
+/* Ordena los datos bancarios */
 .bank-details dl {
   margin: 0;
 }
@@ -1853,9 +2341,13 @@ figcaption {
 .bank-details p {
   margin: 16px 0 0;
 }
+
+/* Separa contacto del pago */
 .payment-contact {
   margin-bottom: 20px;
 }
+
+/* Diseña enlaces de contacto */
 .contact-link {
   display: inline-flex;
   align-items: center;
@@ -1867,6 +2359,8 @@ figcaption {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
+
+/* Ajusta icono de contacto */
 .contact-link img {
   width: 24px;
   height: 24px;
@@ -1874,11 +2368,15 @@ figcaption {
   object-fit: contain;
   border-radius: 5px;
 }
+
+/* Agrupa las redes sociales */
 .social-links {
   display: flex;
   gap: 10px 24px;
   flex-wrap: wrap;
 }
+
+/* Agrupa contacto del pie */
 .footer-contact {
   min-width: 0;
 }
@@ -1891,18 +2389,26 @@ figcaption {
   flex-direction: column;
   gap: 3px;
 }
+
+/* Distribuye datos del pie */
 .footer-main {
   flex-wrap: wrap;
   gap: 30px;
 }
+
+/* Separa redes del torneo */
 .tournament-social {
   margin-top: 16px;
 }
+
+/* Ordena pagos en efectivo */
 .cash-report {
   display: grid;
   gap: 14px;
   margin-bottom: 32px;
 }
+
+/* Diseña cada pago pendiente */
 .cash-item {
   display: flex;
   align-items: center;
@@ -1924,15 +2430,21 @@ figcaption {
   flex-shrink: 0;
 }
 @media (max-width: 480px) {
+
+  /* Diseña cada opción */
   .payment-choice {
     padding: 15px 12px;
     gap: 10px;
   }
+
+  /* Ajusta imagen del método */
   .payment-choice .payment-icon {
     width: 34px;
     height: 34px;
     flex-basis: 34px;
   }
+
+  /* Enmarca los datos bancarios */
   .bank-details {
     padding: 18px;
   }
@@ -1940,6 +2452,8 @@ figcaption {
     grid-template-columns: 1fr;
     gap: 2px;
   }
+
+  /* Diseña cada pago pendiente */
   .cash-item {
     align-items: stretch;
     flex-direction: column;
@@ -1953,7 +2467,7 @@ figcaption {
   }
 }
 
-/* Identidad visual Arena Castell: negro carbón y acero del logotipo. */
+/* Ajustes visuales finales */
 :root {
   --bg: #0c0e0f;
   --surface: #171a1b;
@@ -1977,6 +2491,7 @@ body {
   font-size: 16px;
 }
 
+/* Diseña el encabezado */
 .site-header {
   background: rgba(13, 15, 16, 0.96);
   border-bottom-color: #51595d;
@@ -1984,10 +2499,12 @@ body {
   backdrop-filter: blur(14px);
 }
 
+/* Ordena logo y menú */
 .nav-wrap {
   min-height: 102px;
 }
 
+/* Alinea logo y nombre */
 .brand {
   gap: 15px;
 }
@@ -2013,6 +2530,7 @@ body {
   font-size: 10px;
 }
 
+/* Diseña enlaces del menú */
 .main-nav a {
   position: relative;
   color: #d9ddde;
@@ -2020,6 +2538,7 @@ body {
 }
 
 .main-nav a[aria-current="page"],
+
 .main-nav a:hover {
   color: #ffffff;
 }
@@ -2035,11 +2554,13 @@ body {
   background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
 }
 
+/* Diseña el menú móvil */
 .menu-toggle {
   background: linear-gradient(145deg, #202426, #121415);
   border-color: var(--steel-dark);
 }
 
+/* Diseña botones principales */
 .btn {
   border-color: #d7dbdd;
   background: linear-gradient(135deg, #f3f5f5 0%, #cbd0d2 52%, #aeb5b8 100%);
@@ -2049,10 +2570,12 @@ body {
     0 9px 24px rgba(0, 0, 0, 0.22);
 }
 
+/* Aclara el botón señalado */
 .btn:hover {
   background: linear-gradient(135deg, #ffffff 0%, #dde1e2 58%, #bdc3c6 100%);
 }
 
+/* Diseña botones secundarios */
 .btn.secondary {
   border-color: #737c80;
   background: linear-gradient(145deg, rgba(53, 59, 62, 0.72), rgba(22, 25, 26, 0.9));
@@ -2063,6 +2586,7 @@ body {
   background: linear-gradient(145deg, #343a3d, #202425);
 }
 
+/* Diseña botones discretos */
 .btn.quiet {
   border-color: transparent;
   background: transparent;
@@ -2082,11 +2606,13 @@ body {
 
 .hero-photo img,
 .service-photo img,
+
 .card-photo {
   border: 1px solid #525a5e;
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3);
 }
 
+/* Cambia el fondo alterno */
 .section.alt {
   background: linear-gradient(135deg, #151819 0%, #101213 52%, #1a1d1e 100%);
   border-color: #3f4649;
@@ -2101,6 +2627,7 @@ body {
 .category,
 .flyer,
 .map-frame,
+
 .cash-item {
   border-color: #485054;
   background: linear-gradient(145deg, rgba(34, 38, 40, 0.97), rgba(19, 22, 23, 0.98));
@@ -2109,6 +2636,7 @@ body {
     0 16px 34px rgba(0, 0, 0, 0.18);
 }
 
+/* Destaca la invitación final */
 .cta-strip {
   border-color: #596267;
   background:
@@ -2117,6 +2645,7 @@ body {
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
 }
 
+/* Diseña campos editables */
 .field input,
 .field select,
 .field textarea {
@@ -2149,11 +2678,13 @@ th,
   font-size: 11px;
 }
 
+/* Diseña cada opción */
 .payment-choice {
   border-color: #697277;
   background: rgba(20, 23, 24, 0.72);
 }
 
+/* Resalta la opción elegida */
 .payment-choice:has(input:checked) {
   border-color: #cbd0d2;
   background: linear-gradient(110deg, rgba(173, 181, 185, 0.2), transparent 54%), #292e30;
@@ -2162,11 +2693,13 @@ th,
 
 .bank-details,
 .success-seal,
+
 .profile-avatar {
   border-color: #697277;
   background: linear-gradient(145deg, #292e30, #1c2022);
 }
 
+/* Permite desplazar tablas */
 .table-wrap {
   border-color: #50585c;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
@@ -2187,6 +2720,7 @@ td {
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
 }
 
+/* Diseña el pie de página */
 .site-footer {
   background: linear-gradient(180deg, rgba(17, 20, 21, 0.55), #090b0c);
   border-top-color: #454c4f;
@@ -2199,6 +2733,7 @@ td {
     box-shadow: 0 20px 42px rgba(0, 0, 0, 0.28);
   }
 
+  /* Aclara el botón señalado */
   .btn:hover {
     transform: translateY(-1px);
   }
@@ -2215,10 +2750,13 @@ td {
 }
 
 @media (max-width: 820px) {
+
+  /* Ordena logo y menú */
   .nav-wrap {
     min-height: 84px;
   }
 
+  /* Ordena enlaces principales */
   .main-nav {
     border-top: 1px solid var(--line);
     padding-top: 10px;
@@ -2235,6 +2773,7 @@ td {
     font-size: 15px;
   }
 
+  /* Alinea logo y nombre */
   .brand {
     gap: 10px;
   }
@@ -2258,6 +2797,7 @@ td {
 
 @media (prefers-reduced-motion: reduce) {
   .card:hover,
+
   .btn:hover {
     transform: none;
   }
@@ -2266,6 +2806,7 @@ td {
 @media print {
   body,
   .site-footer,
+
   .section.alt {
     background: white;
     color: black;
@@ -2274,6 +2815,7 @@ td {
   .panel,
   .card,
   .service-hero,
+
   .confirmation .receipt {
     background: white;
     box-shadow: none;

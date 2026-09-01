@@ -1,7 +1,8 @@
--- 15 tablas, claves primarias/foráneas, CHECK, DEFAULT, UNIQUE e índices.
--- Ejecutar sobre arena_castell, después del paso anterior.
+-- Crea tablas y relaciones
+-- Ejecuta después del anterior
 BEGIN;
 
+-- Guarda cuentas y roles
 CREATE TABLE usuarios (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   nombre varchar(100) NOT NULL CHECK (length(trim(nombre)) BETWEEN 2 AND 100),
@@ -14,6 +15,7 @@ CREATE TABLE usuarios (
   creado_en timestamptz NOT NULL DEFAULT current_timestamp
 );
 
+-- Guarda canchas y tarifas
 CREATE TABLE canchas (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   nombre varchar(80) NOT NULL UNIQUE,
@@ -22,6 +24,7 @@ CREATE TABLE canchas (
   tarifa_cumpleanos numeric(8,2) NOT NULL CHECK (tarifa_cumpleanos > 0)
 );
 
+-- Guarda torneos disponibles
 CREATE TABLE torneos (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   nombre varchar(100) NOT NULL UNIQUE,
@@ -34,6 +37,7 @@ CREATE TABLE torneos (
   abierto boolean NOT NULL DEFAULT true
 );
 
+-- Une usuarios con servicios
 CREATE TABLE ordenes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   usuario_id bigint NOT NULL REFERENCES usuarios(id),
@@ -47,6 +51,7 @@ CREATE TABLE ordenes (
 
 CREATE INDEX idx_orden_usuario ON ordenes(usuario_id, creado_en DESC);
 
+-- Guarda horarios reservados
 CREATE TABLE reservas (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -62,6 +67,7 @@ CREATE TABLE reservas (
   ) WHERE (estado = 'CONFIRMADA')
 );
 
+-- Guarda equipos inscritos
 CREATE TABLE equipos (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -72,6 +78,7 @@ CREATE TABLE equipos (
 
 CREATE UNIQUE INDEX uq_equipo_nombre ON equipos(torneo_id, lower(nombre)) WHERE estado <> 'CANCELADO';
 
+-- Guarda jugadores por equipo
 CREATE TABLE jugadores (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   equipo_id bigint NOT NULL REFERENCES equipos(id),
@@ -81,6 +88,7 @@ CREATE TABLE jugadores (
   UNIQUE(equipo_id, cedula), UNIQUE(equipo_id, posicion)
 );
 
+-- Guarda horarios escolares
 CREATE TABLE horarios_chaca (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   categoria varchar(6) NOT NULL CHECK (categoria IN ('Sub-6','Sub-8','Sub-10','Sub-12','Sub-14','Sub-16','Sub-18')),
@@ -91,6 +99,7 @@ CREATE TABLE horarios_chaca (
   UNIQUE(categoria,dias,inicio), UNIQUE(id,categoria)
 );
 
+-- Guarda alumnos inscritos
 CREATE TABLE inscripciones_chaca (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -106,6 +115,7 @@ CREATE TABLE inscripciones_chaca (
   CHECK (categoria = 'Sub-' || (2 * (extract(year FROM age(fecha_inscripcion,nacimiento))::integer / 2 + 1))::text)
 );
 
+-- Guarda periodos mensuales
 CREATE TABLE mensualidades (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -114,6 +124,7 @@ CREATE TABLE mensualidades (
   UNIQUE(inscripcion_id,periodo)
 );
 
+-- Guarda pagos simulados
 CREATE TABLE pagos (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   orden_id uuid NOT NULL UNIQUE REFERENCES ordenes(id),
@@ -124,6 +135,7 @@ CREATE TABLE pagos (
   pagado_en timestamptz NOT NULL DEFAULT current_timestamp
 );
 
+-- Guarda correos pendientes
 CREATE TABLE correo_salida (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   usuario_id bigint NOT NULL REFERENCES usuarios(id),
@@ -143,6 +155,7 @@ CREATE TABLE correo_salida (
 );
 CREATE INDEX idx_correo_pendiente ON correo_salida(proximo_intento,id) WHERE estado_envio='PENDIENTE';
 
+-- Guarda enlaces temporales
 CREATE TABLE restablecimientos (
   token_hash char(64) PRIMARY KEY,
   usuario_id bigint NOT NULL REFERENCES usuarios(id),
@@ -150,12 +163,14 @@ CREATE TABLE restablecimientos (
   usado boolean NOT NULL DEFAULT false
 );
 
+-- Controla intentos repetidos
 CREATE TABLE intentos_acceso (
   clave char(64) PRIMARY KEY,
   intentos integer NOT NULL DEFAULT 1 CHECK (intentos > 0),
   inicio timestamptz NOT NULL DEFAULT current_timestamp
 );
 
+-- Guarda sesiones activas
 CREATE TABLE sesiones (
   token_hash char(64) PRIMARY KEY,
   usuario_id bigint REFERENCES usuarios(id) ON DELETE CASCADE,
