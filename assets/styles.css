@@ -1979,6 +1979,32 @@ td small {
 }
 
 /* Estilos para imprimir */
+.home-tournament {
+  margin-block: 28px 36px;
+  padding: clamp(20px, 4vw, 40px);
+  border: 1px solid #65605a;
+  border-radius: 16px;
+  background: linear-gradient(125deg, #252525, #121212);
+}
+.home-tournament-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.home-tournament-heading .eyebrow { margin: 0; }
+.home-tournament-status { padding: 6px 12px; border: 1px solid #999; border-radius: 20px; color: #eee; font-size: 12px; }
+.home-tournament h1 { font-size: clamp(30px, 5vw, 56px); line-height: 1.12; margin-block: 20px 12px; }
+.home-tournament-intro { max-width: 660px; color: #ddd; }
+.home-tournament-main { margin-block: 8px 20px; }
+.home-tournament-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.home-tournament-links > a { display: flex; flex-direction: column; justify-content: space-between; gap: 10px; padding: 18px; border: 1px solid #666; border-radius: 10px; background: #191919; color: #fff; text-decoration: none; }
+.home-tournament-links > a:hover { background: #303030; border-color: #ddd; }
+.home-tournament-links strong { font-size: 17px; line-height: 1.3; }
+.home-tournament-links > a > span { font-size: 13px; color: #ccc; }
+@media (max-width: 700px) {
+  .home-tournament { margin-block: 16px 24px; }
+  .home-tournament-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .home-tournament-links > a { padding: 14px 12px; }
+  .home-tournament-links strong { font-size: 15px; }
+  .home-tournament-links > a > span { font-size: 12px; }
+  .home-tournament-main { width: 100%; }
+}
 .mundial-section {
   margin-block: 48px;
   padding: clamp(16px, 4vw, 32px);
@@ -2047,19 +2073,20 @@ td small {
 .mundial-standings td { text-align: center; }
 .mundial-points { font-weight: bold; color: #f3d98e; }
 .mundial-legend { font-size: 13px; color: #ccc; }
-.mundial-standings-toggle { display: none; }
 @media (max-width: 650px) {
-  .mundial-standings-toggle { display: inline-flex; }
-  .mundial-standings table { min-width: 0; }
-  .mundial-standings th, .mundial-standings td { padding: 12px 5px; font-size: 12px; }
-  .mundial-standings thead th { letter-spacing: normal; font-size: 11px; }
-  .mundial-standings .mundial-player-identity { gap: 6px; }
-  .mundial-standings .mundial-flag { width: 24px; height: 18px; }
-  .mundial-standings th small { font-size: 10px; }
-  .mundial-standings .mundial-extra-stat { display: none; }
-  .mundial-all-stats .mundial-extra-stat { display: table-cell; }
-  .mundial-all-stats table { min-width: 630px; }
+  .mundial-standings { border: 0; background: transparent; overflow: visible; }
+  .mundial-standings table, .mundial-standings tbody { display: block; width: 100%; min-width: 0; }
+  .mundial-standings caption { display: block; padding-inline: 0; }
+  .mundial-standings thead { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+  .mundial-standings tbody tr { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; padding: 14px; border: 1px solid #555; border-radius: 12px; background: #191919; }
+  .mundial-standings td, .mundial-standings th { min-width: 0; padding: 8px 2px; border: 0; white-space: normal; font-size: 15px; }
+  .mundial-standings td:first-child { grid-column: 1; align-self: center; font-size: 22px; font-weight: bold; }
+  .mundial-standings th[scope="row"] { grid-column: 2 / -1; background: transparent; }
+  .mundial-standings .mundial-player-identity { gap: 8px; }
+  .mundial-standings td[data-stat] { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; border-top: 1px solid #444; }
+  .mundial-standings td[data-stat]::before { content: attr(data-stat); color: #ccc; font-size: 11px; font-weight: normal; line-height: 1.4; }
 }
+
 .mundial-section select {
   display: block;
   width: 100%;

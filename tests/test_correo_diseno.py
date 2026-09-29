@@ -33,7 +33,7 @@ def mensaje_de_orden(conn, user, orden):
     return mail.crear_mensaje(fila(datos), configuracion())
 
 
-@pytest.mark.parametrize('tipo,total', [('HORA','27.00'),('CUMPLEANOS','75.00'),('TORNEO','30.00'),('ESCUELA','50.00'),('MENSUALIDAD','50.00')])
+@pytest.mark.parametrize('tipo,total', [('HORA','27.00'),('CUMPLEANOS','75.00'),('TORNEO','30.00'),('ESCUELA','65.00'),('MENSUALIDAD','30.00')])
 def test_html_y_pdf_reflejan_el_pago_de_cada_servicio(conn,user,pay_data,tipo,total):
     hoy = datetime.now(s.TZ).date()
     if tipo in {'HORA','CUMPLEANOS'}:

@@ -1,9 +1,8 @@
--- Crea el cobro mensual
--- Ejecuta después del anterior
+-- Actualiza las tarifas de Súper Chaca. No modifica órdenes ni pagos anteriores.
 BEGIN;
 
 -- Cobra mensualidades sin duplicar
-CREATE PROCEDURE cobrar_mensualidad(p_orden uuid, p_metodo text)
+CREATE OR REPLACE PROCEDURE cobrar_mensualidad(p_orden uuid, p_metodo text)
 LANGUAGE plpgsql AS $$
 DECLARE orden ordenes; cuota mensualidades; ingreso date;
 BEGIN

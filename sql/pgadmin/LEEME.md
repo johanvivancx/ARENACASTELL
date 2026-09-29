@@ -10,6 +10,7 @@ Si `arena_castell` ya tiene información, no repitas los archivos que crean tabl
 - `12`: tarifas y cumpleaños de 3 horas.
 - `13`: Pasochoa Cup sexta edición.
 - `14`: efectivo y tarjeta de crédito/débito.
+- `15`: inscripción de Súper Chaca a $65 y mensualidad a $30. Ejecuta este archivo antes de registrar nuevos cobros con las tarifas nuevas. No cambia pagos anteriores.
 
 Cuando termines, vuelve a la carpeta principal y ejecuta:
 

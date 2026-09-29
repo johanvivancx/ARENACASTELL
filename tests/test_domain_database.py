@@ -38,7 +38,7 @@ def test_cedula_python_y_sql(conn,value,expected):
 def test_poo_y_calculo_monetario():
     with pytest.raises(TypeError): ServicioArena()
     services=[ReservaCancha(3,"HORA",{"tarifa_hora":Decimal("27")}),InscripcionTorneo(120),InscripcionSuperChaca(date(2016,1,1),"Sub-12",date(2026,8,30))]
-    assert [service.calcular_costo() for service in services]==[Decimal("81.00"),Decimal("120.00"),Decimal("50.00")]
+    assert [service.calcular_costo() for service in services]==[Decimal("81.00"),Decimal("120.00"),Decimal("65.00")]
     with pytest.raises(ErrorValidacion):ReservaCancha(0,"HORA",{})
     with pytest.raises(ErrorValidacion):InscripcionSuperChaca(date(2016,1,1),"Sub-8",date(2026,8,30))
 
@@ -78,6 +78,7 @@ def test_solapamiento_revierte_pago_y_permite_contiguas(conn,user,pay_data):
     s.pagar(conn,user["id"],first["id"],pay_data)
     with pytest.raises(psycopg.errors.ExclusionViolation):
         with conn.transaction():s.pagar(conn,user["id"],overlap["id"],pay_data)
+    assert s.detalle_orden(conn,user["id"],next_order["id"])["monto"] == 30
     s.pagar(conn,user["id"],next_order["id"],pay_data)
     assert s.detalle_orden(conn,user["id"],overlap["id"])["estado"]=="PENDIENTE"
     assert conn.execute("SELECT count(*) AS n FROM pagos").fetchone()["n"]==2
@@ -133,14 +134,15 @@ def test_escuela_periodos_sin_duplicar_y_reportes(conn,user,pay_data):
     order=s.inscribir_escuela(conn,user["id"],school_data(conn))
     s.pagar(conn,user["id"],order["id"],pay_data)
     detail=s.detalle_orden(conn,user["id"],order["id"])
-    assert detail["escuela"]["estado"]=="ACTIVA" and detail["pago"]["monto"]==50
+    assert detail["escuela"]["estado"]=="ACTIVA" and detail["pago"]["monto"]==65
     current=datetime.now(s.TZ).date().replace(day=1)
     assert s.renovar_escuela(conn,user["id"],detail["escuela"]["id"],{"periodo":current.strftime("%Y-%m")})["id"]==order["id"]
     following=(current+timedelta(days=32)).replace(day=1)
     next_order=s.renovar_escuela(conn,user["id"],detail["escuela"]["id"],{"periodo":following.strftime("%Y-%m")})
+    assert s.detalle_orden(conn,user["id"],next_order["id"])["monto"] == 30
     s.pagar(conn,user["id"],next_order["id"],pay_data)
     report=conn.execute("SELECT * FROM vista_mensualidades_escuela").fetchone()
-    assert report["total_pagado"]==100 and report["cuotas_pagadas"]==2 and report["mes_actual_pagado"]
+    assert report["total_pagado"]==95 and report["cuotas_pagadas"]==2 and report["mes_actual_pagado"]
     assert len(conn.execute("SELECT * FROM vista_reporte_administrador").fetchall())==2
 
 

@@ -574,7 +574,7 @@ function schoolSchedule() {
 
 // Prepara la inscripción escolar
 function initSchool() {
-  $("#summary-total").textContent = money(50);
+  $("#summary-total").textContent = money(catalog.inscripcion_chaca || 65);
   $("#categoria").addEventListener("change", schoolSchedule);
   $("#nacimiento").max = catalog.hoy;
   $("#nacimiento").addEventListener("change", () => {
@@ -787,7 +787,7 @@ async function loadHistory() {
     ? historyData.escuela
         .map(
           (sc) =>
-            `<article class="panel"><h3>${esc(sc.alumno)} · ${esc(sc.categoria)}</h3><p class="small-text muted">${esc(sc.estado)} · ${sc.cuotas_pagadas} mensualidades pagadas · Último período: ${esc(dates(sc.ultimo_periodo))}</p><span class="tag ${sc.mes_actual_pagado ? "good" : "gold"}">${sc.mes_actual_pagado ? "Mes actual pagado" : "Mes actual pendiente"}</span>${sc.estado === "ACTIVA" ? `<form method="post" data-renew="${sc.id}"><div class="form-grid"><div class="field"><label for="period-${sc.id}">Período a pagar</label><input id="period-${sc.id}" name="periodo" type="month" value="${catalog.hoy.slice(0, 7)}" min="${sc.fecha_inscripcion.slice(0, 7)}" max="${nextMonth(catalog.hoy)}" required></div></div><div class="form-actions"><button type="submit" class="btn small">Pagar mensualidad · $50</button></div></form>` : '<p class="small-text muted">Completa el pago inicial desde tu actividad para activar la inscripción.</p>'}</article>`,
+            `<article class="panel"><h3>${esc(sc.alumno)} · ${esc(sc.categoria)}</h3><p class="small-text muted">${esc(sc.estado)} · ${sc.cuotas_pagadas} mensualidades pagadas · Último período: ${esc(dates(sc.ultimo_periodo))}</p><span class="tag ${sc.mes_actual_pagado ? "good" : "gold"}">${sc.mes_actual_pagado ? "Mes actual pagado" : "Mes actual pendiente"}</span>${sc.estado === "ACTIVA" ? `<form method="post" data-renew="${sc.id}"><div class="form-grid"><div class="field"><label for="period-${sc.id}">Período a pagar</label><input id="period-${sc.id}" name="periodo" type="month" value="${catalog.hoy.slice(0, 7)}" min="${sc.fecha_inscripcion.slice(0, 7)}" max="${nextMonth(catalog.hoy)}" required></div></div><div class="form-actions"><button type="submit" class="btn small">Pagar mensualidad · ${money(catalog.mensualidad || 30)}</button></div></form>` : '<p class="small-text muted">Completa el pago inicial desde tu actividad para activar la inscripción.</p>'}</article>`,
         )
         .join("")
     : `<p class="muted small-text">Aún no tienes alumnos inscritos. <a href="${pageHref("informacion_super_chaca.html")}">Inscribir a un alumno</a>.</p>`;

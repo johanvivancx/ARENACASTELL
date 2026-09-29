@@ -230,7 +230,8 @@ def catalogo(conn):
               LEFT JOIN equipos e ON e.torneo_id=t.id AND e.estado='CONFIRMADO'
               WHERE t.visible GROUP BY t.id ORDER BY t.fecha_inicio"""
         ).fetchall(),
-        "mensualidad": "50.00",
+        "inscripcion_chaca": str(InscripcionSuperChaca.INSCRIPCION),
+        "mensualidad": str(InscripcionSuperChaca.MENSUALIDAD),
         "hoy": datetime.now(TZ).date(),
         "limite": datetime.now(TZ).date() + timedelta(days=89),
     }
@@ -603,7 +604,7 @@ def renovar_escuela(conn, uid, inscription_id, data):
         return {"id": existing["orden_id"]}
     # Conserva la categoría inicial
     service = InscripcionSuperChaca(
-        inscription["nacimiento"], inscription["categoria"], inscription["fecha_inscripcion"]
+        inscription["nacimiento"], inscription["categoria"], inscription["fecha_inscripcion"], renovacion=True
     )
     order = crear_orden(
         conn, uid, "MENSUALIDAD", f"Súper Chaca · {inscription['alumno']} · {period:%m/%Y}", service

@@ -174,10 +174,11 @@ class InscripcionTorneo(ServicioArena):
 
 # Calcula escuela con polimorfismo
 class InscripcionSuperChaca(ServicioArena):
-    MENSUALIDAD = Decimal("50.00")
+    INSCRIPCION = Decimal("65.00")
+    MENSUALIDAD = Decimal("30.00")
 
     # Valida edad y categoría
-    def __init__(self, nacimiento: date, categoria: str, fecha: date):
+    def __init__(self, nacimiento: date, categoria: str, fecha: date, *, renovacion: bool = False):
         edad = (
             fecha.year
             - nacimiento.year
@@ -191,7 +192,8 @@ class InscripcionSuperChaca(ServicioArena):
                 f"Por su fecha de nacimiento, le corresponde la categoría {esperada}."
             )
         self.categoria = categoria
+        self.renovacion = renovacion
 
-    # Devuelve la mensualidad escolar
+    # La inscripción incluye el primer mes; las renovaciones pagan solo la mensualidad.
     def calcular_costo(self):
-        return self.MENSUALIDAD
+        return self.MENSUALIDAD if self.renovacion else self.INSCRIPCION

@@ -7,7 +7,7 @@ INSERT INTO usuarios(nombre,cedula,email,telefono,password_hash,rol)
 VALUES('Representante de Prueba','1700009200','sql.demo@arena.test','0990000000','pbkdf2_sha256$600000$b82cec5df92a2ba6dfb221081dfde5d2$064b8e98360a8745d1526ee749d734325b6b739ee73f45c67e6a57aab0f8061b','CLIENTE');
 
 INSERT INTO ordenes(id,usuario_id,tipo,descripcion,monto)
-SELECT '10000000-0000-4000-8000-000000000001',id,'ESCUELA','Alumno ficticio - mensualidad inicial',50
+SELECT '10000000-0000-4000-8000-000000000001',id,'ESCUELA','Alumno ficticio - inscripción con primer mes',65
 FROM usuarios WHERE email='sql.demo@arena.test';
 
 INSERT INTO inscripciones_chaca(orden_id,alumno,cedula,nacimiento,categoria,horario_id)

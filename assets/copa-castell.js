@@ -84,6 +84,7 @@
       row.append(team);
       [pts, pj, dg > 0 ? `+${dg}` : dg, pg, pe, pp, gf, gc].forEach((value, index) => {
         const cell = element('td', value);
+        cell.dataset.stat = ['Puntos', 'Jugados', 'Dif. goles', 'Ganados', 'Empatados', 'Perdidos', 'Goles a favor', 'Goles en contra'][index];
         if (index === 0) cell.className = 'mundial-points';
         if (index > 2) cell.className = 'mundial-extra-stat';
         row.append(cell);
@@ -94,13 +95,6 @@
     wrapper.append(table);
     groups.append(wrapper);
   }
-  const statsButton = document.getElementById('mundial-estadisticas');
-  statsButton.addEventListener('click', () => {
-    const expanded = statsButton.getAttribute('aria-expanded') !== 'true';
-    statsButton.setAttribute('aria-expanded', String(expanded));
-    statsButton.textContent = expanded ? 'Ver tabla resumida' : 'Ver todas las estadísticas';
-    groups.classList.toggle('mundial-all-stats', expanded);
-  });
   const scorers = () => {
     const body = document.getElementById('mundial-goleadores-filas');
     body.replaceChildren();

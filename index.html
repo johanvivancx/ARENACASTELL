@@ -16,9 +16,9 @@
     <title>Inicio | ARENA CASTELL</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="assets/styles.css?v=identidad-acero-1" />
+    <link rel="stylesheet" href="assets/styles.css?v=inicio-torneo-6" />
     <!-- Funciones principales del sitio -->
-    <script src="assets/app.js?v=pagos-contacto-2" defer></script>
+    <script src="assets/app.js?v=chaca-65-30" defer></script>
   </head>
 
   <body data-page="home">
@@ -52,8 +52,8 @@
         <!-- Navegación principal -->
         <nav class="main-nav" id="main-nav" aria-label="Navegación principal">
           <a href="index.html" aria-current="page">Inicio</a>
+          <a href="pages/torneos.html#mundial-campeones">Torneo en juego</a>
           <a href="pages/reservas.html">Reservas</a>
-          <a href="pages/torneos.html">Torneos</a>
           <a href="pages/super_chaca.html">Súper Chaca</a>
           <a href="pages/mis_reservas_inscripciones.html" data-history-link hidden>Mi actividad</a>
           <a href="pages/admin.html" data-admin-link hidden>Admin</a>
@@ -81,18 +81,37 @@
 
     <!-- Contenido principal -->
     <main id="contenido">
+      <!-- Accesos directos para quienes siguen el torneo -->
+      <section class="home-tournament container" aria-labelledby="home-tournament-title">
+        <div class="home-tournament-heading">
+          <p class="eyebrow">COPA CASTELL · ARENA CASTELL</p>
+          <span class="home-tournament-status">Torneo en juego</span>
+        </div>
+        <h1 id="home-tournament-title">Mundial de Campeones</h1>
+        <p class="home-tournament-intro">Tu equipo, tus resultados y toda la emoción del torneo. Encuentra aquí lo que quieres ver.</p>
+        <a class="btn home-tournament-main" href="pages/torneos.html#mundial-campeones">
+          Entrar al torneo <span aria-hidden="true">→</span>
+        </a>
+        <nav class="home-tournament-links" aria-label="Consulta el Mundial de Campeones">
+          <a href="pages/torneos.html#mundial-posiciones"><strong>Posiciones</strong><span>Consulta los dos grupos <span aria-hidden="true">→</span></span></a>
+          <a href="pages/torneos.html#mundial-resultados"><strong>Resultados</strong><span>Marcadores por fecha <span aria-hidden="true">→</span></span></a>
+          <a href="pages/torneos.html#mundial-goleadores"><strong>Goleadores</strong><span>El Top 20 del torneo <span aria-hidden="true">→</span></span></a>
+          <a href="pages/torneos.html#mundial-premiados"><strong>Jugador del partido</strong><span>Los destacados de la fecha <span aria-hidden="true">→</span></span></a>
+        </nav>
+        <a class="text-link" href="pages/torneos.html#mundial-equipos">Ver equipos y jugadores →</a>
+      </section>
       <!-- Presentacion principal -->
       <section class="hero">
         <div class="container hero-layout">
           <div class="hero-copy">
             <p class="eyebrow">AMAGUAÑA · QUITO, ECUADOR</p>
-            <h1>
+            <h2>
               Tu cancha.
               <br />
               Tu equipo.
               <br />
               <em>Tu historia.</em>
-            </h1>
+            </h2>
             <p>
               Contamos con parqueadero seguro para tu visita. El fútbol se disfruta más cuando
               estamos juntos. Reserva tu próximo partido, compite con tu equipo o empieza a crecer
