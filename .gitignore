@@ -9,3 +9,10 @@ __pycache__/
 instance/
 backups/
 .coverage
+BACKUP_SQL_BASE_DE_DATOS/
+*.xlsx
+*.xls
+*.xlsm
+*[Vv]ocalia*.docx
+*[Vv]ocalia*.doc
+*[Vv]ocalia*.pdf

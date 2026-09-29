@@ -1979,6 +1979,122 @@ td small {
 }
 
 /* Estilos para imprimir */
+.mundial-section {
+  margin-block: 48px;
+  padding: clamp(16px, 4vw, 32px);
+  border: 1px solid #454545;
+  border-radius: 16px;
+  background: #111;
+}
+.mundial-section section { margin-top: 32px; scroll-margin-top: 110px; }
+.mundial-section select { max-width: 460px; margin-block: 12px 20px; }
+.mundial-matches, .mundial-rosters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+.mundial-match, .mundial-rosters details {
+  padding: 18px;
+  border: 1px solid #454545;
+  border-radius: 10px;
+  background: #191919;
+}
+.mundial-score { font-size: 30px; font-weight: bold; margin-block: 12px; }
+.mundial-rosters summary { cursor: pointer; min-height: 44px; font-weight: bold; }
+.mundial-rosters ul { list-style: none; padding: 0; }
+.mundial-rosters li { display: flex; gap: 10px; padding-block: 8px; border-bottom: 1px solid #454545; }
+.mundial-number { flex: 0 0 52px; color: #ddd; }
+.mundial-rosters { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.mundial-rosters details { padding: 0; overflow: hidden; }
+.mundial-rosters details[hidden] { display: none; }
+.mundial-rosters summary { display: flex; align-items: center; gap: 14px; padding: 20px; list-style: none; }
+.mundial-rosters summary::-webkit-details-marker { display: none; }
+.mundial-team-heading { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.mundial-team-heading strong { font-size: 18px; }
+.mundial-team-heading > span { color: #ddd; font-weight: normal; }
+.mundial-team-heading small { color: #aaa; font-size: 12px; font-weight: normal; }
+.mundial-team-arrow { font-size: 26px; width: 24px; text-align: center; }
+.mundial-rosters details[open] .mundial-team-arrow { transform: rotate(45deg); }
+.mundial-rosters details[open] summary { border-bottom: 1px solid #454545; background: #242424; }
+.mundial-rosters ul { margin: 0; padding: 8px 20px 16px; }
+.mundial-rosters li { align-items: baseline; padding-block: 12px; line-height: 1.55; }
+.mundial-rosters li > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.mundial-rosters li:last-child { border-bottom: 0; }
+#mundial-buscar-equipo { display: block; width: 100%; max-width: 600px; min-height: 48px; margin-top: 10px; padding: 12px; font: inherit; color: #fff; background: #202020; border: 1px solid #777; border-radius: 8px; }
+#mundial-busqueda-estado { font-size: 14px; color: #ccc; }
+@media (max-width: 650px) {
+  .mundial-rosters { grid-template-columns: minmax(0, 1fr); }
+  .mundial-rosters summary { padding: 16px; gap: 12px; }
+  .mundial-section .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .mundial-section .actions .btn { min-width: 0; padding-inline: 8px; font-size: 13px; text-align: center; }
+  #mundial-goleadores table, #mundial-goleadores tbody { display: block; min-width: 0; width: 100%; }
+  #mundial-goleadores thead { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+  #mundial-goleadores caption { display: block; padding-inline: 12px; }
+  #mundial-goleadores tr { display: grid; grid-template-columns: 44px minmax(0, 1fr); padding: 12px; border-bottom: 1px solid #454545; }
+  #mundial-goleadores td { min-width: 0; white-space: normal; padding: 6px 0; border: 0; overflow-wrap: anywhere; }
+  #mundial-goleadores td[data-label] { grid-column: 2; }
+  #mundial-goleadores td[data-label]::before { content: attr(data-label) ': '; color: #bbb; }
+  #mundial-goleadores .mundial-player-identity { align-items: flex-start; gap: 8px; }
+  #mundial-goleadores td[colspan] { grid-column: 1 / -1; }
+}
+.mundial-section caption { text-align: left; padding-block: 12px; }
+.mundial-standings { margin-top: 20px; }
+.mundial-standings caption { padding: 16px; font-size: 18px; font-weight: bold; }
+.mundial-standings table { width: 100%; }
+.mundial-standings th, .mundial-standings td { padding: 12px 10px; }
+.mundial-standings th[scope="row"] { text-align: left; text-transform: none; letter-spacing: normal; font-weight: normal; }
+.mundial-standings th small { display: block; color: #bbb; font-size: 12px; font-weight: normal; }
+.mundial-standings td { text-align: center; }
+.mundial-points { font-weight: bold; color: #f3d98e; }
+.mundial-legend { font-size: 13px; color: #ccc; }
+.mundial-standings-toggle { display: none; }
+@media (max-width: 650px) {
+  .mundial-standings-toggle { display: inline-flex; }
+  .mundial-standings table { min-width: 0; }
+  .mundial-standings th, .mundial-standings td { padding: 12px 5px; font-size: 12px; }
+  .mundial-standings thead th { letter-spacing: normal; font-size: 11px; }
+  .mundial-standings .mundial-player-identity { gap: 6px; }
+  .mundial-standings .mundial-flag { width: 24px; height: 18px; }
+  .mundial-standings th small { font-size: 10px; }
+  .mundial-standings .mundial-extra-stat { display: none; }
+  .mundial-all-stats .mundial-extra-stat { display: table-cell; }
+  .mundial-all-stats table { min-width: 630px; }
+}
+.mundial-section select {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid #777;
+  border-radius: 8px;
+  color: #f8fafc;
+  background: #202020;
+  font: inherit;
+}
+.mundial-match { text-align: center; background: linear-gradient(145deg, #242424, #121212); }
+.mundial-match > span { font-size: 11px; color: #ccc; letter-spacing: 1px; }
+.mundial-matchup { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+.mundial-side { min-width: 0; }
+.mundial-side h4 { margin: 12px 0 6px; }
+.mundial-side small { display: block; color: #ccc; line-height: 1.4; }
+.mundial-flag { width: 48px; height: 32px; object-fit: contain; flex-shrink: 0; border-radius: 3px; }
+.mundial-side .mundial-flag { width: 64px; height: 44px; }
+.mundial-player-identity { display: flex; align-items: center; gap: 12px; }
+.mundial-player-identity .mundial-flag { width: 32px; height: 22px; }
+.mundial-mvp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.mundial-mvp-card { margin: 0; overflow: hidden; border: 1px solid #555; border-radius: 12px; background: #191919; }
+.mundial-mvp-card > a { display: block; }
+.mundial-mvp-card > a > img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: contain; }
+.mundial-mvp-card figcaption { padding: 18px; }
+.mundial-mvp-card figcaption small { color: #e5cb87; font-size: 11px; letter-spacing: 1px; }
+.mundial-mvp-card h4 { margin-block: 12px; }
+@media (max-width: 900px) {
+  .mundial-mvp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .mundial-mvp-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 @media print {
   body {
     background: white;
