@@ -20,7 +20,7 @@ from models import (
 )
 
 TZ = ZoneInfo("America/Guayaquil")
-METHODS = {"TRANSFERENCIA", "EFECTIVO", "TARJETA", "DEBITO", "CREDITO"}
+METHODS = {"TRANSFERENCIA", "EFECTIVO"}
 
 
 # Representa errores de solicitud
@@ -394,7 +394,7 @@ def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
     method = data.get("metodo")
     if method not in METHODS:
         raise ErrorValidacion(
-            "Selecciona transferencia, efectivo en cancha o tarjeta de crédito/débito."
+            "Selecciona transferencia bancaria o pago en cancha."
         )
     if data.get("acepta_simulacion") is not True:
         raise ErrorValidacion("Confirma que deseas registrar esta operación.")

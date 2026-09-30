@@ -17,8 +17,8 @@
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
-    <script src="../assets/copa-castell-datos.js?v=4" defer></script>
-    <script src="../assets/copa-castell.js?v=5" defer></script>
+    <script src="../assets/copa-castell-datos.js?v=fecha5-2" defer></script>
+    <script src="../assets/copa-castell.js?v=fecha5-1" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=chaca-65-30" defer></script>
   </head>
@@ -305,31 +305,32 @@
             <a class="btn secondary" href="#mundial-equipos">Equipos</a>
           </nav>
           <section id="mundial-resultados" aria-labelledby="resultados-title">
-            <h3 id="resultados-title">Resultados desde la fecha 2</h3>
+            <h3 id="resultados-title">Resultados del torneo</h3>
             <label for="mundial-fecha">Selecciona una fecha</label>
             <select id="mundial-fecha">
-              <option value="2">Fecha 2</option>
+              <option value="1">Fecha 1 · 28 y 29 de agosto</option>
+              <option value="2">Fecha 2 · 4 y 5 de septiembre</option>
               <option value="3">Fecha 3 · 11 y 12 de septiembre</option>
-              <option value="4" selected>Fecha 4 · 18 y 19 de septiembre</option>
-              <option value="5">Fecha 5 · resultados pendientes</option>
+              <option value="4">Fecha 4 · 18 y 19 de septiembre</option>
+              <option value="5" selected>Fecha 5 · 25 y 26 de septiembre</option>
             </select>
             <div id="mundial-partidos" class="mundial-matches" aria-live="polite"></div>
           </section>
           <section id="mundial-posiciones" aria-labelledby="posiciones-title">
             <p class="eyebrow">CLASIFICACIÓN DEL TORNEO</p>
-            <h3 id="posiciones-title">Tabla de posiciones · Fecha 4</h3>
-            <p>Así quedan los dos grupos hasta la fecha 4. Los resultados de la fecha 5 aún están pendientes.</p>
+            <h3 id="posiciones-title">Tabla de posiciones · Fecha 5</h3>
+            <p>Clasificación de los dos grupos al finalizar la fecha 5, disputada el 25 y 26 de septiembre.</p>
             <div id="mundial-grupos"></div>
             <p class="mundial-legend">Pts: puntos · PJ: partidos jugados · PG: ganados · PE: empatados · PP: perdidos · GF: goles a favor · GC: goles en contra · DG: diferencia de goles.</p>
           </section>
           <section id="mundial-goleadores" aria-labelledby="goleadores-title">
             <h3 id="goleadores-title">Top 20 de goleadores</h3>
-            <p>Goles acumulados del torneo hasta la fecha 4. Los resultados de la fecha 5 todavía no están publicados.</p>
+            <p>Los 20 máximos goleadores del torneo, con los goles acumulados hasta la fecha 5.</p>
             <label for="mundial-equipo-filtro">Filtrar el Top 20 por selección</label>
             <select id="mundial-equipo-filtro"><option value="">Todas las selecciones</option></select>
             <div class="table-wrap" tabindex="0" role="region" aria-label="Tabla de goleadores; desplázate para ver todas las columnas">
               <table>
-                <caption>Top 20 de goleadores · acumulado hasta fecha 4</caption>
+                <caption>Top 20 de goleadores · acumulado hasta fecha 5</caption>
                 <thead><tr><th scope="col">Posición</th><th scope="col">Jugador</th><th scope="col">Selección / equipo</th><th scope="col">Dorsal</th><th scope="col">Goles</th></tr></thead>
                 <tbody id="mundial-goleadores-filas"></tbody>
               </table>

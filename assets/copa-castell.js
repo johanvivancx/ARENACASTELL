@@ -46,10 +46,14 @@
       const score = element('p', `${match.homeGoals} – ${match.awayGoals}`);
       score.className = 'mundial-score';
       card.append(score);
+      if (match.date) {
+        const [year, month, day] = match.date.split('-');
+        card.append(element('small', `${day}/${month}/${year}${match.time ? ' · ' + match.time : ''}`));
+      }
       container.append(card);
     }
   };
-  // Clasificación guardada al terminar la fecha 4.
+  // Acumulados del Excel; el historial no vuelve a sumar resultados.
   const groups = document.getElementById('mundial-grupos');
   for (const [group, rows] of Object.entries(data.standings || {})) {
     const wrapper = element('div');
@@ -58,7 +62,7 @@
     wrapper.setAttribute('role', 'region');
     wrapper.setAttribute('aria-label', `${group}: tabla de posiciones`);
     const table = element('table');
-    table.append(element('caption', `${group} · Hasta la fecha 4`));
+    table.append(element('caption', `${group} · Hasta la fecha ${data.throughRound}`));
     const head = element('thead');
     const titles = element('tr');
     ['#', 'Selección / equipo', 'Pts', 'PJ', 'DG', 'PG', 'PE', 'PP', 'GF', 'GC'].forEach((label, index) => {
@@ -161,7 +165,7 @@
     document.getElementById('mundial-busqueda-estado').textContent = visible === 1 ? '1 selección disponible' : visible ? `${visible} selecciones disponibles` : 'No se encontraron equipos o jugadores con ese nombre.';
   });
   const awards = [
-    ['Egipto','92','JOSEHP DARIO SANDOVAL CANTUÑA','egipto'],
+    ['Egipto','92','Joseph Darío Sandoval Cantuña','egipto'],
     ['Colombia','5','Briones Carlos','colombia'],
     ['España','6','Maycol Vera','espana'],
     ['Noruega','10','Gregorio Arroyo','noruega'],

@@ -725,7 +725,6 @@ function renderPaymentMethod() {
   const descriptions = {
     TRANSFERENCIA: "Usa los datos de Banco Pichincha que aparecen abajo. La administración debe verificar el abono; esta página no lo comprueba automáticamente.",
     EFECTIVO: "Paga en efectivo al acercarte a la cancha. Tu solicitud seguirá pendiente y no bloqueará horarios ni cupos hasta registrar el cobro. Coordina tu llegada por WhatsApp antes del horario solicitado.",
-    TARJETA: "Puedes coordinar el pago con tarjeta de crédito o débito con la cancha. Esta página solo registra el método: no procesa tarjetas ni pide número, claves o CVV.",
   };
   $("#method-info").textContent = descriptions[method] || "Elige cómo deseas realizar el pago de tu operación.";
   if ($("#pay-button-label"))

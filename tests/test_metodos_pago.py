@@ -61,8 +61,8 @@ def test_solo_admin_cobra_efectivo_y_no_duplica(conn, user):
     assert conn.execute('SELECT count(*) AS n FROM correo_salida').fetchone()['n'] == 1
 
 
-def test_tarjeta_y_metodos_anteriores_generan_comprobante(conn, user):
-    for i, method in enumerate(['TARJETA', 'TRANSFERENCIA', 'DEBITO', 'CREDITO']):
+def test_transferencia_genera_comprobante(conn, user):
+    for i, method in enumerate(['TRANSFERENCIA']):
         order = reserva(conn, user, i + 3)
         s.pagar(conn, user['id'], order['id'], {'metodo': method, 'acepta_simulacion': True})
         detail = s.detalle_orden(conn, user['id'], order['id'])
@@ -97,7 +97,7 @@ def test_conflicto_de_horario_no_cobra_efectivo(conn, user):
     cash = reserva(conn, user)
     s.pagar(conn, user['id'], cash['id'], {'metodo': 'EFECTIVO', 'acepta_simulacion': True})
     other = reserva(conn, user)
-    s.pagar(conn, user['id'], other['id'], {'metodo': 'TARJETA', 'acepta_simulacion': True})
+    s.pagar(conn, user['id'], other['id'], {'metodo': 'TRANSFERENCIA', 'acepta_simulacion': True})
     aid = administrador(conn)
     with check.assertRaises(psycopg.IntegrityError):
         with conn.transaction():
@@ -110,7 +110,8 @@ def test_conflicto_de_horario_no_cobra_efectivo(conn, user):
 
 def test_migracion_conserva_pagos_anteriores_y_se_puede_repetir(conn, user):
     order = reserva(conn, user)
-    s.pagar(conn, user['id'], order['id'], {'metodo': 'DEBITO', 'acepta_simulacion': True})
+    # Reproduce un pago histórico: las tarjetas ya no se aceptan desde la API.
+    conn.execute("INSERT INTO pagos(orden_id,monto,metodo,referencia) VALUES(%s,27,'DEBITO','HISTORICO')", (order['id'],))
     previous = dict(s.detalle_orden(conn, user['id'], order['id'])['pago'])
     conn.execute('ALTER TABLE ordenes DROP COLUMN metodo_previsto')
     conn.execute('ALTER TABLE pagos DROP CONSTRAINT pagos_metodo_check')
@@ -120,3 +121,9 @@ def test_migracion_conserva_pagos_anteriores_y_se_puede_repetir(conn, user):
         conn.execute(migration.read_text(encoding='utf-8'))
     assert dict(s.detalle_orden(conn, user['id'], order['id'])['pago']) == previous
     assert s.detalle_orden(conn, user['id'], order['id'])['metodo_previsto'] is None
+
+
+def test_tarjetas_rechazadas_antes_de_acceder_a_la_base():
+    for method in ('TARJETA', 'DEBITO', 'CREDITO'):
+        with check.assertRaises(s.ErrorValidacion):
+            s.pagar(None, 1, 'sin-orden', {'metodo': method, 'acepta_simulacion': True})
