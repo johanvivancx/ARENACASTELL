@@ -83,7 +83,7 @@ La página no se conecta directamente con pgAdmin. El navegador habla con Python
 En `.env` coloca tus propios datos:
 
 ```dotenv
-DATABASE_URL=postgresql://arena_app:TU_CLAVE@127.0.0.1:5432/arena_castell
+DATABASE_URL=<CONEXION_PRIVADA_DE_POSTGRESQL>
 ```
 
 Después ejecuta:

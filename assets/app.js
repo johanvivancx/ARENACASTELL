@@ -734,7 +734,7 @@ function renderPaymentMethod() {
   $("#referencia_transferencia").required = method === "TRANSFERENCIA";
   $("#referencia_transferencia").disabled = method !== "TRANSFERENCIA";
   const descriptions = {
-    TRANSFERENCIA: "Escribe la referencia de tu transferencia. La solicitud no bloquea horarios ni cupos: se confirma cuando la administración comprueba y aprueba el abono.",
+    TRANSFERENCIA: "Solicita primero los datos bancarios vigentes por el canal oficial de la cancha. Tras transferir, escribe la referencia. La solicitud se confirma cuando la administración comprueba y aprueba el abono.",
     EFECTIVO: "Paga en efectivo al acercarte a la cancha. Tu solicitud seguirá pendiente y no bloqueará horarios ni cupos hasta registrar el cobro. Coordina tu llegada por WhatsApp antes del horario solicitado.",
   };
   $("#method-info").textContent = descriptions[method] || "Elige cómo deseas realizar el pago de tu operación.";

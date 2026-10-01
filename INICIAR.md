@@ -42,18 +42,16 @@ No es obligatorio activar el entorno si escribes la ruta completa de Python como
 
 El archivo `.env` guarda la conexión local y las claves. No debe subirse a GitHub.
 
-Si todavía no existe, copia la plantilla:
+Si todavía no existe, crea `.env` localmente. No copies valores privados a GitHub ni a la documentación pública:
 
 ```powershell
-if (-not (Test-Path -LiteralPath .env)) {
-    Copy-Item -LiteralPath .env.example -Destination .env
-}
+if (-not (Test-Path -LiteralPath .env)) { New-Item -ItemType File -Path .env | Out-Null }
 ```
 
 Abre `.env` y completa tus propios datos. Un ejemplo local es:
 
 ```dotenv
-DATABASE_URL=postgresql://arena_app:TU_CLAVE@127.0.0.1:5432/arena_castell
+DATABASE_URL=<CONEXION_PRIVADA_DE_POSTGRESQL>
 APP_ORIGIN=http://127.0.0.1:8765
 COOKIE_SECURE=false
 SMTP_ENABLED=false
@@ -80,23 +78,6 @@ Ejecuta:
 La terminal pedirá nombre, correo, cédula, celular y contraseña. La contraseña debe tener al menos 10 caracteres. Después podrás iniciar sesión desde la página.
 
 El formulario público siempre crea clientes. El rol de administrador se crea desde este comando para evitar que cualquier persona se dé permisos.
-
-### Cuentas de demostración opcionales
-
-Solo para una base de prueba local puedes usar:
-
-```powershell
-.\.venv\Scripts\python.exe manage.py create-demo
-```
-
-Se crean estas cuentas ficticias:
-
-| Rol | Correo | Contraseña |
-|---|---|---|
-| Administrador | `admin@arena.test` | `CastellAdmin!2026` |
-| Cliente | `cliente@arena.test` | `CastellCliente!2026` |
-
-No uses estas claves en una página pública ni con información real.
 
 ## 5. Configurar Gmail, si lo vas a usar
 

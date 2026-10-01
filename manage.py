@@ -5,7 +5,7 @@ import getpass
 import sys
 from pathlib import Path
 from db import conectar, ROOT
-from models import Administrador, Cliente, ErrorValidacion
+from models import Administrador, ErrorValidacion
 import correos
 
 
@@ -24,7 +24,6 @@ def main():
     sub.add_parser(
         "create-admin", help="Crear un administrador; la contraseña se solicita sin mostrarla"
     )
-    sub.add_parser("create-demo", help="Crear dos cuentas ficticias para evaluación")
     sub.add_parser("check-email", help="Validar la configuración SMTP sin enviar ni mostrar claves")
     sub.add_parser("test-email", help="Enviar un correo de prueba a tu propia cuenta SMTP_USER")
     sub.add_parser("send-emails", help="Procesar hasta diez correos pendientes con SMTP")
@@ -61,6 +60,15 @@ def main():
                 print(
                     f"Registros: {row['usuarios']} usuarios, {row['reservas']} reservas, {row['pagos']} pagos simulados."
                 )
+                demo = conn.execute(
+                    "SELECT count(*) AS total FROM usuarios WHERE email IN (%s, %s)",
+                    ("admin@arena.test", "cliente@arena.test"),
+                ).fetchone()["total"]
+                if demo:
+                    print(
+                        "ADVERTENCIA: hay cuentas de demostración con claves antiguas conocidas. "
+                        "Elimínalas o cambia sus contraseñas antes de publicar esta base."
+                    )
             elif args.command == "init-db":
                 if conn.execute("SELECT to_regclass('public.usuarios') AS existente").fetchone()[
                     "existente"
@@ -89,33 +97,6 @@ def main():
                 user.set_password(password)
                 insert_user(conn, user)
                 print("Administrador creado. Inicia sesión desde el sitio.")
-            elif args.command == "create-demo":
-                for index, (clase, nombre, email, password) in enumerate(
-                    [
-                        (
-                            Administrador,
-                            "Administrador Demo",
-                            "admin@arena.test",
-                            "CastellAdmin!2026",
-                        ),
-                        (
-                            Cliente,
-                            "Cliente Demostración",
-                            "cliente@arena.test",
-                            "CastellCliente!2026",
-                        ),
-                    ],
-                    1,
-                ):
-                    user = clase(nombre, email, cedula_demo(index), "0990000000")
-                    user.set_password(password)
-                    if not conn.execute(
-                        "SELECT id FROM usuarios WHERE email=%s", (email,)
-                    ).fetchone():
-                        insert_user(conn, user)
-                print(
-                    "Cuentas ficticias disponibles. Credenciales en INICIAR.md; solo para demostración local."
-                )
             elif args.command == "outbox":
                 rows = conn.execute(
                     """SELECT c.asunto,c.cuerpo,c.creado_en,c.estado_envio,c.ultimo_error FROM correo_salida c

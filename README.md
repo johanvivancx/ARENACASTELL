@@ -2,7 +2,6 @@
 
 Arena Castell es una aplicación web que desarrollé para organizar las reservas de una cancha sintética en Amaguaña. En la misma página también se pueden manejar las inscripciones a torneos y a la escuela de fútbol Súper Chaca.
 
-- **Autor:** Johan Vivanco
 - **Tipo de proyecto:** trabajo individual
 - **Materias integradas:** Programación Orientada a Objetos, Base de Datos I y Desarrollo Web Frontend UX/UI
 
@@ -144,7 +143,7 @@ py -3.14 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Después se crea la base, se copia `.env.example` como `.env`, se completa `DATABASE_URL` y se comprueba la conexión:
+Después se crea la base, se prepara un archivo `.env` privado según [INICIAR.md](INICIAR.md), se completa `DATABASE_URL` y se comprueba la conexión:
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py check-db

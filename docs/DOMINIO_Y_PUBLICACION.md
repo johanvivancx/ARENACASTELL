@@ -15,7 +15,7 @@ Esto crea `public/` con HTML, CSS, JavaScript e imágenes. No copia `.env`, Pyth
 ## Conectar Cloudflare Pages con GitHub
 
 1. Antes de crear el proyecto, sube a GitHub `tools/exportar_publico.py` y esta guía mediante tus comandos habituales de `git add`, `git commit` y `git push`. Comprueba que `.env` no esté entre los archivos preparados para el commit. No necesitas subir la carpeta `public/`.
-2. En la pantalla de Cloudflare **Make something new**, elige **Connect GitHub**. Autoriza únicamente el repositorio `johanvivancx/ARENACASTELL` si GitHub te ofrece esa opción. Selecciona **Pages** como tipo de proyecto y `main` como rama de producción.
+2. En la pantalla de Cloudflare **Make something new**, elige **Connect GitHub**. Autoriza únicamente el repositorio de Arena Castell si GitHub te ofrece esa opción. Selecciona **Pages** como tipo de proyecto y `main` como rama de producción.
 3. Configura **Framework preset: None**, **Build command: `python tools/exportar_publico.py`** y **Build output directory: `public`**. Deja el directorio raíz en la raíz del repositorio. Si Cloudflare intenta instalar dependencias de Python innecesarias, agrega la variable de compilación `SKIP_DEPENDENCY_INSTALL=true`; el exportador usa solo la biblioteca estándar.
 4. Pulsa **Save and Deploy**. Abre la dirección `*.pages.dev` que entregue Cloudflare y comprueba el inicio y el torneo desde el celular. No conectes todavía el dominio si esa prueba falla.
 5. En el proyecto de Pages abre **Custom domains → Set up a domain**. Escribe `arenacastell.com` y continúa. El dominio debe figurar en la misma cuenta de Cloudflare. Si hay registros `A` anteriores que apuntan a GitHub (`185.199.*.153`), elimina solamente esos registros cuando Cloudflare te lo indique; conserva los demás registros de correo o verificación.
@@ -27,7 +27,7 @@ Después de verificar que el dominio funciona, retira el antiguo sitio de GitHub
 
 Guías oficiales: [integración con Git](https://developers.cloudflare.com/pages/get-started/git-integration/), [dominio personalizado](https://developers.cloudflare.com/pages/configuration/custom-domains/) y [retirar GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/unpublishing-a-github-pages-site).
 
-Las cuentas, reservas, pagos, administración y correos necesitan alojar Python y PostgreSQL. Cuando lo contrates, apuntaremos el mismo dominio al servidor que ejecute la aplicación y probaremos las funciones allí.
+Las cuentas, reservas, pagos, administración y correos necesitan alojar Python y PostgreSQL. La preparación de Render, sin cambiar todavía el dominio ni la web pública, está en [RENDER_PASO_A_PASO.md](RENDER_PASO_A_PASO.md).
 
 ## Pagos y calendario
 

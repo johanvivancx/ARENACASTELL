@@ -1,7 +1,7 @@
-"""Servidor educativo sin Flask: HTTP estándar + archivos HTML + API JSON.
+"""Servidor HTTP estándar + archivos HTML + API JSON.
 
-Solo escucha en loopback. Para Internet se necesita un servidor de producción,
-HTTPS y una revisión de seguridad; no es una pasarela de pagos real.
+Escucha en loopback localmente y en el puerto asignado por el alojamiento
+cuando está presente PORT. HTTPS se termina en el proxy del alojamiento.
 """
 
 from datetime import date, datetime, time
@@ -317,11 +317,21 @@ class Handler(SimpleHTTPRequestHandler):
         raise s.HTTPError(404, "No encontramos esa operación.")
 
 
-# Inicia el servidor local
+# El alojamiento asigna PORT; sin esa variable conservamos el puerto local.
+def direccion_escucha():
+    port = os.environ.get("PORT")
+    if port is not None:
+        port = int(port)
+        if not 1 <= port <= 65535:
+            raise ValueError("PORT debe estar entre 1 y 65535.")
+        return "0.0.0.0", port
+    return "127.0.0.1", int(urlsplit(ORIGIN).port or 8765)
+
+
+# Inicia el servidor
 def main():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    port = int(urlsplit(ORIGIN).port or 8765)
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    httpd = ThreadingHTTPServer(direccion_escucha(), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
     print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)
     worker = correos.iniciar_trabajador() if correos.habilitado() else None
