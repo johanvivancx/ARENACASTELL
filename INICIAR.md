@@ -164,4 +164,4 @@ Las pruebas crean una base temporal y no deben usar información real. El usuari
 | El correo no llega | Contraseña de aplicación, `SMTP_ENABLED`, spam y panel de correos del administrador. |
 | Un enlace del correo no abre en el celular | `127.0.0.1` solo existe en la computadora que ejecuta el servidor. |
 
-Para una publicación real hacen falta un servidor para Python, una base PostgreSQL accesible de forma segura y HTTPS. GitHub Pages por sí solo no ejecuta el backend.
+Para publicar todas las funciones hacen falta un servidor para Python, una base PostgreSQL accesible de forma segura y HTTPS. La publicación pública en Cloudflare Pages muestra el sitio, pero no ejecuta el backend.

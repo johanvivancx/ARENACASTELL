@@ -46,7 +46,7 @@ No incluí funciones solo porque se vieran llamativas. Primero trabajé en lo qu
 
 Los métodos de pago se registran en el sistema, pero la página no está conectada a un banco. Tampoco solicita números de tarjeta, CVV ni claves bancarias. Las transferencias se verifican por fuera de la aplicación y el efectivo se confirma desde el panel del administrador.
 
-Para que todas las funciones trabajen correctamente deben estar activos `server.py` y PostgreSQL. GitHub Pages permite mostrar los archivos HTML, pero por sí solo no puede ejecutar las cuentas, las reservas ni la conexión con la base de datos.
+La parte pública se puede mostrar desde Cloudflare Pages. Para que funcionen las cuentas, reservas y administración, la aplicación necesita además un servidor que ejecute `server.py` y una base PostgreSQL. En la computadora ambos deben estar activos.
 
 ## Cómo funciona el proyecto
 

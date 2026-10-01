@@ -1,29 +1,33 @@
 # Publicar Arena Castell en el dominio
 
-La página que ya funciona en GitHub Pages puede mostrarse con `https://arenacastell.com/`. El archivo `CNAME` de la carpeta principal indica a GitHub cuál es el dominio. El inicio, los resultados, las tablas, los goleadores y las fotos se publican desde el repositorio actual.
+El dominio `arenacastell.com` mostrará la parte pública desde Cloudflare Pages. GitHub guardará el código y Cloudflare publicará una nueva versión cuando hagas `push` a `main`. La página estará alojada en Cloudflare, no en GitHub Pages. El inicio, los resultados, las tablas, los goleadores y las fotos se pueden publicar ahora.
 
-## Conectar el dominio
+## Preparar los archivos
 
-1. Sube manualmente los cambios del proyecto a `main`. Revisa `git diff --cached --name-only`: `.env`, respaldos, Excel y vocalías no deben aparecer.
-2. En el repositorio de GitHub abre **Settings → Pages**. Comprueba que la publicación se hace desde `main` y `/ (root)`. En **Custom domain** escribe `arenacastell.com` y pulsa **Save**.
-3. En Cloudflare entra en **Domains → arenacastell.com → DNS → Records**. Crea cuatro registros tipo `A`, todos con nombre `@`:
+El exportador prepara únicamente los archivos que deben ser públicos. Puedes probarlo desde la carpeta del proyecto con:
 
-   | Tipo | Nombre | Dirección IPv4 |
-   | --- | --- | --- |
-   | A | @ | 185.199.108.153 |
-   | A | @ | 185.199.109.153 |
-   | A | @ | 185.199.110.153 |
-   | A | @ | 185.199.111.153 |
+```powershell
+.\.venv\Scripts\python.exe tools\exportar_publico.py
+```
 
-   Deja cada registro en **DNS only** (nube gris) mientras GitHub verifica el dominio y emite el certificado. Si hay registros `A` de `@` hacia otro sitio, quítalos para que no interfieran.
-4. Para usar también `www.arenacastell.com`, crea un registro `CNAME` con nombre `www` y destino `johanvivancx.github.io` (sin `/ARENACASTELL`), también en **DNS only**.
-5. En **GitHub → Settings → Pages**, cuando el dominio esté verificado, activa **Enforce HTTPS**. Comprueba `https://arenacastell.com/` y `https://arenacastell.com/pages/torneos.html` desde el celular.
+Esto crea `public/` con HTML, CSS, JavaScript e imágenes. No copia `.env`, Python, SQL, Excel, vocalías ni respaldos. La carpeta `public/` está excluida de Git. Cloudflare ejecutará el mismo exportador en cada despliegue.
 
-GitHub indica que la propagación DNS puede tardar hasta 24 horas. Si GitHub crea un commit automático al guardar el dominio, ejecuta `git pull --ff-only origin main` en tu computadora antes de trabajar de nuevo.
+## Conectar Cloudflare Pages con GitHub
 
-Guías oficiales: [dominio personalizado](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site) y [HTTPS](https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https).
+1. Antes de crear el proyecto, sube a GitHub `tools/exportar_publico.py` y esta guía mediante tus comandos habituales de `git add`, `git commit` y `git push`. Comprueba que `.env` no esté entre los archivos preparados para el commit. No necesitas subir la carpeta `public/`.
+2. En la pantalla de Cloudflare **Make something new**, elige **Connect GitHub**. Autoriza únicamente el repositorio `johanvivancx/ARENACASTELL` si GitHub te ofrece esa opción. Selecciona **Pages** como tipo de proyecto y `main` como rama de producción.
+3. Configura **Framework preset: None**, **Build command: `python tools/exportar_publico.py`** y **Build output directory: `public`**. Deja el directorio raíz en la raíz del repositorio. Si Cloudflare intenta instalar dependencias de Python innecesarias, agrega la variable de compilación `SKIP_DEPENDENCY_INSTALL=true`; el exportador usa solo la biblioteca estándar.
+4. Pulsa **Save and Deploy**. Abre la dirección `*.pages.dev` que entregue Cloudflare y comprueba el inicio y el torneo desde el celular. No conectes todavía el dominio si esa prueba falla.
+5. En el proyecto de Pages abre **Custom domains → Set up a domain**. Escribe `arenacastell.com` y continúa. El dominio debe figurar en la misma cuenta de Cloudflare. Si hay registros `A` anteriores que apuntan a GitHub (`185.199.*.153`), elimina solamente esos registros cuando Cloudflare te lo indique; conserva los demás registros de correo o verificación.
+6. Cuando el dominio figure activo, abre `https://arenacastell.com/` y `https://arenacastell.com/pages/torneos.html`.
 
-En el dominio se verán las páginas informativas y el torneo. Las cuentas, reservas, pagos, administración y correos necesitan alojar Python y PostgreSQL. Cuando contrates ese alojamiento, cambiaremos el destino del dominio y probaremos las funciones allí.
+En cada actualización de la página, haz tu `git push origin main` manualmente. Cloudflare preparará y publicará la nueva versión automáticamente. GitHub sirve como origen del código; las visitas a la página se atienden desde Cloudflare.
+
+Después de verificar que el dominio funciona, retira el antiguo sitio de GitHub Pages desde el repositorio sin borrar el código: en la sección **GitHub Pages** usa **Unpublish site**. El archivo `CNAME` que apuntaba el repositorio al dominio se elimina en el siguiente commit.
+
+Guías oficiales: [integración con Git](https://developers.cloudflare.com/pages/get-started/git-integration/), [dominio personalizado](https://developers.cloudflare.com/pages/configuration/custom-domains/) y [retirar GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/unpublishing-a-github-pages-site).
+
+Las cuentas, reservas, pagos, administración y correos necesitan alojar Python y PostgreSQL. Cuando lo contrates, apuntaremos el mismo dominio al servidor que ejecute la aplicación y probaremos las funciones allí.
 
 ## Pagos y calendario
 
