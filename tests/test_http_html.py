@@ -69,6 +69,8 @@ def test_http_archivos_privados_y_html(conn):
         assert request('/')[1]==body
         for page in (STATIC/'pages').glob('*.html'):
             assert request('/pages/'+page.name)[1]==page.read_bytes()
+            assert request('/pages/'+page.stem)[1]==page.read_bytes()
+            assert request('/pages/'+page.stem,method='HEAD')[0]==200
         assert request('/assets/styles.css')[0]==200
         assert request('/assets/app.js')[0]==200
         assert request('/reservas.html')[1]==(STATIC/'pages/reservas.html').read_bytes()

@@ -56,6 +56,7 @@ for asset in (ROOT / "assets").rglob("*"):
     ):
         PUBLIC_FILES["/" + relative] = asset
 LEGACY_PAGES = {"/" + page.name: "/pages/" + page.name for page in (ROOT / "pages").glob("*.html")}
+CLEAN_PAGES = {path.removesuffix(".html"): path for path in PUBLIC_FILES if path.startswith("/pages/") and path.endswith(".html")}
 
 
 # Convierte datos para JSON
@@ -115,13 +116,13 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header("Content-Length", "0")
             self.end_headers()
             return None
-        public_path = "/index.html" if path == "/" else path
+        public_path = "/index.html" if path == "/" else CLEAN_PAGES.get(path, path)
         allowed = PUBLIC_FILES.get(public_path)
         if not allowed or not allowed.is_file():
             self.send_error(404)
             return None
-        if path == "/":
-            self.path = "/index.html" + ("?" + url.query if url.query else "")
+        if path == "/" or path in CLEAN_PAGES:
+            self.path = public_path + ("?" + url.query if url.query else "")
         if Path(self.translate_path(self.path)).resolve() != allowed.resolve():
             self.send_error(404)
             return None
