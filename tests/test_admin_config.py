@@ -5,6 +5,7 @@ import pytest
 from manage import cedula_demo, insert_user
 from models import Administrador
 import services as s
+from conftest import confirmar_transferencia
 
 
 def test_admin_ve_pendientes_y_pagadas_cliente_solo_lo_suyo(conn,user,pay_data):
@@ -17,7 +18,7 @@ def test_admin_ve_pendientes_y_pagadas_cliente_solo_lo_suyo(conn,user,pay_data):
     day=str(datetime.now(s.TZ).date()+timedelta(days=3))
     first=s.reservar(conn,user['id'],{'cancha_id':1,'tipo_evento':'HORA','fecha':day,'hora':'10:00','horas':1})
     second=s.reservar(conn,other['id'],{'cancha_id':1,'tipo_evento':'EVENTO','fecha':day,'hora':'12:00','horas':2})
-    s.pagar(conn,user['id'],first['id'],pay_data)
+    confirmar_transferencia(conn,user['id'],first['id'],pay_data)
     report=s.reportes(conn,aid,{})
     assert {r['estado_pago'] for r in report['reservas']}=={'PAGADA','PENDIENTE'}
     assert {o['id'] for o in report['operaciones']}=={first['id'],second['id']}

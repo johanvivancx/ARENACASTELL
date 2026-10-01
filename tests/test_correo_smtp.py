@@ -9,6 +9,7 @@ import pytest
 
 import correos as mail
 import services as s
+from conftest import confirmar_transferencia
 from db import ROOT
 from io import BytesIO
 from pypdf import PdfReader
@@ -35,7 +36,7 @@ def reservation(conn, user):
 
 def test_pago_solo_envia_despues_de_commit_y_no_duplica(conn,user,pay_data,smtp):
     order=reservation(conn,user)
-    s.pagar(conn,user['id'],order['id'],pay_data)
+    confirmar_transferencia(conn,user['id'],order['id'],pay_data)
     assert mail.procesar_pendientes()['enviados']==0
     assert not smtp
     conn.commit()
@@ -49,7 +50,7 @@ def test_pago_solo_envia_despues_de_commit_y_no_duplica(conn,user,pay_data,smtp)
     texto=''.join(p.extract_text() for p in PdfReader(BytesIO(attachment.get_content())).pages)
     assert 'ARENA CASTELL' in texto and str(order['id']) in texto and '$27.00' in texto
     assert '$27.00' in message.get_body(preferencelist=('html',)).get_content()
-    s.pagar(conn,user['id'],order['id'],pay_data);conn.commit()
+    confirmar_transferencia(conn,user['id'],order['id'],pay_data);conn.commit()
     assert mail.procesar_pendientes()['enviados']==0
     assert len(smtp)==1
     assert s.detalle_orden(conn,user['id'],order['id'])['correo']['estado_envio']=='ENVIADO'
@@ -58,14 +59,14 @@ def test_pago_solo_envia_despues_de_commit_y_no_duplica(conn,user,pay_data,smtp)
 def test_rollback_no_deja_correo_para_enviar(conn,user,pay_data,smtp):
     conn.commit()
     order=reservation(conn,user)
-    s.pagar(conn,user['id'],order['id'],pay_data)
+    confirmar_transferencia(conn,user['id'],order['id'],pay_data)
     conn.rollback()
     assert mail.procesar_pendientes()['enviados']==0
     assert not smtp
 
 
 def test_fallo_gmail_no_revierte_pago_y_reintento_conserva_message_id(conn,user,pay_data,smtp,monkeypatch,caplog):
-    order=reservation(conn,user);s.pagar(conn,user['id'],order['id'],pay_data);conn.commit()
+    order=reservation(conn,user);confirmar_transferencia(conn,user['id'],order['id'],pay_data);conn.commit()
     def fail(row, config):
         raise smtplib.SMTPAuthenticationError(535,b'SECRETO_NO_PUBLICAR')
     monkeypatch.setattr(mail,'enviar_smtp',fail)

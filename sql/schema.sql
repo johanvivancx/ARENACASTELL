@@ -53,7 +53,14 @@ CREATE TABLE torneos (
   cupos integer NOT NULL DEFAULT 16 CHECK (cupos BETWEEN 2 AND 64),
   max_jugadores integer NOT NULL DEFAULT 20 CHECK (max_jugadores BETWEEN 1 AND 20),
   visible boolean NOT NULL DEFAULT true,
-  abierto boolean NOT NULL DEFAULT true
+  abierto boolean NOT NULL DEFAULT true,
+  inscripcion_desde date,
+  inscripcion_hasta date,
+  CONSTRAINT torneos_fechas_inscripcion_check CHECK (
+    (inscripcion_desde IS NULL OR inscripcion_desde < fecha_inicio)
+    AND (inscripcion_hasta IS NULL OR inscripcion_hasta < fecha_inicio)
+    AND (inscripcion_desde IS NULL OR inscripcion_hasta IS NULL OR inscripcion_desde <= inscripcion_hasta)
+  )
 );
 
 -- Une usuarios con servicios
@@ -61,7 +68,10 @@ CREATE TABLE ordenes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   usuario_id bigint NOT NULL REFERENCES usuarios(id),
   tipo varchar(20) NOT NULL CHECK (tipo IN ('RESERVA','TORNEO','ESCUELA','MENSUALIDAD')),
-  metodo_previsto varchar(16) CHECK (metodo_previsto IS NULL OR metodo_previsto = 'EFECTIVO'),
+  metodo_previsto varchar(16) CHECK (metodo_previsto IS NULL OR metodo_previsto IN ('EFECTIVO','TRANSFERENCIA')),
+  referencia_transferencia varchar(100),
+  motivo_rechazo_transferencia varchar(250),
+  revision_pago integer NOT NULL DEFAULT 0 CHECK (revision_pago >= 0),
   descripcion varchar(250) NOT NULL,
   monto numeric(10,2) NOT NULL CHECK (monto > 0),
   estado varchar(12) NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE','PAGADA','CANCELADA')),
@@ -140,7 +150,9 @@ DECLARE torneo torneos;
 BEGIN
   IF NEW.estado = 'CONFIRMADO' THEN
     SELECT * INTO torneo FROM torneos WHERE id=NEW.torneo_id FOR UPDATE;
-    IF NOT torneo.abierto OR torneo.fecha_inicio <= current_date THEN
+    IF NOT torneo.abierto OR torneo.fecha_inicio <= current_date
+       OR (torneo.inscripcion_desde IS NOT NULL AND current_date < torneo.inscripcion_desde)
+       OR (torneo.inscripcion_hasta IS NOT NULL AND current_date > torneo.inscripcion_hasta) THEN
       RAISE EXCEPTION 'Las inscripciones de este torneo están cerradas.' USING ERRCODE='23514';
     END IF;
     IF (SELECT count(*) FROM equipos WHERE torneo_id=NEW.torneo_id AND estado='CONFIRMADO' AND id IS DISTINCT FROM NEW.id) >= torneo.cupos THEN
@@ -251,7 +263,9 @@ CREATE TABLE pagos (
   monto numeric(10,2) NOT NULL CHECK (monto > 0),
   metodo varchar(16) NOT NULL CHECK (metodo IN ('TRANSFERENCIA','EFECTIVO','TARJETA','DEBITO','CREDITO')),
   referencia varchar(64) NOT NULL UNIQUE,
-  simulado boolean NOT NULL DEFAULT true CHECK (simulado),
+  simulado boolean NOT NULL DEFAULT true,
+  confirmado_por bigint REFERENCES usuarios(id),
+  CONSTRAINT pagos_confirmacion_check CHECK (simulado OR confirmado_por IS NOT NULL),
   pagado_en timestamptz NOT NULL DEFAULT current_timestamp
 );
 

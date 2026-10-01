@@ -12,6 +12,7 @@ from pypdf import PdfReader
 
 import comprobantes as c
 import services as s
+from conftest import confirmar_transferencia
 from manage import cedula_demo
 
 check = TestCase()
@@ -64,7 +65,7 @@ def test_solo_admin_cobra_efectivo_y_no_duplica(conn, user):
 def test_transferencia_genera_comprobante(conn, user):
     for i, method in enumerate(['TRANSFERENCIA']):
         order = reserva(conn, user, i + 3)
-        s.pagar(conn, user['id'], order['id'], {'metodo': method, 'acepta_simulacion': True})
+        confirmar_transferencia(conn, user['id'], order['id'], {'metodo': method, 'acepta_simulacion': True})
         detail = s.detalle_orden(conn, user['id'], order['id'])
         assert detail['pago']['metodo'] == method and detail['monto'] == Decimal('27')
         receipt = c.datos_comprobante(conn, order['id'], user['id'])
@@ -97,7 +98,7 @@ def test_conflicto_de_horario_no_cobra_efectivo(conn, user):
     cash = reserva(conn, user)
     s.pagar(conn, user['id'], cash['id'], {'metodo': 'EFECTIVO', 'acepta_simulacion': True})
     other = reserva(conn, user)
-    s.pagar(conn, user['id'], other['id'], {'metodo': 'TRANSFERENCIA', 'acepta_simulacion': True})
+    confirmar_transferencia(conn, user['id'], other['id'], {'metodo': 'TRANSFERENCIA', 'acepta_simulacion': True})
     aid = administrador(conn)
     with check.assertRaises(psycopg.IntegrityError):
         with conn.transaction():
@@ -121,6 +122,9 @@ def test_migracion_conserva_pagos_anteriores_y_se_puede_repetir(conn, user):
         conn.execute(migration.read_text(encoding='utf-8'))
     assert dict(s.detalle_orden(conn, user['id'], order['id'])['pago']) == previous
     assert s.detalle_orden(conn, user['id'], order['id'])['metodo_previsto'] is None
+    # Devuelve el esquema actual después de probar la migración histórica.
+    current = migration.with_name('007_aprobacion_y_calendario.sql')
+    conn.execute(current.read_text(encoding='utf-8'))
 
 
 def test_tarjetas_rechazadas_antes_de_acceder_a_la_base():

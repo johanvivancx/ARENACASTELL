@@ -14,7 +14,7 @@ Desde el menú puedes entrar a Reservas, Torneos, Súper Chaca, Iniciar sesión 
 2. Selecciona **Crear cuenta**.
 3. Escribe nombres y apellidos, cédula ecuatoriana, celular y correo.
 4. Crea una contraseña de al menos 10 caracteres y repítela.
-5. Acepta el aviso de privacidad y guarda el formulario.
+5. Autoriza el uso de tus datos para gestionar la cuenta y guarda el formulario.
 
 El correo y la cédula no se pueden repetir. Si un dato no es válido, la página muestra qué debes corregir.
 

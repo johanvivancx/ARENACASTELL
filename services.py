@@ -303,6 +303,8 @@ def inscribir_torneo(conn, uid, data):
         not tournament
         or not tournament["abierto"]
         or tournament["fecha_inicio"] <= datetime.now(TZ).date()
+        or (tournament.get("inscripcion_desde") and datetime.now(TZ).date() < tournament["inscripcion_desde"])
+        or (tournament.get("inscripcion_hasta") and datetime.now(TZ).date() > tournament["inscripcion_hasta"])
     ):
         raise ErrorValidacion("Las inscripciones de este torneo están cerradas.")
     name = texto(data.get("equipo"), "Nombre del equipo", 2, 80)
@@ -389,14 +391,14 @@ def detalle_orden(conn, uid, oid):
     return order
 
 
-# Confirma una operación pagada
-def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
+# El cliente informa cómo pagará; solo administración confirma el dinero recibido.
+def pagar(conn, uid, oid, data):
     method = data.get("metodo")
     if method not in METHODS:
         raise ErrorValidacion(
             "Selecciona transferencia bancaria o pago en cancha."
         )
-    if data.get("acepta_simulacion") is not True:
+    if data.get("acepta_registro", data.get("acepta_simulacion")) is not True:
         raise ErrorValidacion("Confirma que deseas registrar esta operación.")
     order = orden_usuario(conn, uid, oid, lock=True)
     if order["estado"] == "PAGADA":
@@ -406,14 +408,26 @@ def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
         }
     if order["estado"] != "PENDIENTE":
         raise ErrorValidacion("La operación ya no está pendiente.")
-    if method == "EFECTIVO" and not efectivo_recibido:
-        # Efectivo mantiene todo pendiente
-        conn.execute("UPDATE ordenes SET metodo_previsto='EFECTIVO' WHERE id=%s", (order["id"],))
-        return {
-            "id": order["id"],
-            "pendiente": True,
-            "message": "Pago en efectivo elegido. La operación continúa pendiente hasta que la cancha registre el cobro.",
-        }
+    reference = texto(data.get("referencia_transferencia"), "Referencia de transferencia", 3, 100) if method == "TRANSFERENCIA" else None
+    if order["metodo_previsto"] != method or order.get("referencia_transferencia") != reference:
+        conn.execute(
+            """UPDATE ordenes SET metodo_previsto=%s,referencia_transferencia=%s,
+            motivo_rechazo_transferencia=NULL,revision_pago=revision_pago+1 WHERE id=%s""",
+            (method, reference, order["id"]),
+        )
+    return {
+        "id": order["id"], "pendiente": True,
+        "message": "Transferencia pendiente de revisión por la administración." if method == "TRANSFERENCIA"
+        else "Pago en cancha pendiente. La administración confirmará cuando reciba el dinero.",
+    }
+
+
+def _confirmar_pago(conn, admin_uid, order, method):
+    """Se llama con la orden bloqueada, después de revisar su estado y modalidad."""
+    exigir_administrador(conn, admin_uid)
+    if order["estado"] != "PENDIENTE":
+        raise ErrorValidacion("La operación ya no está pendiente.")
+    uid = order["usuario_id"]
     if order["tipo"] in ("ESCUELA", "MENSUALIDAD"):
         conn.execute("CALL cobrar_mensualidad(%s,%s)", (order["id"], method))
     else:
@@ -436,9 +450,13 @@ def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
             conn.execute("UPDATE equipos SET estado='CONFIRMADO' WHERE orden_id=%s", (order["id"],))
         conn.execute(
             "INSERT INTO pagos(orden_id,monto,metodo,referencia) VALUES(%s,%s,%s,%s)",
-            (order["id"], order["monto"], method, f"SIM-{order['id']}"),
+            (order["id"], order["monto"], method, f"AC-{order['id']}"),
         )
         conn.execute("UPDATE ordenes SET estado='PAGADA' WHERE id=%s", (order["id"],))
+    conn.execute(
+        "UPDATE pagos SET simulado=false,confirmado_por=%s,referencia=%s WHERE orden_id=%s",
+        (admin_uid, f"AC-{order['id']}", order["id"]),
+    )
     user = conn.execute("SELECT nombre,email FROM usuarios WHERE id=%s", (uid,)).fetchone()
     receipt = detalle_orden(conn, uid, order["id"])
     body = (
@@ -461,7 +479,7 @@ def pagar(conn, uid, oid, data, *, efectivo_recibido=False):
         )
     body += (
         f"\nConsulta tus registros en {url_publica()}/pages/mis_reservas_inscripciones.html\n"
-        "Adjuntamos el comprobante de registro en PDF. La verificación del abono corresponde a la administración.\n"
+        "La administración confirmó el pago. Adjuntamos tu comprobante de registro en PDF.\n"
     )
     if order["tipo"] == "TORNEO":
         limit = conn.execute(
@@ -501,13 +519,32 @@ def cobrar_efectivo(conn, admin_uid, oid):
         raise ErrorValidacion("La operación ya tiene un pago con otro método.")
     if order["metodo_previsto"] != "EFECTIVO":
         raise ErrorValidacion("Esta operación no tiene un pago en efectivo pendiente.")
-    return pagar(
-        conn,
-        order["usuario_id"],
-        order["id"],
-        {"metodo": "EFECTIVO", "acepta_simulacion": True},
-        efectivo_recibido=True,
+    return _confirmar_pago(conn, admin_uid, order, "EFECTIVO")
+
+
+def revisar_transferencia(conn, admin_uid, oid, data, *, aprobar):
+    exigir_administrador(conn, admin_uid)
+    order = conn.execute("SELECT * FROM ordenes WHERE id=%s FOR UPDATE", (identificador(oid),)).fetchone()
+    if not order:
+        raise HTTPError(404, "No encontramos esa operación.")
+    revision = numero(data.get("revision"), "Revisión del pago", 0)
+    if revision != order["revision_pago"]:
+        raise HTTPError(409, "El cliente cambió la solicitud. Actualiza el panel y revisa los datos nuevamente.")
+    if order["estado"] == "PAGADA":
+        payment = conn.execute("SELECT metodo FROM pagos WHERE orden_id=%s", (order["id"],)).fetchone()
+        if aprobar and payment and payment["metodo"] == "TRANSFERENCIA":
+            return {"id": order["id"], "message": "La transferencia ya estaba aprobada; no se duplicó el pago."}
+        raise ErrorValidacion("La operación ya tiene un pago registrado.")
+    if order["estado"] != "PENDIENTE" or order["metodo_previsto"] != "TRANSFERENCIA":
+        raise ErrorValidacion("No hay una transferencia pendiente de revisión para esta operación.")
+    if aprobar:
+        return _confirmar_pago(conn, admin_uid, order, "TRANSFERENCIA")
+    reason = texto(data.get("motivo"), "Motivo del rechazo", 3, 250)
+    conn.execute(
+        """UPDATE ordenes SET metodo_previsto=NULL,motivo_rechazo_transferencia=%s,
+        revision_pago=revision_pago+1 WHERE id=%s""", (reason, order["id"]),
     )
+    return {"id": order["id"], "message": "Transferencia rechazada. El cliente puede corregirla desde su actividad."}
 
 
 # Consulta actividad personal
@@ -654,6 +691,12 @@ def reportes(conn, uid, data):
             """SELECT o.id,o.descripcion,o.monto,o.creado_en,
                 u.nombre AS titular FROM ordenes o JOIN usuarios u ON u.id=o.usuario_id
                 WHERE o.estado='PENDIENTE' AND o.metodo_previsto='EFECTIVO'
+                ORDER BY o.creado_en,o.id"""
+        ).fetchall(),
+        "transferencias_pendientes": conn.execute(
+            """SELECT o.id,o.descripcion,o.monto,o.creado_en,o.referencia_transferencia,
+                o.revision_pago,u.nombre AS titular FROM ordenes o JOIN usuarios u ON u.id=o.usuario_id
+                WHERE o.estado='PENDIENTE' AND o.metodo_previsto='TRANSFERENCIA'
                 ORDER BY o.creado_en,o.id"""
         ).fetchall(),
         "correos": conn.execute(

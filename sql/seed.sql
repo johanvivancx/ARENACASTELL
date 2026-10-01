@@ -15,10 +15,10 @@ VALUES ('Copa Castell · Mundial de Campeones',
 ON CONFLICT DO NOTHING;
 
 -- Carga Pasochoa Cup
-INSERT INTO torneos(nombre,descripcion,fecha_inicio,costo,cupos,max_jugadores,visible,abierto)
+INSERT INTO torneos(nombre,descripcion,fecha_inicio,costo,cupos,max_jugadores,visible,abierto,inscripcion_desde,inscripcion_hasta)
 VALUES ('Pasochoa Cup · Sexta edición',
         'Torneo de fútbol infantojuvenil. Sexta edición: 16 equipos y hasta 20 jugadores por equipo.',
-        DATE '2026-09-30',30.00,16,20,true,true)
+        DATE '2027-05-01',30.00,16,20,true,true,DATE '2027-04-01',DATE '2027-04-30')
 ON CONFLICT (nombre) DO NOTHING;
 
 -- Carga jornadas escolares

@@ -47,7 +47,9 @@ DECLARE torneo torneos;
 BEGIN
   IF NEW.estado = 'CONFIRMADO' THEN
     SELECT * INTO torneo FROM torneos WHERE id=NEW.torneo_id FOR UPDATE;
-    IF NOT torneo.abierto OR torneo.fecha_inicio <= current_date THEN
+    IF NOT torneo.abierto OR torneo.fecha_inicio <= current_date
+       OR (torneo.inscripcion_desde IS NOT NULL AND current_date < torneo.inscripcion_desde)
+       OR (torneo.inscripcion_hasta IS NOT NULL AND current_date > torneo.inscripcion_hasta) THEN
       RAISE EXCEPTION 'Las inscripciones de este torneo están cerradas.' USING ERRCODE='23514';
     END IF;
     IF (SELECT count(*) FROM equipos WHERE torneo_id=NEW.torneo_id AND estado='CONFIRMADO' AND id IS DISTINCT FROM NEW.id) >= torneo.cupos THEN

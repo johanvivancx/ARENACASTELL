@@ -48,6 +48,9 @@ def conn(database_url,monkeypatch):
         connection.execute("TRUNCATE usuarios,torneos,canchas,horarios_chaca,intentos_acceso RESTART IDENTITY CASCADE")
         connection.execute((ROOT/"sql/seed.sql").read_text(encoding="utf8"))
         connection.execute("UPDATE torneos SET nombre='Torneo de prueba', fecha_inicio=current_date+30, abierto=true, max_jugadores=20 WHERE id=1")
+        connection.execute("""INSERT INTO usuarios(nombre,email,cedula,telefono,password_hash,rol)
+            VALUES('Administrador de pruebas','revision@arena.test',%s,'0990000000',%s,'ADMIN')""",
+            (cedula_demo(99001), 'hash-no-utilizable-para-iniciar-sesion'.ljust(64, 'x')))
         connection.commit()
         yield connection
 
@@ -61,7 +64,15 @@ def user(conn):
 
 @pytest.fixture
 def pay_data():
-    return {"metodo":"TRANSFERENCIA","acepta_simulacion":True}
+    return {"metodo":"TRANSFERENCIA","acepta_simulacion":True,"referencia_transferencia":"TEST-TRANSFERENCIA"}
+
+
+def confirmar_transferencia(conn, uid, oid, data):
+    """Los escenarios de pagos completos ahora incluyen la revisión administrativa."""
+    s.pagar(conn, uid, oid, {"referencia_transferencia":"TEST-TRANSFERENCIA", **data})
+    order = s.detalle_orden(conn, uid, oid)
+    admin = conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()['id']
+    return s.revisar_transferencia(conn, admin, oid, {"revision":order['revision_pago']}, aprobar=True)
 
 
 @pytest.fixture(autouse=True)

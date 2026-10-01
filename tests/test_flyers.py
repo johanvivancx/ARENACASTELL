@@ -10,6 +10,7 @@ import pytest
 from manage import cedula_demo
 from models import ErrorValidacion, InscripcionSuperChaca, InscripcionTorneo
 import services as s
+from conftest import confirmar_transferencia
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -32,10 +33,10 @@ def test_escuela_extremos_edad_y_mensualidad(conn, user, pay_data, edad, categor
         'nacimiento': str(date(hoy.year-edad, 1, 1)), 'categoria': categoria,
         'horario_id': horario['id'], 'consentimiento': True,
     })
-    s.pagar(conn, user['id'], order['id'], pay_data)
+    confirmar_transferencia(conn, user['id'], order['id'], pay_data)
     detail = s.detalle_orden(conn, user['id'], order['id'])
     assert detail['escuela']['categoria'] == categoria
-    assert detail['pago']['monto'] == Decimal('50')
+    assert detail['pago']['monto'] == Decimal('65')
 
 
 @pytest.mark.parametrize('edad', [3, 18])
@@ -47,7 +48,7 @@ def test_edad_fuera_de_oferta(edad):
 def test_limite_especifico_no_se_puede_saltar_en_sql(conn, user, pay_data):
     conn.execute('UPDATE torneos SET max_jugadores=15 WHERE id=1')
     order = s.inscribir_torneo(conn, user['id'], {'torneo_id': 1, 'equipo': 'Equipo de quince', 'acepta_reglamento': True})
-    s.pagar(conn, user['id'], order['id'], pay_data)
+    confirmar_transferencia(conn, user['id'], order['id'], pay_data)
     team = s.detalle_orden(conn, user['id'], order['id'])['equipo']
     for n in range(15):
         s.agregar_jugador(conn, user['id'], team['id'], {'nombre': f'Jugador {n}', 'cedula': cedula_demo(720+n)})
@@ -66,7 +67,7 @@ def test_limite_especifico_no_se_puede_saltar_en_sql(conn, user, pay_data):
 def test_migracion_repetible_conserva_operaciones_y_horarios_antiguos(conn, user, pay_data):
     conn.execute("UPDATE torneos SET nombre='Copa Castell', descripcion='Torneo amateur de fútbol 7. Hasta 20 jugadores por equipo.', costo=120 WHERE id=1")
     order = s.inscribir_torneo(conn, user['id'], {'torneo_id': 1, 'equipo': 'Equipo anterior', 'acepta_reglamento': True})
-    s.pagar(conn, user['id'], order['id'], pay_data)
+    confirmar_transferencia(conn, user['id'], order['id'], pay_data)
     team = s.detalle_orden(conn, user['id'], order['id'])['equipo']
     s.agregar_jugador(conn, user['id'], team['id'], {'nombre': 'Jugador anterior', 'cedula': cedula_demo(790)})
     legacy = conn.execute("INSERT INTO horarios_chaca(categoria,dias,inicio,fin) VALUES('Sub-6','Lunes y miércoles','15:00','16:30') RETURNING id").fetchone()['id']

@@ -11,6 +11,7 @@ import pytest
 from manage import cedula_demo, insert_user
 from models import Administrador, ErrorValidacion
 import services as s
+from conftest import confirmar_transferencia
 
 ROOT = Path(__file__).resolve().parents[1]
 NAME = 'Pasochoa Cup · Sexta edición'
@@ -20,7 +21,7 @@ SCRIPT = ROOT / 'sql/pgadmin/13_pasochoa_sexta_edicion.sql'
 def siguiente_edicion(conn):
     torneo = conn.execute('SELECT * FROM torneos WHERE nombre=%s', (NAME,)).fetchone()
     # Ajusta la base temporal
-    conn.execute('UPDATE torneos SET fecha_inicio=current_date+30 WHERE id=%s', (torneo['id'],))
+    conn.execute('UPDATE torneos SET inscripcion_desde=NULL,inscripcion_hasta=NULL,fecha_inicio=current_date+30 WHERE id=%s', (torneo['id'],))
     return torneo
 
 
@@ -32,7 +33,7 @@ def inscribir(conn, uid, tid, nombre):
 
 def test_paso_13_repetible_no_cambia_historial_ni_reabre_torneo(conn, user, pay_data):
     anterior = inscribir(conn, user['id'], 1, 'Equipo anterior')
-    s.pagar(conn, user['id'], anterior['id'], pay_data)
+    confirmar_transferencia(conn, user['id'], anterior['id'], pay_data)
     antes = s.detalle_orden(conn, user['id'], anterior['id'])
     conn.execute('DELETE FROM torneos WHERE nombre=%s', (NAME,))
     conn.commit()
@@ -66,8 +67,8 @@ def test_pasochoa_pago_historial_y_panel_admin(conn, user, pay_data):
     orden = inscribir(conn, user['id'], torneo['id'], 'Equipo de la sexta')
     pendiente = inscribir(conn, otra['id'], torneo['id'], 'Otro equipo pendiente')
     assert s.detalle_orden(conn, user['id'], orden['id'])['monto'] == Decimal('30')
-    s.pagar(conn, user['id'], orden['id'], pay_data)
-    s.pagar(conn, user['id'], orden['id'], pay_data)
+    confirmar_transferencia(conn, user['id'], orden['id'], pay_data)
+    confirmar_transferencia(conn, user['id'], orden['id'], pay_data)
     detalle = s.detalle_orden(conn, user['id'], orden['id'])
     assert detalle['estado'] == 'PAGADA' and detalle['equipo']['estado'] == 'CONFIRMADO'
     assert detalle['pago']['monto'] == Decimal('30')
@@ -93,10 +94,10 @@ def test_pasochoa_no_confirma_un_equipo_17(conn, user, pay_data):
     torneo = siguiente_edicion(conn)
     ordenes = [inscribir(conn, user['id'], torneo['id'], f'Equipo sexta {n}') for n in range(17)]
     for orden in ordenes[:16]:
-        s.pagar(conn, user['id'], orden['id'], pay_data)
+        confirmar_transferencia(conn, user['id'], orden['id'], pay_data)
     with pytest.raises(psycopg.errors.CheckViolation):
         with conn.transaction():
-            s.pagar(conn, user['id'], ordenes[16]['id'], pay_data)
+            confirmar_transferencia(conn, user['id'], ordenes[16]['id'], pay_data)
     assert conn.execute('SELECT count(*) AS n FROM pagos').fetchone()['n'] == 16
     detalle = s.detalle_orden(conn, user['id'], ordenes[16]['id'])
     assert detalle['estado'] == 'PENDIENTE' and detalle['pago'] is None
@@ -111,5 +112,5 @@ def test_pasochoa_cierra_inscripcion_y_pago_al_comenzar(conn, user, pay_data):
         inscribir(conn, user['id'], torneo['id'], 'Equipo fuera de fecha')
     with pytest.raises(psycopg.errors.CheckViolation):
         with conn.transaction():
-            s.pagar(conn, user['id'], pendiente['id'], pay_data)
+            confirmar_transferencia(conn, user['id'], pendiente['id'], pay_data)
     assert conn.execute('SELECT count(*) AS n FROM pagos').fetchone()['n'] == 0

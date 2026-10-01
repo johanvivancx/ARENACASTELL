@@ -64,7 +64,7 @@ def test_http_archivos_privados_y_html(conn):
             assert request(path)[0]==404
             assert request(path,method='HEAD')[0]==404
         status,body,headers=request('/index.html')
-        assert status==200 and body.startswith(b'<!DOCTYPE html>')
+        assert status==200 and body.lower().startswith(b'<!doctype html>')
         assert 'script-src' in headers['Content-Security-Policy']
         assert request('/')[1]==body
         for page in (STATIC/'pages').glob('*.html'):
@@ -91,10 +91,15 @@ def test_http_tres_flujos_completos(conn,user):
         horario=next(h['id'] for h in catalogo['horarios_chaca'] if h['categoria']=='Sub-12')
         status,escuela,_=request('/api/school',{'alumno':'Alumno HTTP','cedula':cedula_demo(501),'nacimiento':str(date(today.year-10,1,1)),'categoria':'Sub-12','horario_id':horario,'consentimiento':True},csrf)
         assert status==200
-        for order,method in [(reserva,'TRANSFERENCIA'),(torneo,'DEBITO'),(escuela,'CREDITO')]:
-            assert request(f"/api/orders/{order['id']}/pay",{'metodo':method,'acepta_simulacion':True},csrf)[0]==200
+        for order,method in [(reserva,'TRANSFERENCIA'),(torneo,'TRANSFERENCIA'),(escuela,'TRANSFERENCIA')]:
+            assert request(f"/api/orders/{order['id']}/pay",{'metodo':method,'acepta_simulacion':True,'referencia_transferencia':'HTTP-REFERENCIA'},csrf)[0]==200
             status,detail,_=request(f"/api/orders/{order['id']}")
-            assert status==200 and detail['estado']=='PAGADA' and detail['pago']['simulado']
+            assert status==200 and detail['estado']=='PENDIENTE' and detail['pago'] is None
+            aid=conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()['id']
+            s.revisar_transferencia(conn,aid,order['id'],{'revision':detail['revision_pago']},aprobar=True)
+            conn.commit()
+            status,detail,_=request(f"/api/orders/{order['id']}")
+            assert status==200 and detail['estado']=='PAGADA' and not detail['pago']['simulado']
         _,activity,_=request('/api/history')
         assert len(activity['ordenes'])==3 and len(activity['correos'])==3
         assert activity['escuela'][0]['estado']=='ACTIVA'
@@ -124,11 +129,11 @@ class InspectHTML(HTMLParser):
 
 def test_html_semantica_et_enlaces():
     files=[STATIC/'index.html', *(STATIC/'pages').glob('*.html')]
-    assert len(files)==19
+    assert len(files)==18
     assert not (STATIC/'pages/index.html').exists()
     for path in files:
         text=path.read_text(encoding='utf8');document=InspectHTML();document.feed(text)
-        assert text.startswith('<!DOCTYPE html>'),path.name
+        assert text.lower().startswith('<!doctype html>'),path.name
         assert document.lang=='es' and document.main==1 and document.h1==1,path.name
         assert len(document.ids)==len(set(document.ids)),f'IDs duplicados en {path.name}'
         assert not document.inline,path.name

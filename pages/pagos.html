@@ -18,7 +18,7 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=transferencia-cancha-1" defer></script>
+    <script src="../assets/app.js?v=20260930-pagos" defer></script>
   </head>
 
   <body data-page="payment">
@@ -199,6 +199,10 @@
                 Verifica el titular y el número antes de transferir. Contacta a la cancha para
                 coordinar la revisión del comprobante.
               </p>
+              <div class="field">
+                <label for="referencia_transferencia">Referencia o número de la transferencia</label>
+                <input id="referencia_transferencia" name="referencia_transferencia" type="text" minlength="3" maxlength="100" autocomplete="off" />
+              </div>
             </section>
 
             <p class="payment-scope">
@@ -217,8 +221,8 @@
             <label class="checkbox">
               <input type="checkbox" name="acepta_simulacion" required />
               <span>
-                Acepto registrar el método elegido. Si selecciono efectivo, el pago quedará
-                pendiente hasta acercarme a la cancha.
+                Entiendo que la solicitud queda pendiente hasta que la administración compruebe
+                mi transferencia o reciba el efectivo. Todavía no se reserva el horario ni el cupo.
               </span>
             </label>
 
@@ -313,7 +317,6 @@
             <a href="reservas.html">Reservas</a>
             <a href="torneos.html">Torneos</a>
             <a href="super_chaca.html">Súper Chaca</a>
-            <a href="privacidad.html">Privacidad</a>
           </nav>
         </div>
 

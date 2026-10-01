@@ -14,6 +14,7 @@ from pypdf import PdfReader
 import comprobantes as c
 import correos as mail
 import services as s
+from conftest import confirmar_transferencia
 from manage import cedula_demo
 
 
@@ -41,18 +42,18 @@ def test_html_y_pdf_reflejan_el_pago_de_cada_servicio(conn,user,pay_data,tipo,to
                                             'hora':'12:00','horas':3 if tipo=='CUMPLEANOS' else 1})
     elif tipo == 'TORNEO':
         torneo = conn.execute("SELECT id FROM torneos WHERE nombre='Pasochoa Cup · Sexta edición'").fetchone()['id']
-        conn.execute('UPDATE torneos SET fecha_inicio=current_date+30 WHERE id=%s',(torneo,))
+        conn.execute('UPDATE torneos SET inscripcion_desde=NULL,inscripcion_hasta=NULL,fecha_inicio=current_date+30 WHERE id=%s',(torneo,))
         orden = s.inscribir_torneo(conn,user['id'],{'torneo_id':torneo,'equipo':'Equipo de ejemplo','acepta_reglamento':True})
     else:
         horario = next(h['id'] for h in s.catalogo(conn)['horarios_chaca'] if h['categoria']=='Sub-12')
         orden = s.inscribir_escuela(conn,user['id'],{'alumno':'Alumno de ejemplo','cedula':cedula_demo(987),
                 'nacimiento':str(date(hoy.year-10,1,1)), 'categoria':'Sub-12','horario_id':horario,'consentimiento':True})
         if tipo == 'MENSUALIDAD':
-            s.pagar(conn,user['id'],orden['id'],pay_data)
+            confirmar_transferencia(conn,user['id'],orden['id'],pay_data)
             escuela = s.detalle_orden(conn,user['id'],orden['id'])['escuela']['id']
             siguiente = (hoy.replace(day=1)+timedelta(days=32)).replace(day=1)
             orden = s.renovar_escuela(conn,user['id'],escuela,{'periodo':siguiente.strftime('%Y-%m')})
-    s.pagar(conn,user['id'],orden['id'],pay_data)
+    confirmar_transferencia(conn,user['id'],orden['id'],pay_data)
     # Conserva el precio guardado
     conn.execute('UPDATE canchas SET tarifa_hora=99,tarifa_cumpleanos=99')
     conn.execute('UPDATE torneos SET costo=99')
@@ -78,7 +79,7 @@ def test_no_se_generan_comprobantes_de_otro_titular_o_sin_pago(conn,user):
     orden = s.inscribir_torneo(conn,user['id'],{'torneo_id':1,'equipo':'Equipo privado','acepta_reglamento':True})
     with pytest.raises(ValueError):
         c.datos_comprobante(conn,orden['id'],user['id'])
-    s.pagar(conn,user['id'],orden['id'],{'metodo':'TRANSFERENCIA','acepta_simulacion':True})
+    confirmar_transferencia(conn,user['id'],orden['id'],{'metodo':'TRANSFERENCIA','acepta_simulacion':True})
     with pytest.raises(ValueError):
         c.datos_comprobante(conn,orden['id'],user['id']+900)
 
@@ -139,7 +140,7 @@ def test_fallo_del_diseno_no_envia_correo_incompleto_y_permite_reintento(conn,us
     monkeypatch.setattr(mail.ConfiguracionSMTP,'desde_entorno',lambda:configuracion())
     orden=s.reservar(conn,user['id'],{'cancha_id':1,'tipo_evento':'HORA',
         'fecha':str(datetime.now(s.TZ).date()+timedelta(days=2)),'hora':'12:00','horas':1})
-    s.pagar(conn,user['id'],orden['id'],pay_data)
+    confirmar_transferencia(conn,user['id'],orden['id'],pay_data)
     conn.commit()
     renderizar=mail.renderizar_html
     def fallar(contexto):

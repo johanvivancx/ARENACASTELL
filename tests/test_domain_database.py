@@ -11,6 +11,7 @@ from manage import cedula_demo
 from models import (validar_cedula,Usuario,Cliente,Administrador,ReservaCancha,
                     ServicioArena,InscripcionTorneo,InscripcionSuperChaca,ErrorValidacion)
 import services as s
+from conftest import confirmar_transferencia
 
 
 def reservation(hour="10:00",hours=1):
@@ -62,8 +63,8 @@ def test_registro_no_permite_rol_admin(conn):
 
 def test_reserva_y_pago_idempotente(conn,user,pay_data):
     order=s.reservar(conn,user["id"],reservation(hours=2))
-    s.pagar(conn,user["id"],order["id"],{**pay_data,"monto":"0.01"})
-    s.pagar(conn,user["id"],order["id"],pay_data)
+    confirmar_transferencia(conn,user["id"],order["id"],{**pay_data,"monto":"0.01"})
+    confirmar_transferencia(conn,user["id"],order["id"],pay_data)
     detail=s.detalle_orden(conn,user["id"],order["id"])
     assert detail["monto"]==Decimal("54") and detail["estado"]=="PAGADA"
     assert detail["reserva"]["estado"]=="CONFIRMADA"
@@ -75,11 +76,11 @@ def test_solapamiento_revierte_pago_y_permite_contiguas(conn,user,pay_data):
     first=s.reservar(conn,user["id"],reservation("10:00",2))
     overlap=s.reservar(conn,user["id"],reservation("11:00"))
     next_order=s.reservar(conn,user["id"],reservation("12:00"))
-    s.pagar(conn,user["id"],first["id"],pay_data)
+    confirmar_transferencia(conn,user["id"],first["id"],pay_data)
     with pytest.raises(psycopg.errors.ExclusionViolation):
-        with conn.transaction():s.pagar(conn,user["id"],overlap["id"],pay_data)
-    assert s.detalle_orden(conn,user["id"],next_order["id"])["monto"] == 30
-    s.pagar(conn,user["id"],next_order["id"],pay_data)
+        with conn.transaction():confirmar_transferencia(conn,user["id"],overlap["id"],pay_data)
+    assert s.detalle_orden(conn,user["id"],next_order["id"])["monto"] == 27
+    confirmar_transferencia(conn,user["id"],next_order["id"],pay_data)
     assert s.detalle_orden(conn,user["id"],overlap["id"])["estado"]=="PENDIENTE"
     assert conn.execute("SELECT count(*) AS n FROM pagos").fetchone()["n"]==2
 
@@ -97,7 +98,7 @@ def test_dos_pagos_concurrentes_mismo_horario(conn,user,pay_data,database_url):
         try:
             with psycopg.connect(database_url,row_factory=dict_row) as c:
                 barrier.wait(timeout=10)
-                s.pagar(c,user["id"],order["id"],pay_data)
+                confirmar_transferencia(c,user["id"],order["id"],pay_data)
             return "ok"
         except psycopg.errors.ExclusionViolation:return "overlap"
     with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(worker,orders))
@@ -107,7 +108,7 @@ def test_dos_pagos_concurrentes_mismo_horario(conn,user,pay_data,database_url):
 
 def test_limite_jugadores_en_base(conn,user,pay_data):
     order=s.inscribir_torneo(conn,user["id"],{"torneo_id":1,"equipo":"Equipo Prueba","acepta_reglamento":True})
-    s.pagar(conn,user["id"],order["id"],pay_data)
+    confirmar_transferencia(conn,user["id"],order["id"],pay_data)
     team=s.detalle_orden(conn,user["id"],order["id"])["equipo"]
     for n in range(20):s.agregar_jugador(conn,user["id"],team["id"],{"nombre":f"Jugador {n}","cedula":cedula_demo(n+300)})
     with pytest.raises(psycopg.errors.CheckViolation):
@@ -119,11 +120,11 @@ def test_limite_jugadores_en_base(conn,user,pay_data):
 def test_ultimo_cupo_torneo_concurrente(conn,user,pay_data,database_url):
     conn.execute("UPDATE torneos SET cupos=2 WHERE id=1")
     orders=[s.inscribir_torneo(conn,user["id"],{"torneo_id":1,"equipo":f"Equipo {n}","acepta_reglamento":True}) for n in range(3)]
-    s.pagar(conn,user["id"],orders[0]["id"],pay_data);conn.commit();barrier=Barrier(2)
+    confirmar_transferencia(conn,user["id"],orders[0]["id"],pay_data);conn.commit();barrier=Barrier(2)
     def worker(order):
         try:
             with psycopg.connect(database_url,row_factory=dict_row) as c:
-                barrier.wait(timeout=10);s.pagar(c,user["id"],order["id"],pay_data)
+                barrier.wait(timeout=10);confirmar_transferencia(c,user["id"],order["id"],pay_data)
             return True
         except psycopg.errors.CheckViolation:return False
     with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(worker,orders[1:]))
@@ -132,7 +133,7 @@ def test_ultimo_cupo_torneo_concurrente(conn,user,pay_data,database_url):
 
 def test_escuela_periodos_sin_duplicar_y_reportes(conn,user,pay_data):
     order=s.inscribir_escuela(conn,user["id"],school_data(conn))
-    s.pagar(conn,user["id"],order["id"],pay_data)
+    confirmar_transferencia(conn,user["id"],order["id"],pay_data)
     detail=s.detalle_orden(conn,user["id"],order["id"])
     assert detail["escuela"]["estado"]=="ACTIVA" and detail["pago"]["monto"]==65
     current=datetime.now(s.TZ).date().replace(day=1)
@@ -140,7 +141,7 @@ def test_escuela_periodos_sin_duplicar_y_reportes(conn,user,pay_data):
     following=(current+timedelta(days=32)).replace(day=1)
     next_order=s.renovar_escuela(conn,user["id"],detail["escuela"]["id"],{"periodo":following.strftime("%Y-%m")})
     assert s.detalle_orden(conn,user["id"],next_order["id"])["monto"] == 30
-    s.pagar(conn,user["id"],next_order["id"],pay_data)
+    confirmar_transferencia(conn,user["id"],next_order["id"],pay_data)
     report=conn.execute("SELECT * FROM vista_mensualidades_escuela").fetchone()
     assert report["total_pagado"]==95 and report["cuotas_pagadas"]==2 and report["mes_actual_pagado"]
     assert len(conn.execute("SELECT * FROM vista_reporte_administrador").fetchall())==2

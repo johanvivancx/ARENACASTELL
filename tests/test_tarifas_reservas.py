@@ -10,6 +10,7 @@ import pytest
 
 from models import ErrorValidacion
 import services as s
+from conftest import confirmar_transferencia
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -26,7 +27,7 @@ def datos(tipo, horas):
 ])
 def test_tarifa_en_orden_pago_e_historial(conn, user, pay_data, tipo, horas, total):
     order = s.reservar(conn, user['id'], {**datos(tipo, horas), 'monto': '0.01'})
-    s.pagar(conn, user['id'], order['id'], {**pay_data, 'monto': '0.01'})
+    confirmar_transferencia(conn, user['id'], order['id'], {**pay_data, 'monto': '0.01'})
     detail = s.detalle_orden(conn, user['id'], order['id'])
     assert detail['monto'] == detail['pago']['monto'] == Decimal(total)
     assert detail['reserva']['fin'] - detail['reserva']['inicio'] == timedelta(hours=horas)
@@ -57,7 +58,7 @@ def test_actualizacion_repetible_conserva_orden_anterior(conn, user, pay_data):
     # Simula una reserva anterior
     old_function = (ROOT/'sql/schema.sql').read_text(encoding='utf8')
     old_function = old_function.split('CREATE FUNCTION controlar_reserva()', 1)[1].split('END; $$;', 1)[0]
-    begin = old_function.index('  -- Los cumpleaños nuevos')
+    begin = old_function.index('  -- Exige tres horas')
     end = old_function.index('  hora_inicio :=')
     old_function = old_function[:begin] + old_function[end:]
     conn.execute('CREATE OR REPLACE FUNCTION controlar_reserva()' + old_function + 'END; $$;')
@@ -66,7 +67,7 @@ def test_actualizacion_repetible_conserva_orden_anterior(conn, user, pay_data):
     conn.commit()
     for _ in range(2):
         conn.execute((ROOT/'sql/pgadmin/12_actualizar_tarifas_reservas.sql').read_text(encoding='utf8'))
-    s.pagar(conn, user['id'], order['id'], pay_data)
+    confirmar_transferencia(conn, user['id'], order['id'], pay_data)
     detail = s.detalle_orden(conn, user['id'], order['id'])
     assert detail['pago']['monto'] == Decimal('80.00')
     assert detail['reserva']['fin'] - detail['reserva']['inicio'] == timedelta(hours=2)

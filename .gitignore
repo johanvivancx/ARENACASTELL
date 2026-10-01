@@ -8,6 +8,7 @@ __pycache__/
 .pytest_cache/
 instance/
 backups/
+public/
 .coverage
 BACKUP_SQL_BASE_DE_DATOS/
 *.xlsx
