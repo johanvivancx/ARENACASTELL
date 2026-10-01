@@ -1992,6 +1992,9 @@ td small {
 .home-tournament h1 { font-size: clamp(30px, 5vw, 56px); line-height: 1.12; margin-block: 20px 12px; }
 .home-tournament-intro { max-width: 660px; color: #ddd; }
 .home-tournament-main { margin-block: 8px 20px; }
+.home-tournament-next { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 12px; padding: 18px; border: 1px solid #ae8c4b; border-radius: 10px; background: #302714; color: #fff; text-decoration: none; }
+.home-tournament-next:hover { background: #43351c; }
+.home-tournament-next > span { color: #f1d79b; }
 .home-tournament-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
 .home-tournament-links > a { display: flex; flex-direction: column; justify-content: space-between; gap: 10px; padding: 18px; border: 1px solid #666; border-radius: 10px; background: #191919; color: #fff; text-decoration: none; }
 .home-tournament-links > a:hover { background: #303030; border-color: #ddd; }
@@ -2014,6 +2017,30 @@ td small {
 }
 .mundial-section section { margin-top: 32px; scroll-margin-top: 110px; }
 .mundial-section select { max-width: 460px; margin-block: 12px 20px; }
+.mundial-upcoming { padding: clamp(16px, 3vw, 26px); border: 1px solid #705b35; border-radius: 12px; background: linear-gradient(135deg, #252015, #151515 55%); }
+.mundial-upcoming h3 { margin-block: 8px 12px; }
+.mundial-upcoming-days { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+.mundial-section .mundial-upcoming-day { min-width: 0; margin: 0; padding: 18px; border: 1px solid #695632; border-radius: 10px; background: #171717; }
+.mundial-upcoming-day h4 { margin: 0 0 14px; color: #f1d79b; }
+.mundial-upcoming-games { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.mundial-upcoming-game { display: grid; grid-template-columns: 78px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; padding: 12px; border: 1px solid #494139; border-radius: 8px; background: #222; }
+.mundial-upcoming-game time { color: #f1d79b; font-weight: bold; font-variant-numeric: tabular-nums; }
+.mundial-upcoming-matchup { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; min-width: 0; }
+.mundial-upcoming-matchup > span { color: #f1d79b; font-weight: bold; text-transform: uppercase; }
+.mundial-upcoming-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mundial-upcoming-team > span { min-width: 0; overflow-wrap: anywhere; }
+.mundial-upcoming-team strong, .mundial-upcoming-team small { display: block; line-height: 1.35; }
+.mundial-upcoming-team small { color: #ccc; font-size: 11px; }
+.mundial-upcoming-team .mundial-flag { width: 36px; height: 25px; }
+.mundial-upcoming-rest { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; color: #f1d79b; }
+.mundial-upcoming-rest span { color: #ddd; }
+@media (max-width: 950px) {
+  .mundial-upcoming-days { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .mundial-upcoming-game { grid-template-columns: minmax(0, 1fr); }
+  .mundial-upcoming-team { flex-direction: column; text-align: center; }
+}
 .mundial-matches, .mundial-rosters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));

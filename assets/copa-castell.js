@@ -23,6 +23,49 @@
     image.height = 32;
     return image;
   };
+  const upcoming = data.upcoming;
+  const upcomingContainer = document.getElementById('mundial-proxima-partidos');
+  if (upcoming && upcomingContainer) {
+    const timeLabel = value => {
+      const [hour, minute] = value.split(':').map(Number);
+      return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour >= 12 ? 'p. m.' : 'a. m.'}`;
+    };
+    for (const day of upcoming.days) {
+      const dayCard = element('section');
+      dayCard.className = 'mundial-upcoming-day';
+      const heading = element('h4', day.label);
+      dayCard.append(heading);
+      const games = element('ol');
+      games.className = 'mundial-upcoming-games';
+      for (const [start, home, away] of day.matches) {
+        const game = element('li');
+        game.className = 'mundial-upcoming-game';
+        const time = element('time', timeLabel(start));
+        time.dateTime = `${day.date}T${start}:00-05:00`;
+        const matchup = element('div');
+        matchup.className = 'mundial-upcoming-matchup';
+        for (const country of [home, away]) {
+          const side = element('div');
+          side.className = 'mundial-upcoming-team';
+          const names = element('span');
+          names.append(element('strong', country), element('small', teams.get(country)?.club || ''));
+          side.append(flag(country), names);
+          matchup.append(side);
+          if (country === home) matchup.append(element('span', 'vs'));
+        }
+        game.append(time, matchup);
+        games.append(game);
+      }
+      dayCard.append(games);
+      upcomingContainer.append(dayCard);
+    }
+    const rest = document.getElementById('mundial-proxima-descanso');
+    if (rest && upcoming.bye) {
+      rest.append(flag(upcoming.bye), element('strong', `Descansa ${upcoming.bye}`));
+      const club = teams.get(upcoming.bye)?.club;
+      if (club) rest.append(element('span', `(${club})`));
+    }
+  }
   const matches = () => {
     const container = document.getElementById('mundial-partidos');
     container.replaceChildren();

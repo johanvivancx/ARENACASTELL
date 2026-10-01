@@ -1,5 +1,30 @@
 window.CopaCastellData = {
   "throughRound": 5,
+  "upcoming": {
+    "round": 6,
+    "days": [
+      {
+        "date": "2026-10-02",
+        "label": "Viernes 2 de octubre",
+        "matches": [
+          ["19:00", "Egipto", "España"],
+          ["20:00", "Noruega", "Uruguay"],
+          ["21:00", "Ecuador", "Portugal"],
+          ["22:00", "Cabo Verde", "Japón"]
+        ]
+      },
+      {
+        "date": "2026-10-03",
+        "label": "Sábado 3 de octubre",
+        "matches": [
+          ["18:30", "Alemania", "Venezuela"],
+          ["19:30", "Francia", "Cabo Verde"],
+          ["20:30", "Brasil", "Marruecos"]
+        ]
+      }
+    ],
+    "bye": "Colombia"
+  },
   "teams": [
     {
       "country": "Noruega",
