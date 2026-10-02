@@ -855,40 +855,64 @@ window.CopaCastellData = {
       "club": "Chocolatosos",
       "players": [
         {
-          "name": "STIVEN GUALOTUÑA",
-          "number": "78"
+          "name": "CARLOS DANIEL ROMO LEROUX TENORIO",
+          "number": "16"
         },
         {
-          "name": "ANDERSON COLLAGUAZO",
-          "number": "32"
-        },
-        {
-          "name": "RICHARD CARRERA",
-          "number": "69"
-        },
-        {
-          "name": "DANIEL MOREJON",
+          "name": "DANIEL SEBASTIAN MOREJON AGUIRRE",
           "number": "7"
         },
         {
-          "name": "ANTHONY CARRERA",
-          "number": ""
+          "name": "KEVIN ARIEL PAUCAR HERRERA",
+          "number": "8"
         },
         {
-          "name": "MARTIN PAUCAR",
-          "number": ""
+          "name": "STIVEN WLADIMIR GUALOTUÑA NIATO",
+          "number": "78"
         },
         {
-          "name": "REINOSO JUAN FERNANDO",
-          "number": ""
+          "name": "ANGELO MATEO LOACHAMIN QUINGA",
+          "number": "17"
         },
         {
-          "name": "ANGELO LOACHAMIN",
-          "number": ""
+          "name": "ANDRES ESTEBAN AGUIRRE PACHAMA",
+          "number": "9"
         },
         {
-          "name": "GABRIEL GUALOTUÑA",
-          "number": ""
+          "name": "MARTIN ALEJANDRO PAUCAR AGUIRRE",
+          "number": "15"
+        },
+        {
+          "name": "ANTHONY ALEXANDER CARRERA CARBAJAL",
+          "number": "99"
+        },
+        {
+          "name": "GABRIEL ALEJANDRO GUALOTUÑA AMAGUA",
+          "number": "44"
+        },
+        {
+          "name": "KEVIN ANDRES CAIZA TOAPANTA",
+          "number": "1"
+        },
+        {
+          "name": "WILIAN STIVEN JATIVA CAIZA",
+          "number": "2"
+        },
+        {
+          "name": "JUAN FRNANDO REINOZO PAAEZ",
+          "number": "20"
+        },
+        {
+          "name": "RICHAR SEBASTIAN CARERA GARCIA",
+          "number": "69"
+        },
+        {
+          "name": "KEVIN DAVID PAUCAR AGUIRRE",
+          "number": "14"
+        },
+        {
+          "name": "ANDERSON DAVID COLLAGUAZO VASCO",
+          "number": "32"
         }
       ]
     },
@@ -926,7 +950,7 @@ window.CopaCastellData = {
         },
         {
           "name": "GUANOCUNGA SUNTAXI ARIEL ANDRES",
-          "number": "7"
+          "number": "18"
         },
         {
           "name": "MAILA SUNTAXI WALTER ISMAEL",
@@ -963,6 +987,18 @@ window.CopaCastellData = {
         {
           "name": "EDISON MOLINA",
           "number": "11"
+        },
+        {
+          "name": "ANDRADE EDINSON WILMER",
+          "number": "11"
+        },
+        {
+          "name": "QUINGA NASIMBA DANNY XAVIER",
+          "number": "99"
+        },
+        {
+          "name": "GUAMAN PACHACAMA ALEX GONZALO",
+          "number": "17"
         }
       ]
     },
@@ -1467,7 +1503,7 @@ window.CopaCastellData = {
       "name": "Anderson Collaguazo",
       "goals": 3,
       "country": "Venezuela",
-      "number": ""
+      "number": "32"
     },
     {
       "name": "Andrés Farfán",
@@ -1569,7 +1605,7 @@ window.CopaCastellData = {
       "name": "Daniel Morejón",
       "goals": 2,
       "country": "Venezuela",
-      "number": ""
+      "number": "7"
     },
     {
       "name": "Edison Molina",
@@ -1701,13 +1737,13 @@ window.CopaCastellData = {
       "name": "Andrés Guanocunga",
       "goals": 1,
       "country": "Uruguay",
-      "number": "7"
+      "number": "18"
     },
     {
       "name": "Anthony Carrera",
       "goals": 1,
       "country": "Venezuela",
-      "number": ""
+      "number": "99"
     },
     {
       "name": "Antonio Alejandro Pistala Rojas",
@@ -1875,7 +1911,7 @@ window.CopaCastellData = {
       "name": "Martín Paucar",
       "goals": 1,
       "country": "Venezuela",
-      "number": ""
+      "number": "15"
     },
     {
       "name": "Matt Quimba Rivera",
@@ -1935,7 +1971,7 @@ window.CopaCastellData = {
       "name": "Richard Carrera",
       "goals": 1,
       "country": "Venezuela",
-      "number": ""
+      "number": "69"
     },
     {
       "name": "Saúl Oña",
@@ -1947,7 +1983,7 @@ window.CopaCastellData = {
       "name": "Stiven Gualotuña",
       "goals": 1,
       "country": "Venezuela",
-      "number": ""
+      "number": "78"
     },
     {
       "name": "Victor Stalyn Guallichico Guaman",
