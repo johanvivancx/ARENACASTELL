@@ -96,7 +96,7 @@
       container.append(card);
     }
   };
-  // Acumulados del Excel; el historial no vuelve a sumar resultados.
+  // Acumulados oficiales actualizados con las actas; el historial no vuelve a sumar resultados.
   const groups = document.getElementById('mundial-grupos');
   for (const [group, rows] of Object.entries(data.standings || {})) {
     const wrapper = element('div');
@@ -105,7 +105,7 @@
     wrapper.setAttribute('role', 'region');
     wrapper.setAttribute('aria-label', `${group}: tabla de posiciones`);
     const table = element('table');
-    table.append(element('caption', `${group} · Hasta la fecha ${data.throughRound}`));
+    table.append(element('caption', `${group} · Hasta la fecha ${data.throughRound}${data.partialRound ? " (parcial)" : ""}`));
     const head = element('thead');
     const titles = element('tr');
     ['#', 'Selección / equipo', 'Pts', 'PJ', 'DG', 'PG', 'PE', 'PP', 'GF', 'GC'].forEach((label, index) => {
