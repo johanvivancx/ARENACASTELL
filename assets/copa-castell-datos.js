@@ -1,32 +1,6 @@
 window.CopaCastellData = {
   "throughRound": 6,
-  "upcoming": {
-    "round": 6,
-    "days": [
-      {
-        "date": "2026-10-03",
-        "label": "Sábado 3 de octubre",
-        "matches": [
-          [
-            "18:30",
-            "Alemania",
-            "Venezuela"
-          ],
-          [
-            "19:30",
-            "Francia",
-            "Cabo Verde"
-          ],
-          [
-            "20:30",
-            "Brasil",
-            "Marruecos"
-          ]
-        ]
-      }
-    ],
-    "bye": "Colombia"
-  },
+  "upcoming": null,
   "teams": [
     {
       "country": "Noruega",
@@ -233,7 +207,7 @@ window.CopaCastellData = {
           "number": "15"
         },
         {
-          "name": "BRAYAN ANDRES",
+          "name": "BRAYAN ANDRÉS SANGOQUIZA",
           "number": "16"
         },
         {
@@ -307,7 +281,7 @@ window.CopaCastellData = {
           "number": "79"
         },
         {
-          "name": "KLEBER SEBASTIAN AULESTIA RAMOS",
+          "name": "KLEBER SEBASTIÁN AULESTIA RAMOS",
           "number": "88"
         },
         {
@@ -1378,6 +1352,34 @@ window.CopaCastellData = {
       "awayGoals": 4,
       "date": "2026-10-02",
       "time": "22:00"
+    },
+    {
+      "round": 6,
+      "home": "Alemania",
+      "away": "Venezuela",
+      "status": "suspended",
+      "homeGoals": null,
+      "awayGoals": null,
+      "date": "2026-10-03",
+      "time": "18:30"
+    },
+    {
+      "round": 6,
+      "home": "Francia",
+      "away": "Cabo Verde",
+      "homeGoals": 5,
+      "awayGoals": 1,
+      "date": "2026-10-03",
+      "time": "19:30"
+    },
+    {
+      "round": 6,
+      "home": "Brasil",
+      "away": "Marruecos",
+      "homeGoals": 1,
+      "awayGoals": 14,
+      "date": "2026-10-03",
+      "time": "20:30"
     }
   ],
   "scorers": [
@@ -1394,6 +1396,12 @@ window.CopaCastellData = {
       "number": "10"
     },
     {
+      "name": "Abdías Méndez",
+      "goals": 14,
+      "country": "Francia",
+      "number": "7"
+    },
+    {
       "name": "Gregorio Arroyo",
       "goals": 13,
       "country": "Noruega",
@@ -1404,12 +1412,6 @@ window.CopaCastellData = {
       "goals": 12,
       "country": "Noruega",
       "number": "9"
-    },
-    {
-      "name": "Abdías Méndez",
-      "goals": 11,
-      "country": "Francia",
-      "number": "7"
     },
     {
       "name": "Llixon Javier Quiñonez Rodriguez",
@@ -1434,6 +1436,12 @@ window.CopaCastellData = {
       "goals": 9,
       "country": "Portugal",
       "number": "7"
+    },
+    {
+      "name": "Juan Diego Bustillos Paucar",
+      "goals": 9,
+      "country": "Marruecos",
+      "number": "9"
     },
     {
       "name": "Anyer Méndez",
@@ -1466,6 +1474,12 @@ window.CopaCastellData = {
       "number": "92"
     },
     {
+      "name": "Oswaldo Serrano",
+      "goals": 6,
+      "country": "Francia",
+      "number": "20"
+    },
+    {
       "name": "Carlos Briones",
       "goals": 5,
       "country": "Colombia",
@@ -1496,16 +1510,16 @@ window.CopaCastellData = {
       "number": "11"
     },
     {
+      "name": "Matias Alessandro Arias Cevallos",
+      "goals": 5,
+      "country": "Marruecos",
+      "number": "4"
+    },
+    {
       "name": "Maycol Vera",
       "goals": 5,
       "country": "España",
       "number": "6"
-    },
-    {
-      "name": "Oswaldo Serrano",
-      "goals": 5,
-      "country": "Francia",
-      "number": "20"
     },
     {
       "name": "Zacarías Ñacata",
@@ -1538,6 +1552,12 @@ window.CopaCastellData = {
       "number": "8"
     },
     {
+      "name": "Christopher Francisco Casco Anasi",
+      "goals": 4,
+      "country": "Marruecos",
+      "number": "7"
+    },
+    {
       "name": "Josue Barros",
       "goals": 4,
       "country": "España",
@@ -1550,10 +1570,16 @@ window.CopaCastellData = {
       "number": "26"
     },
     {
-      "name": "Klever Aulestia",
+      "name": "Kleber Sebastián Aulestia Ramos",
       "goals": 4,
       "country": "Egipto",
       "number": "88"
+    },
+    {
+      "name": "Robert Intriago",
+      "goals": 4,
+      "country": "Francia",
+      "number": "4"
     },
     {
       "name": "Romel Ariel Navarrete Ñato",
@@ -1640,18 +1666,6 @@ window.CopaCastellData = {
       "number": "5"
     },
     {
-      "name": "Matias Alessandro Arias Cevallos",
-      "goals": 3,
-      "country": "Marruecos",
-      "number": "4"
-    },
-    {
-      "name": "Robert Intriago",
-      "goals": 3,
-      "country": "Francia",
-      "number": "4"
-    },
-    {
       "name": "Ronald Joel (retirado)",
       "goals": 3,
       "country": "Colombia",
@@ -1662,6 +1676,12 @@ window.CopaCastellData = {
       "goals": 3,
       "country": "España",
       "number": "11"
+    },
+    {
+      "name": "Adrián Quishpe",
+      "goals": 2,
+      "country": "Brasil",
+      "number": "7"
     },
     {
       "name": "Alex Vinicio Sandoval Terán",
@@ -1700,6 +1720,12 @@ window.CopaCastellData = {
       "number": "7"
     },
     {
+      "name": "Edgar Josue Moya Lasluisa",
+      "goals": 2,
+      "country": "Cabo Verde",
+      "number": "9"
+    },
+    {
       "name": "Edinson Wilmer Molina Andrade",
       "goals": 2,
       "country": "Uruguay",
@@ -1728,12 +1754,6 @@ window.CopaCastellData = {
       "goals": 2,
       "country": "Noruega",
       "number": "3"
-    },
-    {
-      "name": "Juan Diego Bustillos Paucar",
-      "goals": 2,
-      "country": "Marruecos",
-      "number": "9"
     },
     {
       "name": "Juan Proaño",
@@ -1790,12 +1810,6 @@ window.CopaCastellData = {
       "number": ""
     },
     {
-      "name": "Adrián Quishpe",
-      "goals": 1,
-      "country": "Brasil",
-      "number": "7"
-    },
-    {
       "name": "Alex Alfonso Andrango Andrango",
       "goals": 1,
       "country": "Alemania",
@@ -1838,16 +1852,16 @@ window.CopaCastellData = {
       "number": "99"
     },
     {
+      "name": "Brayan Andrés Sangoquiza",
+      "goals": 1,
+      "country": "Marruecos",
+      "number": "16"
+    },
+    {
       "name": "Casamen Joel Alfredo",
       "goals": 1,
       "country": "Alemania",
       "number": ""
-    },
-    {
-      "name": "Christopher Francisco Casco Anasi",
-      "goals": 1,
-      "country": "Marruecos",
-      "number": "7"
     },
     {
       "name": "Cristian Toasa",
@@ -1866,12 +1880,6 @@ window.CopaCastellData = {
       "goals": 1,
       "country": "Noruega",
       "number": "6"
-    },
-    {
-      "name": "Edgar Josue Moya Lasluisa",
-      "goals": 1,
-      "country": "Cabo Verde",
-      "number": "9"
     },
     {
       "name": "Edwin Muñoz",
@@ -2060,6 +2068,12 @@ window.CopaCastellData = {
       "number": "24"
     },
     {
+      "name": "Steven Gonzalo Sangoquiza Paucar",
+      "goals": 1,
+      "country": "Marruecos",
+      "number": "8"
+    },
+    {
       "name": "Stiven Gualotuña",
       "goals": 1,
       "country": "Venezuela",
@@ -2173,16 +2187,28 @@ window.CopaCastellData = {
     ],
     "Grupo 2": [
       [
+        "Francia",
+        13,
+        6,
+        4,
+        1,
+        1,
+        61,
+        17,
+        44,
+        1
+      ],
+      [
         "Cabo Verde",
         12,
-        5,
+        6,
         4,
         0,
-        1,
-        37,
-        13,
-        24,
-        1
+        2,
+        38,
+        18,
+        20,
+        2
       ],
       [
         "Egipto",
@@ -2194,19 +2220,19 @@ window.CopaCastellData = {
         29,
         40,
         -11,
-        2
+        3
       ],
       [
-        "Francia",
+        "Marruecos",
         10,
-        5,
+        6,
         3,
         1,
-        1,
-        56,
+        2,
+        39,
         16,
-        40,
-        3
+        23,
+        4
       ],
       [
         "España",
@@ -2218,7 +2244,7 @@ window.CopaCastellData = {
         25,
         27,
         -2,
-        4
+        5
       ],
       [
         "Japón",
@@ -2230,18 +2256,6 @@ window.CopaCastellData = {
         19,
         21,
         -2,
-        5
-      ],
-      [
-        "Marruecos",
-        7,
-        5,
-        2,
-        1,
-        2,
-        25,
-        15,
-        10,
         6
       ],
       [
@@ -2259,16 +2273,17 @@ window.CopaCastellData = {
       [
         "Brasil",
         1,
-        5,
+        6,
         0,
         1,
-        4,
-        14,
-        50,
-        -36,
+        5,
+        15,
+        64,
+        -49,
         8
       ]
     ]
   },
-  "partialRound": true
+  "partialRound": true,
+  "roundNote": "Alemania–Venezuela pendiente de decisión"
 };

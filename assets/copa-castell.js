@@ -85,9 +85,10 @@
         side.append(flag(country), element('h4', country), element('small', teams.get(country).club));
         matchup.append(side);
       }
-      card.append(element('span', `FECHA ${match.round} · FINALIZADO`), matchup);
-      const score = element('p', `${match.homeGoals} – ${match.awayGoals}`);
-      score.className = 'mundial-score';
+      const suspended = match.status === 'suspended';
+      card.append(element('span', `FECHA ${match.round} · ${suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
+      const score = element('p', suspended ? 'Esperando decisión' : `${match.homeGoals} – ${match.awayGoals}`);
+      score.className = suspended ? 'mundial-match-status' : 'mundial-score';
       card.append(score);
       if (match.date) {
         const [year, month, day] = match.date.split('-');
@@ -105,7 +106,7 @@
     wrapper.setAttribute('role', 'region');
     wrapper.setAttribute('aria-label', `${group}: tabla de posiciones`);
     const table = element('table');
-    table.append(element('caption', `${group} · Hasta la fecha ${data.throughRound}${data.partialRound ? " (parcial)" : ""}`));
+    table.append(element('caption', `${group} · Hasta la fecha ${data.throughRound}${data.roundNote ? ` · ${data.roundNote}` : data.partialRound ? " (parcial)" : ""}`));
     const head = element('thead');
     const titles = element('tr');
     ['#', 'Selección / equipo', 'Pts', 'PJ', 'DG', 'PG', 'PE', 'PP', 'GF', 'GC'].forEach((label, index) => {
@@ -208,30 +209,30 @@
     document.getElementById('mundial-busqueda-estado').textContent = visible === 1 ? '1 selección disponible' : visible ? `${visible} selecciones disponibles` : 'No se encontraron equipos o jugadores con ese nombre.';
   });
   const awards = [
-    ['Egipto','92','Joseph Darío Sandoval Cantuña','egipto'],
-    ['Colombia','5','Briones Carlos','colombia'],
-    ['España','6','Maycol Vera','espana'],
-    ['Noruega','10','Gregorio Arroyo','noruega'],
+    ['Marruecos','9','Juan Diego Bustillos Paucar','marruecos'],
+    ['Japón','13','Sebastián Taipe','japon'],
     ['Ecuador','9','Elvis Loachamin','ecuador'],
-    ['Japón','9','Jhon Ñato','japon']
+    ['Noruega','9','Romario Betancourt','noruega'],
+    ['Egipto','88','Kleber Sebastián Aulestia Ramos','egipto'],
+    ['Francia','7','Abdías Méndez','francia']
   ];
   for (const [country, number, name, file] of awards) {
     const card = element('figure');
     card.className = 'mundial-mvp-card';
     const link = element('a');
-    link.href = `../assets/mvp-fecha5/${file}.jpeg`;
+    link.href = `../assets/mvp-fecha6/${file}.jpeg`;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.setAttribute('aria-label', `Ver foto completa de ${name} (nueva pestaña)`);
     const photo = element('img');
     photo.src = link.href;
-    photo.alt = `${name}, jugador del partido de ${country}, fecha 5`;
+    photo.alt = `${name}, jugador del partido de ${country}, fecha 6`;
     photo.loading = 'lazy';
     photo.width = 960;
     photo.height = 1280;
     link.append(photo);
     const caption = element('figcaption');
-    caption.append(element('small', 'JUGADOR DEL PARTIDO · FECHA 5'), element('h4', `#${number} ${name}`));
+    caption.append(element('small', 'JUGADOR DEL PARTIDO · FECHA 6'), element('h4', `#${number} ${name}`));
     const selection = element('p');
     selection.className = 'mundial-player-identity';
     selection.append(flag(country), element('span', country));
