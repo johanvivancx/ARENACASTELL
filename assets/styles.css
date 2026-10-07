@@ -703,7 +703,7 @@ svg.icon {
 }
 .admin-section-nav {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 28px;
 }
@@ -712,7 +712,7 @@ svg.icon {
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  min-height: 150px;
+  min-height: 135px;
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -743,15 +743,53 @@ svg.icon {
   font-size: 13px;
   line-height: 1.45;
 }
-.admin-section-nav .admin-nav-danger { border-color: #705056; }
-.admin-section-nav .admin-nav-danger:hover,
-.admin-section-nav .admin-nav-danger:focus-visible { border-color: #c88b95; }
-.admin-section-nav .admin-nav-danger > span { color: #e1a5ae; }
+.admin-more-tools {
+  margin: -6px 0 28px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.admin-more-tools summary { width: fit-content; cursor: pointer; }
+.admin-more-tools-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 0 0;
+}
+.admin-more-tools-links button,
+.admin-group-nav button {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.admin-more-tools-links button:hover,
+.admin-more-tools-links button:focus-visible,
+.admin-group-nav button:hover,
+.admin-group-nav button:focus-visible { border-color: #9aadb5; }
+.admin-more-tools-links .admin-nav-danger { color: #e1a5ae; }
+.admin-group-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 20px;
+}
+.admin-group-nav button[aria-pressed="true"] {
+  border-color: #a6bdc6;
+  background: var(--surface2);
+  font-weight: 700;
+}
+.admin-section-nav[hidden],
+.admin-more-tools[hidden],
+.admin-group-nav[hidden] { display: none; }
 .admin-panel-toolbar {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 22px;
+  scroll-margin-top: 100px;
   color: var(--muted);
   font-size: 13px;
 }
@@ -803,13 +841,11 @@ svg.icon {
 .admin-reset-preview dl > div { display: flex; justify-content: space-between; gap: 8px; }
 .admin-reset-preview dt { color: var(--muted); }
 .admin-reset-preview dd { margin: 0; font-weight: 700; }
-@media (max-width: 850px) {
-  .admin-section-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 @media (max-width: 560px) {
   .admin-section-nav { grid-template-columns: 1fr; }
   .admin-section-nav button { min-height: 0; }
   .admin-panel-toolbar { flex-wrap: wrap; }
+  .admin-group-nav button { flex: 1 1 auto; }
 }
 
 /* Presenta cada servicio */

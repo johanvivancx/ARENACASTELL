@@ -16,10 +16,10 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261007-admin-paneles" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261007-admin-grupos" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261007-admin-paneles" defer></script>
+    <script src="../assets/app.js?v=20261007-admin-grupos" defer></script>
   </head>
 
   <body data-page="admin">
@@ -118,24 +118,26 @@
           <div id="admin-menu-heading" class="admin-menu-heading">
             <p class="eyebrow">PANEL DE ADMINISTRACIÓN</p>
             <h2>¿Qué quieres gestionar?</h2>
-            <p>Elige una tarea. Cada área se abre por separado para que puedas trabajar sin distracciones.</p>
+            <p>Elige un área para gestionar el torneo, la cancha, las cuentas o la escuela.</p>
           </div>
           <nav class="admin-section-nav" aria-label="Secciones del panel de administrador">
             <button type="button" data-admin-target="admin-copa"><span>01 / TORNEO</span><strong>Resultados de Copa Castell</strong><small>Marcador, goleadores y tabla de posiciones</small></button>
-            <button type="button" data-admin-target="admin-reservas"><span>02 / CANCHA</span><strong>Reservas</strong><small>Registrar, consultar y corregir horarios</small></button>
-            <button type="button" data-admin-target="admin-cobros"><span>03 / COBROS</span><strong>Pendientes por cobrar</strong><small>Transferencias y efectivo en cancha</small></button>
-            <button type="button" data-admin-target="admin-finanzas"><span>04 / FINANZAS</span><strong>Ingresos y gastos</strong><small>Saldos por actividad e historial de gastos</small></button>
-            <button type="button" data-admin-target="admin-reportes"><span>05 / HISTORIAL</span><strong>Operaciones</strong><small>Consulta todas las operaciones</small></button>
-            <button type="button" data-admin-target="admin-pagos"><span>06 / HISTORIAL</span><strong>Auditoría de pagos</strong><small>Filtra por fecha y exporta CSV</small></button>
-            <button type="button" data-admin-target="admin-escuela"><span>07 / ESCUELA</span><strong>Súper Chaca</strong><small>Inscripciones y mensualidades</small></button>
-            <button type="button" data-admin-target="admin-ocupacion"><span>08 / CANCHA</span><strong>Ocupación</strong><small>Horarios ocupados y disponibilidad</small></button>
-            <button type="button" data-admin-target="admin-correos"><span>09 / SISTEMA</span><strong>Envío de correos</strong><small>Estado de los mensajes enviados</small></button>
-            <button type="button" data-admin-target="admin-limpieza" class="admin-nav-danger"><span>10 / MANTENIMIENTO</span><strong>Vaciar datos de prueba</strong><small>Reinicia registros operativos con confirmación</small></button>
+            <button type="button" data-admin-target="admin-reservas"><span>02 / CANCHA</span><strong>Reservas</strong><small>Reservas, cobros pendientes y ocupación</small></button>
+            <button type="button" data-admin-target="admin-finanzas"><span>03 / FINANZAS</span><strong>Ingresos y gastos</strong><small>Saldos, operaciones y auditoría de pagos</small></button>
+            <button type="button" data-admin-target="admin-escuela"><span>04 / ESCUELA</span><strong>Súper Chaca</strong><small>Inscripciones y mensualidades</small></button>
           </nav>
+          <details class="admin-more-tools">
+            <summary>Más herramientas administrativas</summary>
+            <div class="admin-more-tools-links">
+              <button type="button" data-admin-target="admin-correos">Envío de correos</button>
+              <button type="button" data-admin-target="admin-limpieza" class="admin-nav-danger">Vaciar datos de prueba</button>
+            </div>
+          </details>
           <div id="admin-panel-toolbar" class="admin-panel-toolbar" hidden>
             <button id="admin-back-to-menu" type="button" class="btn secondary">← Volver al menú</button>
             <span id="admin-current-panel"></span>
           </div>
+          <nav id="admin-group-nav" class="admin-group-nav" aria-label="Opciones del área" hidden></nav>
 
           <section class="admin-workspace-section" id="admin-resumen" aria-labelledby="admin-resumen-title">
             <h2 id="admin-resumen-title">Resumen general</h2>

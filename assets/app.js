@@ -1094,35 +1094,60 @@ async function initCopaResults() {
   });
 }
 
-// Muestra una sola tarea administrativa y mantiene el resumen como inicio.
+// Agrupa las tareas relacionadas sin alterar sus formularios ni reportes.
 function initAdminWorkspace() {
   const menu = $(".admin-section-nav");
   if (!menu) return;
   const intro = $("#admin-menu-heading");
+  const moreTools = $(".admin-more-tools");
   const toolbar = $("#admin-panel-toolbar");
+  const groupNav = $("#admin-group-nav");
   const overview = $("#admin-resumen");
   const panels = $$(".admin-workspace-section", $("#admin-content"))
     .filter((section) => section !== overview);
+  const groups = {
+    "admin-copa": {title: "Resultados de Copa Castell", tabs: [["admin-copa", "Resultados"]]},
+    "admin-reservas": {title: "Reservas", tabs: [["admin-reservas", "Reservas realizadas"], ["admin-cobros", "Pendientes por cobrar"], ["admin-ocupacion", "Ocupación"]]},
+    "admin-finanzas": {title: "Ingresos y gastos", tabs: [["admin-finanzas", "Saldos y gastos"], ["admin-reportes", "Operaciones"], ["admin-pagos", "Auditoría de pagos"]]},
+    "admin-escuela": {title: "Súper Chaca", tabs: [["admin-escuela", "Mensualidades"]]},
+    "admin-correos": {title: "Envío de correos", tabs: [["admin-correos", "Correos"]]},
+    "admin-limpieza": {title: "Vaciar datos de prueba", tabs: [["admin-limpieza", "Limpieza"]]},
+  };
   const openPanel = (id) => {
     const panel = panels.find((section) => section.id === id);
     if (!panel) return;
+    const group = Object.values(groups).find(({tabs}) => tabs.some(([tabId]) => tabId === id));
+    if (!group) return;
     intro.hidden = true;
     menu.hidden = true;
+    moreTools.hidden = true;
     overview.hidden = true;
     toolbar.hidden = false;
     panels.forEach((section) => { section.hidden = section !== panel; });
-    $("#admin-current-panel").textContent = panel.querySelector("h2")?.textContent || "";
-    panel.scrollIntoView({behavior: "smooth", block: "start"});
+    $("#admin-current-panel").textContent = group.title;
+    groupNav.replaceChildren();
+    groupNav.hidden = group.tabs.length < 2;
+    group.tabs.forEach(([tabId, label]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.setAttribute("aria-pressed", String(tabId === id));
+      button.addEventListener("click", () => openPanel(tabId));
+      groupNav.append(button);
+    });
+    toolbar.scrollIntoView({behavior: "smooth", block: "start"});
   };
   const showMenu = () => {
     intro.hidden = false;
     menu.hidden = false;
+    moreTools.hidden = false;
     overview.hidden = false;
     toolbar.hidden = true;
+    groupNav.hidden = true;
     panels.forEach((section) => { section.hidden = true; });
     intro.scrollIntoView({behavior: "smooth", block: "start"});
   };
-  $$('[data-admin-target]', menu).forEach((button) => {
+  $$('[data-admin-target]', $("#admin-content")).forEach((button) => {
     button.addEventListener("click", () => openPanel(button.dataset.adminTarget));
   });
   $("#admin-back-to-menu").addEventListener("click", showMenu);
