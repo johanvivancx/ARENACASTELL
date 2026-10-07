@@ -19,9 +19,10 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, preparar_control_financiero, ROOT
+from db import conectar, preparar_control_financiero, preparar_resultados_copa, ROOT
 from models import ErrorValidacion
 import services as s
+import copa
 import correos
 
 STATIC = ROOT
@@ -226,6 +227,8 @@ class Handler(SimpleHTTPRequestHandler):
                         result = s.catalogo(conn)
                     elif path == "/api/availability" and self.command == "GET":
                         result = s.disponibilidad(conn, params)
+                    elif path == "/api/copa-castell" and self.command == "GET":
+                        result = copa.estado_publico(conn)
                     else:
                         uid = s.exigir_usuario(session)
                         result = self.private_route(conn, uid, path, data, params)
@@ -294,6 +297,10 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if path == "/api/admin/copa-fixtures" and method == "GET":
+            return copa.panel_admin(conn, uid)
+        if path == "/api/admin/copa-results" and method == "POST":
+            return copa.guardar_resultado(conn, uid, data)
         if path == "/api/admin/expenses" and method == "POST":
             return s.registrar_gasto(conn, uid, data)
         if match := re.fullmatch(r"/api/admin/expenses/(\d+)/void", path):
@@ -343,6 +350,7 @@ def direccion_escucha():
 def main():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     preparar_control_financiero()
+    preparar_resultados_copa()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
     print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)

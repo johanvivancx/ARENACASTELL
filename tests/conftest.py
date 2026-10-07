@@ -34,6 +34,7 @@ def database_url():
             if step.name[:2] in {'02','03','04','05','06'}:
                 conn.execute(step.read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/008_control_financiero.sql').read_text(encoding='utf8'))
+        conn.execute((ROOT/'sql/migrations/009_resultados_copa.sql').read_text(encoding='utf8'))
     yield url
     # Borra solo la base temporal
     assert name.startswith("test_arena_") and len(name)==23

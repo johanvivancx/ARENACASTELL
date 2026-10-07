@@ -16,10 +16,10 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261007-finanzas" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261007-copa-vivo" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261007-finanzas" defer></script>
+    <script src="../assets/app.js?v=20261007-copa-vivo" defer></script>
   </head>
 
   <body data-page="admin">
@@ -143,6 +143,31 @@
             El filtro de fechas afecta al reporte de pagos. Reservas, operaciones, escuela y
             ocupación muestran el registro completo.
           </p>
+
+          <section class="section-small" aria-labelledby="copa-admin-title">
+            <h2 id="copa-admin-title">Resultados de Copa Castell</h2>
+            <p class="small-text muted">Publica el marcador final desde aquí. La página del torneo actualiza resultados, posiciones y goleadores aproximadamente cada 30 segundos. Alemania–Venezuela cuenta para la fecha 6.</p>
+            <form method="post" id="copa-result-form" class="panel" hidden>
+              <div class="field">
+                <label for="copa-fixture">Partido</label>
+                <select id="copa-fixture" name="fixture_id" required></select>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label for="copa-home-goals" id="copa-home-label">Goles local</label><input id="copa-home-goals" name="homeGoals" type="number" min="0" max="99" step="1" required /></div>
+                <div class="field"><label for="copa-away-goals" id="copa-away-label">Goles visitante</label><input id="copa-away-goals" name="awayGoals" type="number" min="0" max="99" step="1" required /></div>
+              </div>
+              <input id="copa-revision" name="revision" type="hidden" value="0" />
+              <h3>Goleadores del partido</h3>
+              <p class="small-text muted">Añade cada jugador y el número de goles que hizo. Puedes publicar el marcador aunque aún falten goleadores; quedarán señalados como pendientes hasta completar el acta.</p>
+              <div id="copa-goal-rows" class="copa-goal-rows"></div>
+              <div class="form-actions">
+                <button class="btn secondary" type="button" data-copa-add="home">Añadir goleador local</button>
+                <button class="btn secondary" type="button" data-copa-add="away">Añadir goleador visitante</button>
+              </div>
+              <p id="copa-result-status" class="small-text muted" role="status"></p>
+              <div class="form-actions"><button class="btn" type="submit">Publicar resultado</button></div>
+            </form>
+          </section>
 
           <section class="section-small" aria-labelledby="finance-title">
             <div class="section-heading">

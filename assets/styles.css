@@ -1430,6 +1430,26 @@ td small {
 .finance-grid .stat .finance-negative {
   color: #ff8d8d;
 }
+.copa-goal-rows {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.copa-goal-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px auto;
+  align-items: end;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.copa-goal-row .field { min-width: 0; }
+.copa-goal-row .copa-new-player { grid-column: 1 / -1; }
+@media (max-width: 600px) {
+  .copa-goal-row { grid-template-columns: minmax(0, 1fr) 80px; }
+  .copa-goal-row .btn { grid-column: 1 / -1; }
+}
 
 /* Agrupa cada correo */
 .mail-item {

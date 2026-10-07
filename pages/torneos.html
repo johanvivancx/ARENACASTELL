@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="../assets/styles.css?v=fecha6-1" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <script src="../assets/copa-castell-datos.js?v=fecha7-horarios-2" defer></script>
-    <script src="../assets/copa-castell.js?v=fecha7-horarios-2" defer></script>
+    <script src="../assets/copa-castell.js?v=20261007-copa-vivo" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20260930-pagos" defer></script>
   </head>
@@ -324,24 +324,25 @@
               <option value="4">Fecha 4 · 18 y 19 de septiembre</option>
               <option value="5">Fecha 5 · 25 y 26 de septiembre</option>
               <option value="6" selected>Fecha 6 · 2 y 3 de octubre</option>
+              <option value="7">Fecha 7 · 9 de octubre</option>
             </select>
             <div id="mundial-partidos" class="mundial-matches" aria-live="polite"></div>
           </section>
           <section id="mundial-posiciones" aria-labelledby="posiciones-title">
             <p class="eyebrow">CLASIFICACIÓN DEL TORNEO</p>
             <h3 id="posiciones-title">Tabla de posiciones · Fecha 6</h3>
-            <p>Clasificación actualizada con los partidos finalizados del 2 y 3 de octubre de 2026. Alemania–Venezuela, pendiente de la fecha 6, se jugará el viernes 9 de octubre a las 5:30 p. m. No suma puntos ni goles hasta que se juegue.</p>
+            <p id="posiciones-actualizacion">Clasificación actualizada con los partidos finalizados del 2 y 3 de octubre de 2026. Alemania–Venezuela no suma puntos ni goles hasta que se juegue.</p>
             <div id="mundial-grupos"></div>
             <p class="mundial-legend">Pts: puntos · PJ: partidos jugados · PG: ganados · PE: empatados · PP: perdidos · GF: goles a favor · GC: goles en contra · DG: diferencia de goles.</p>
           </section>
           <section id="mundial-goleadores" aria-labelledby="goleadores-title">
             <h3 id="goleadores-title">Top 20 de goleadores</h3>
-            <p>Los 20 máximos goleadores del torneo, con los goles acumulados hasta los partidos finalizados del sábado 3 de octubre de 2026.</p>
+            <p id="goleadores-actualizacion">Los 20 máximos goleadores del torneo, con los goles acumulados hasta los partidos finalizados del sábado 3 de octubre de 2026.</p>
             <label for="mundial-equipo-filtro">Filtrar el Top 20 por selección</label>
             <select id="mundial-equipo-filtro"><option value="">Todas las selecciones</option></select>
             <div class="table-wrap" tabindex="0" role="region" aria-label="Tabla de goleadores; desplázate para ver todas las columnas">
               <table>
-                <caption>Top 20 de goleadores · fecha 6 · actualizado al 3 de octubre</caption>
+                <caption id="goleadores-caption">Top 20 de goleadores · fecha 6 · actualizado al 3 de octubre</caption>
                 <thead><tr><th scope="col">Posición</th><th scope="col">Jugador</th><th scope="col">Selección / equipo</th><th scope="col">Dorsal</th><th scope="col">Goles</th></tr></thead>
                 <tbody id="mundial-goleadores-filas"></tbody>
               </table>

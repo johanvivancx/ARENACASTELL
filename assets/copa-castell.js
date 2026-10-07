@@ -89,11 +89,12 @@
         matchup.append(side);
       }
       const suspended = match.status === 'suspended';
-      const rescheduled = match.status === 'rescheduled';
-      card.append(element('span', `FECHA ${match.round} · ${rescheduled ? 'REPROGRAMADO' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
-      const score = element('p', rescheduled ? 'Pendiente de jugar' : suspended ? 'Esperando decisión' : `${match.homeGoals} – ${match.awayGoals}`);
-      score.className = suspended || rescheduled ? 'mundial-match-status' : 'mundial-score';
+      const pending = match.status === 'rescheduled' || match.status === 'scheduled';
+      card.append(element('span', `FECHA ${match.round} · ${pending ? 'PENDIENTE' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
+      const score = element('p', pending ? 'Pendiente de jugar' : suspended ? 'Esperando decisión' : `${match.homeGoals} – ${match.awayGoals}`);
+      score.className = suspended || pending ? 'mundial-match-status' : 'mundial-score';
       card.append(score);
+      if (match.goleadores_pendientes) card.append(element('small', `${match.goleadores_pendientes} goles por atribuir a jugadores`));
       if (match.date) {
         const [year, month, day] = match.date.split('-');
         card.append(element('small', `${day}/${month}/${year}${match.time ? ' · ' + match.time : ''}`));
@@ -101,9 +102,11 @@
       container.append(card);
     }
   };
-  // Acumulados oficiales actualizados con las actas; el historial no vuelve a sumar resultados.
+  // La API suma partidos nuevos a los acumulados oficiales de la fecha 6.
   const groups = document.getElementById('mundial-grupos');
-  for (const [group, rows] of Object.entries(data.standings || {})) {
+  const renderStandings = () => {
+    groups.replaceChildren();
+    for (const [group, rows] of Object.entries(data.standings || {})) {
     const wrapper = element('div');
     wrapper.className = 'table-wrap mundial-standings';
     wrapper.tabIndex = 0;
@@ -145,8 +148,9 @@
     }
     table.append(body);
     wrapper.append(table);
-    groups.append(wrapper);
-  }
+      groups.append(wrapper);
+    }
+  };
   const scorers = () => {
     const body = document.getElementById('mundial-goleadores-filas');
     body.replaceChildren();
@@ -245,7 +249,37 @@
     document.getElementById('mundial-mvp').append(card);
   }
   round.addEventListener('change', matches);
+  round.addEventListener('change', () => { round.dataset.touched = 'true'; });
   filter.addEventListener('change', scorers);
+  renderStandings();
   matches();
   scorers();
+  let refreshing = false;
+  const refresh = async () => {
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      const response = await fetch('/api/copa-castell', {cache: 'no-store'});
+      if (!response.ok) return;
+      const live = await response.json();
+      Object.assign(data, live);
+      if (live.throughRound === 7 && !round.dataset.touched) round.value = '7';
+      document.getElementById('posiciones-title').textContent = `Tabla de posiciones · Fecha ${live.throughRound}`;
+      document.getElementById('posiciones-actualizacion').textContent = `Actualización en vivo: ${live.roundNote}. Puntos, diferencia de goles y goles a favor determinan el orden.`;
+      document.getElementById('goleadores-actualizacion').textContent = live.goleadoresPendientes
+        ? `Top 20 actualizado. Hay ${live.goleadoresPendientes} goles de partidos publicados aún sin atribuir a jugadores.`
+        : 'Top 20 actualizado con los goleadores registrados de todos los partidos publicados.';
+      document.getElementById('goleadores-caption').textContent = `Top 20 de goleadores · fecha ${live.throughRound}`;
+      renderStandings();
+      matches();
+      scorers();
+    } catch {
+      // Conserva la información histórica cuando el servicio no está disponible.
+    } finally {
+      refreshing = false;
+    }
+  };
+  refresh();
+  setInterval(() => { if (!document.hidden) refresh(); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 })();

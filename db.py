@@ -25,3 +25,9 @@ def preparar_control_financiero():
     """Crea la tabla nueva al iniciar, sin tocar órdenes ni pagos históricos."""
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/008_control_financiero.sql").read_text(encoding="utf8"))
+
+
+def preparar_resultados_copa():
+    """Habilita los resultados de Copa Castell sin cambiar el historial base."""
+    with conectar() as conn:
+        conn.execute((ROOT / "sql/migrations/009_resultados_copa.sql").read_text(encoding="utf8"))

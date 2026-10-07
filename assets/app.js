@@ -989,6 +989,94 @@ function initExpenses() {
   });
 }
 
+// Publica marcadores de Copa Castell sin editar el archivo de estadísticas.
+async function initCopaResults() {
+  const form = $("#copa-result-form");
+  if (!form) return;
+  let schedule = await api("/admin/copa-fixtures");
+  const fixtureSelect = $("#copa-fixture");
+  const goalsHost = $("#copa-goal-rows");
+  const selectedFixture = () => schedule.fixtures.find((m) => m.id === fixtureSelect.value);
+  const addGoalRow = (country, goal = null) => {
+    const row = document.createElement("div");
+    row.className = "copa-goal-row";
+    row.dataset.country = country;
+    const players = schedule.players[country] || [];
+    const known = goal && players.some((p) => p.id === goal.jugador_clave);
+    row.innerHTML = `<div class="field"><label>Goleador · ${esc(country)}<select class="copa-player" required><option value="">Selecciona jugador</option>${players.map((p) => `<option value="${esc(p.id)}">${p.number ? `#${esc(p.number)} · ` : ""}${esc(p.name)}</option>`).join("")}<option value="new">Jugador no listado</option></select></label></div><div class="field"><label>Goles<input class="copa-goal-count" type="number" min="1" max="99" step="1" required value="${goal ? esc(goal.goles) : 1}" /></label></div><button class="btn secondary" type="button" data-copa-remove>Quitar</button><div class="copa-new-player form-grid" hidden><div class="field"><label>Nombre completo<input class="copa-new-name" type="text" maxlength="100" /></label></div><div class="field"><label>Dorsal (opcional)<input class="copa-new-number" type="text" inputmode="numeric" maxlength="3" /></label></div></div>`;
+    const selector = $(".copa-player", row);
+    const toggleNew = () => {
+      const custom = selector.value === "new";
+      $(".copa-new-player", row).hidden = !custom;
+      $(".copa-new-name", row).required = custom;
+    };
+    selector.addEventListener("change", toggleNew);
+    $("[data-copa-remove]", row).addEventListener("click", () => row.remove());
+    if (goal) {
+      selector.value = known ? goal.jugador_clave : "new";
+      if (!known) {
+        $(".copa-new-name", row).value = goal.jugador_nombre;
+        $(".copa-new-number", row).value = goal.dorsal;
+      }
+    }
+    toggleNew();
+    goalsHost.append(row);
+  };
+  const renderFixture = () => {
+    const fixture = selectedFixture();
+    if (!fixture) return;
+    $("#copa-home-label").textContent = `Goles de ${fixture.home}`;
+    $("#copa-away-label").textContent = `Goles de ${fixture.away}`;
+    $("#copa-home-goals").value = fixture.result?.homeGoals ?? "";
+    $("#copa-away-goals").value = fixture.result?.awayGoals ?? "";
+    $("#copa-revision").value = fixture.result?.revision ?? 0;
+    $('[data-copa-add="home"]').textContent = `Añadir goleador · ${fixture.home}`;
+    $('[data-copa-add="away"]').textContent = `Añadir goleador · ${fixture.away}`;
+    goalsHost.replaceChildren();
+    for (const goal of fixture.result?.goals || []) addGoalRow(goal.equipo, goal);
+    $("#copa-result-status").textContent = fixture.result
+      ? `Publicado: ${fixture.result.homeGoals}–${fixture.result.awayGoals}. Puedes corregir el marcador y los goleadores; se reemplazará el registro anterior.`
+      : "Sin resultado publicado. El partido no suma puntos ni goles todavía.";
+  };
+  const fillSchedule = (selected) => {
+    fixtureSelect.innerHTML = schedule.fixtures
+      .slice().sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
+      .map((m) => `<option value="${esc(m.id)}">${esc(m.date)} · ${esc(m.time)} · Fecha ${m.round} · ${esc(m.home)} vs. ${esc(m.away)}${m.result ? ` · ${m.result.homeGoals}–${m.result.awayGoals}` : " · pendiente"}</option>`)
+      .join("");
+    if (selected && schedule.fixtures.some((m) => m.id === selected)) fixtureSelect.value = selected;
+    renderFixture();
+  };
+  fillSchedule();
+  form.hidden = false;
+  fixtureSelect.addEventListener("change", renderFixture);
+  $$('[data-copa-add]', form).forEach((button) => button.addEventListener("click", () => {
+    const fixture = selectedFixture();
+    if (fixture) addGoalRow(fixture[button.dataset.copaAdd]);
+  }));
+  bindForm("#copa-result-form", async (data) => {
+    const fixture = selectedFixture();
+    if (!fixture) throw new Error("Selecciona un partido.");
+    const goals = $$(".copa-goal-row", goalsHost).map((row) => {
+      const playerId = $(".copa-player", row).value;
+      return {country: row.dataset.country, playerId,
+        goals: $(".copa-goal-count", row).value,
+        ...(playerId === "new" ? {name: $(".copa-new-name", row).value,
+          number: $(".copa-new-number", row).value} : {})};
+    });
+    if (goals.some((g) => !g.playerId)) throw new Error("Selecciona el jugador de cada gol que agregaste.");
+    const totals = Object.fromEntries([fixture.home, fixture.away].map((country) =>
+      [country, goals.filter((g) => g.country === country).reduce((sum, g) => sum + Number(g.goals), 0)]));
+    if (totals[fixture.home] > Number(data.homeGoals) || totals[fixture.away] > Number(data.awayGoals))
+      throw new Error("Los goles de los jugadores superan el marcador.");
+    const missing = Number(data.homeGoals) + Number(data.awayGoals) - totals[fixture.home] - totals[fixture.away];
+    if (!confirm(`¿Publicar ${fixture.home} ${data.homeGoals}–${data.awayGoals} ${fixture.away}? ${missing ? `Quedarán ${missing} goles por atribuir a jugadores.` : "La tabla y los goleadores se actualizarán."}`)) return;
+    const result = await api("/admin/copa-results", {...data, goals});
+    schedule = await api("/admin/copa-fixtures");
+    fillSchedule(fixture.id);
+    showMessage(result.message, "success");
+  });
+}
+
 // Carga reportes administrativos
 async function loadReports(filters = {}) {
   needUser();
@@ -1291,6 +1379,7 @@ async function initialize() {
       await loadReports();
       initManualReservation();
       initExpenses();
+      await initCopaResults();
     }
   } catch (error) {
     showMessage(error.message);

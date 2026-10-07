@@ -56,6 +56,9 @@ def test_http_csrf_auth_et_controle_acces(conn):
         expense={'categoria':'TORNEOS','concepto':'Trofeos','monto':'10.50',
                  'fecha_gasto':str(datetime.now(s.TZ).date())}
         assert request('/api/admin/expenses',expense,registered['csrf'])[0]==403
+        assert request('/api/admin/copa-fixtures')[0]==403
+        assert request('/api/admin/copa-results',{'fixture_id':'7:Argentina:Japón'},registered['csrf'])[0]==403
+        assert request('/api/copa-castell')[0]==200
         assert request('/api/history')[0]==200
         assert request('/api/auth/logout',{},session['csrf'])[0]==403
         assert request('/api/auth/logout',{},registered['csrf'])[0]==200
@@ -171,6 +174,30 @@ def test_http_admin_registra_y_anula_gasto(conn):
         _,reports,_=request('/api/admin/reports')
         assert reports['finanzas']['TORNEOS']['gastos']=='0'
         assert reports['gastos'][0]['motivo_anulacion']=='Registro duplicado'
+
+
+def test_http_admin_publica_resultado_copa_y_publico_lo_ve(conn):
+    admin=s.registrar(conn,{'nombre':'Operador Copa','cedula':cedula_demo(754),
+        'telefono':'0990000000','email':'copa-http@arena.test',
+        'password':'ClaveOperador!2026','confirmacion':'ClaveOperador!2026','consentimiento':True})
+    conn.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s",(admin['id'],))
+    conn.commit()
+    with client() as request:
+        _,session,_=request('/api/session')
+        status,session,_=request('/api/auth/login',
+            {'email':'copa-http@arena.test','password':'ClaveOperador!2026'},session['csrf'])
+        assert status==200
+        status,fixtures,_=request('/api/admin/copa-fixtures')
+        assert status==200
+        fixture=next(m for m in fixtures['fixtures'] if m['home']=='Argentina' and m['away']=='Japón')
+        payload={'fixture_id':fixture['id'],'homeGoals':1,'awayGoals':2,'revision':0,'goals':[]}
+        assert request('/api/admin/copa-results',payload)[0]==403
+        status,saved,_=request('/api/admin/copa-results',payload,session['csrf'])
+        assert status==200 and saved['goleadores_pendientes']==3
+        status,public,_=request('/api/copa-castell')
+        assert status==200 and public['goleadoresPendientes']==3
+        played=next(m for m in public['matches'] if m.get('id')==fixture['id'])
+        assert played['homeGoals']==1 and played['awayGoals']==2
 
 
 class InspectHTML(HTMLParser):
