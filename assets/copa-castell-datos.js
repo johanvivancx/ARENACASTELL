@@ -1,6 +1,55 @@
 window.CopaCastellData = {
   "throughRound": 6,
-  "upcoming": null,
+  "upcoming": {
+    "round": 7,
+    "days": [
+      {
+        "date": "2026-10-09",
+        "label": "Viernes 9 de octubre",
+        "matches": [
+          [
+            "15:30",
+            "Argentina",
+            "Japón"
+          ],
+          [
+            "16:30",
+            "Portugal",
+            "Alemania"
+          ],
+          [
+            "17:30",
+            "Alemania",
+            "Venezuela"
+          ],
+          [
+            "18:30",
+            "Ecuador",
+            "Uruguay"
+          ],
+          [
+            "19:30",
+            "Brasil",
+            "Egipto"
+          ],
+          [
+            "20:30",
+            "Cabo Verde",
+            "Marruecos"
+          ],
+          [
+            "21:30",
+            "Francia",
+            "España"
+          ]
+        ]
+      }
+    ],
+    "bye": [
+      "Noruega",
+      "Colombia"
+    ]
+  },
   "teams": [
     {
       "country": "Noruega",
@@ -1357,11 +1406,11 @@ window.CopaCastellData = {
       "round": 6,
       "home": "Alemania",
       "away": "Venezuela",
-      "status": "suspended",
+      "status": "rescheduled",
       "homeGoals": null,
       "awayGoals": null,
-      "date": "2026-10-03",
-      "time": "18:30"
+      "date": "2026-10-09",
+      "time": "17:30"
     },
     {
       "round": 6,
@@ -2285,5 +2334,5 @@ window.CopaCastellData = {
     ]
   },
   "partialRound": true,
-  "roundNote": "Alemania–Venezuela pendiente de decisión"
+  "roundNote": "Alemania–Venezuela reprogramado para el 09/10/2026 a las 17:30"
 };

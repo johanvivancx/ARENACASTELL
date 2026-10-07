@@ -61,9 +61,12 @@
     }
     const rest = document.getElementById('mundial-proxima-descanso');
     if (rest && upcoming.bye) {
-      rest.append(flag(upcoming.bye), element('strong', `Descansa ${upcoming.bye}`));
-      const club = teams.get(upcoming.bye)?.club;
-      if (club) rest.append(element('span', `(${club})`));
+      const byes = Array.isArray(upcoming.bye) ? upcoming.bye : [upcoming.bye];
+      rest.append(element('strong', byes.length > 1 ? 'Descansan:' : 'Descansa:'));
+      for (const country of byes) {
+        const club = teams.get(country)?.club;
+        rest.append(flag(country), element('span', `${country}${club ? ` (${club})` : ''}`));
+      }
     }
   }
   const matches = () => {
@@ -86,9 +89,10 @@
         matchup.append(side);
       }
       const suspended = match.status === 'suspended';
-      card.append(element('span', `FECHA ${match.round} · ${suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
-      const score = element('p', suspended ? 'Esperando decisión' : `${match.homeGoals} – ${match.awayGoals}`);
-      score.className = suspended ? 'mundial-match-status' : 'mundial-score';
+      const rescheduled = match.status === 'rescheduled';
+      card.append(element('span', `FECHA ${match.round} · ${rescheduled ? 'REPROGRAMADO' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
+      const score = element('p', rescheduled ? 'Pendiente de jugar' : suspended ? 'Esperando decisión' : `${match.homeGoals} – ${match.awayGoals}`);
+      score.className = suspended || rescheduled ? 'mundial-match-status' : 'mundial-score';
       card.append(score);
       if (match.date) {
         const [year, month, day] = match.date.split('-');
