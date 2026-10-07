@@ -690,6 +690,64 @@ svg.icon {
   padding-bottom: 70px;
 }
 
+/* Separa las tareas administrativas sin alterar los formularios existentes. */
+.admin-section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.admin-section-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.admin-section-nav a:hover,
+.admin-section-nav a:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.admin-workspace-section {
+  margin: 0 0 28px;
+  padding: clamp(20px, 3vw, 36px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  scroll-margin-top: 100px;
+}
+.admin-workspace-section > h2:first-child,
+.admin-report-block > h2:first-child {
+  margin-top: 0;
+}
+.admin-workspace-section .section-heading {
+  margin-bottom: 22px;
+}
+.admin-workspace-section .section-heading p {
+  max-width: 620px;
+}
+.admin-workspace-section .panel {
+  margin-top: 20px;
+}
+.admin-workspace-section .stats-grid {
+  margin-bottom: 28px;
+}
+.admin-workspace-section .stats-grid:last-child {
+  margin-bottom: 0;
+}
+.admin-report-block + .admin-report-block {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
 /* Presenta cada servicio */
 .service-hero {
   display: grid;

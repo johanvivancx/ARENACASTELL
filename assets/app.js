@@ -899,6 +899,17 @@ function initManualReservation() {
   $("#manual-fecha").min = catalog.hoy;
   $("#manual-fecha").max = catalog.limite;
   $("#manual-fecha").value = catalog.hoy;
+  const suggestAmount = () => {
+    const court = catalog.canchas.find((item) => String(item.id) === $("#manual-cancha").value);
+    const rateKey = {
+      HORA: "tarifa_hora",
+      EVENTO: "tarifa_evento",
+      CUMPLEANOS: "tarifa_cumpleanos",
+    }[$("#manual-tipo").value];
+    const total = Number(court?.[rateKey]) * Number($("#manual-horas").value);
+    $("#manual-monto").value = Number.isFinite(total) && total > 0 ? total.toFixed(2) : "";
+  };
+  suggestAmount();
   $("#manual-reservation-toggle").addEventListener("click", () => {
     form.hidden = !form.hidden;
     $("#manual-reservation-toggle").setAttribute("aria-expanded", String(!form.hidden));
@@ -907,8 +918,12 @@ function initManualReservation() {
       loadManualSlots();
     }
   });
-  ["manual-fecha", "manual-cancha", "manual-horas"].forEach((id) =>
-    $(`#${id}`).addEventListener("change", loadManualSlots),
+  $("#manual-fecha").addEventListener("change", loadManualSlots);
+  ["manual-cancha", "manual-horas"].forEach((id) =>
+    $(`#${id}`).addEventListener("change", () => {
+      suggestAmount();
+      loadManualSlots();
+    }),
   );
   const updateDuration = () => {
     const duration = $("#manual-horas");
@@ -921,18 +936,20 @@ function initManualReservation() {
   };
   $("#manual-tipo").addEventListener("change", () => {
     updateDuration();
+    suggestAmount();
     loadManualSlots();
   });
   bindForm("#manual-reservation-form", async (data) => {
     needUser();
     if (session.usuario.rol !== "ADMIN") throw new Error("Solo administración puede registrar reservas manuales.");
-    if (!confirm(`¿Registrar la reserva de ${data.cliente} el ${dates(data.fecha)} a las ${data.hora} por ${data.horas} hora(s)? El horario quedará ocupado y el cobro pendiente.`)) return;
+    if (!confirm(`¿Registrar la reserva de ${data.cliente} el ${dates(data.fecha)} a las ${data.hora} por ${data.horas} hora(s), con ${money(Number(data.monto))} por recibir? El horario quedará ocupado y el cobro pendiente.`)) return;
     const result = await api("/admin/reservations", data);
     await loadReports();
     form.reset();
     updateDuration();
     $("#manual-horas").value = "1";
     $("#manual-fecha").value = catalog.hoy;
+    suggestAmount();
     await loadManualSlots();
     showMessage(result.message, "success");
   });

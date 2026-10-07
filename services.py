@@ -304,14 +304,26 @@ def registrar_reserva_manual(conn, admin_uid, data):
     telefono = str(data.get("telefono", "")).strip()
     if telefono and not re.fullmatch(r"\+?[0-9]{7,15}", telefono):
         raise ErrorValidacion("Celular: escribe de 7 a 15 dígitos, con + opcional.")
+    # Un cliente antiguo puede omitir el importe; solo el formulario administrativo
+    # nuevo permite pactar un valor distinto al calculado por la tarifa pública.
+    raw_monto = data.get("monto")
+    monto = None
+    if raw_monto is not None:
+        raw_monto = str(raw_monto).strip()
+        if not re.fullmatch(r"\d{1,4}(?:\.\d{1,2})?", raw_monto):
+            raise ErrorValidacion("Pago a recibir: escribe dólares con hasta dos decimales.")
+        monto = Decimal(raw_monto)
+        if monto <= 0:
+            raise ErrorValidacion("El pago a recibir debe ser mayor que cero.")
     order = reservar(conn, admin_uid, data)
     descripcion = (
         f"Reserva manual · {cliente} · {telefono or 'sin celular'} · "
         f"{data['fecha']} {data['hora']}"
     )
     conn.execute(
-        "UPDATE ordenes SET descripcion=%s, metodo_previsto='EFECTIVO' WHERE id=%s",
-        (descripcion, order["id"]),
+        "UPDATE ordenes SET descripcion=%s, metodo_previsto='EFECTIVO', "
+        "monto=COALESCE(%s, monto) WHERE id=%s",
+        (descripcion, monto, order["id"]),
     )
     # El índice de exclusión de PostgreSQL impide dos reservas confirmadas solapadas.
     conn.execute(

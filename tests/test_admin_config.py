@@ -1,6 +1,7 @@
 # Prueba opciones administrativas
 
 from datetime import datetime, timedelta
+from decimal import Decimal
 import pytest
 import psycopg
 from manage import cedula_demo, insert_user
@@ -40,17 +41,18 @@ def test_reserva_manual_bloquea_horario_sin_inventar_un_pago(conn,user):
     admin_id=conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()['id']
     day=str(datetime.now(s.TZ).date()+timedelta(days=3))
     data={'cliente':'Contacto WhatsApp','telefono':'0991234567','cancha_id':1,
-          'tipo_evento':'HORA','fecha':day,'hora':'12:00','horas':2}
+          'tipo_evento':'HORA','fecha':day,'hora':'12:00','horas':2,'monto':'24.50'}
     with pytest.raises(s.HTTPError) as forbidden:
         s.registrar_reserva_manual(conn,user['id'],data)
     assert forbidden.value.status==403
     assert conn.execute("SELECT count(*) AS n FROM reservas").fetchone()['n']==0
 
     order=s.registrar_reserva_manual(conn,admin_id,data)
-    row=conn.execute("""SELECT r.estado AS reserva,o.estado AS pago,o.metodo_previsto,
+    row=conn.execute("""SELECT r.estado AS reserva,o.estado AS pago,o.metodo_previsto,o.monto,
                         o.descripcion FROM reservas r JOIN ordenes o ON o.id=r.orden_id
                         WHERE o.id=%s""",(order['id'],)).fetchone()
     assert (row['reserva'],row['pago'],row['metodo_previsto'])==('CONFIRMADA','PENDIENTE','EFECTIVO')
+    assert row['monto']==Decimal('24.50')
     assert 'Contacto WhatsApp' in row['descripcion']
     assert conn.execute("SELECT count(*) AS n FROM pagos").fetchone()['n']==0
     availability=s.disponibilidad(conn,{'fecha':day,'cancha':1,'horas':1})
@@ -67,7 +69,10 @@ def test_reserva_manual_bloquea_horario_sin_inventar_un_pago(conn,user):
 
     s.cobrar_efectivo(conn,admin_id,order['id'])
     assert conn.execute("SELECT count(*) AS n FROM pagos").fetchone()['n']==1
-    assert s.reportes(conn,admin_id,{})['resumen']['reservas']==1
+    assert conn.execute("SELECT monto FROM pagos WHERE orden_id=%s",(order['id'],)).fetchone()['monto']==Decimal('24.50')
+    paid_report=s.reportes(conn,admin_id,{})
+    assert paid_report['resumen']['reservas']==1
+    assert paid_report['finanzas']['RESERVAS']['ingresos']==Decimal('24.50')
     with pytest.raises(s.ErrorValidacion):
         s.cancelar_reserva_manual(conn,admin_id,order['id'])
 
@@ -83,3 +88,8 @@ def test_reserva_manual_bloquea_horario_sin_inventar_un_pago(conn,user):
     report=s.reportes(conn,admin_id,{})
     assert any(row['orden_id']==second['id'] and row['estado']=='CANCELADA' for row in report['reservas'])
     assert all(row['orden_id']!=second['id'] for row in report['efectivo_pendiente'])
+
+    with pytest.raises(s.ErrorValidacion):
+        s.registrar_reserva_manual(conn,admin_id,{**data,'hora':'17:00','monto':'0'})
+    with pytest.raises(s.ErrorValidacion):
+        s.registrar_reserva_manual(conn,admin_id,{**data,'hora':'17:00','monto':'24.567'})

@@ -16,10 +16,10 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261007-copa-vivo" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261007-admin-orden" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261007-copa-vivo" defer></script>
+    <script src="../assets/app.js?v=20261007-admin-orden" defer></script>
   </head>
 
   <body data-page="admin">
@@ -115,36 +115,25 @@
         <div id="form-message" role="alert" tabindex="-1" hidden></div>
 
         <div id="admin-content" hidden>
-          <!-- Filtro de reportes -->
-          <form method="post" id="report-filter" class="panel">
-            <div class="form-grid">
-              <div class="field">
-                <label for="desde">Pagos desde</label>
-                <input id="desde" name="desde" type="date" />
-              </div>
+          <nav class="admin-section-nav" aria-label="Secciones del panel de administrador">
+            <a href="#admin-resumen">Resumen</a>
+            <a href="#admin-copa">Copa Castell</a>
+            <a href="#admin-finanzas">Ingresos y gastos</a>
+            <a href="#admin-reservas">Reservas</a>
+            <a href="#admin-cobros">Cobros pendientes</a>
+            <a href="#admin-reportes">Operaciones</a>
+            <a href="#admin-pagos">Pagos</a>
+            <a href="#admin-escuela">Súper Chaca</a>
+            <a href="#admin-ocupacion">Ocupación</a>
+          </nav>
 
-              <div class="field">
-                <label for="hasta">Pagos hasta</label>
-                <input id="hasta" name="hasta" type="date" />
-              </div>
-            </div>
+          <section class="admin-workspace-section" id="admin-resumen" aria-labelledby="admin-resumen-title">
+            <h2 id="admin-resumen-title">Resumen general</h2>
+            <p class="small-text muted">Una vista rápida de pagos, reservas e inscripciones.</p>
+            <div class="stats-grid" id="admin-stats"></div>
+          </section>
 
-            <!-- Acciones del formulario -->
-            <div class="form-actions">
-              <button type="submit" class="btn">Filtrar pagos</button>
-
-              <button class="btn secondary" type="button" id="export-report">
-                Exportar pagos CSV
-              </button>
-            </div>
-          </form>
-
-          <p class="small-text muted">
-            El filtro de fechas afecta al reporte de pagos. Reservas, operaciones, escuela y
-            ocupación muestran el registro completo.
-          </p>
-
-          <section class="section-small" aria-labelledby="copa-admin-title">
+          <section class="admin-workspace-section" id="admin-copa" aria-labelledby="copa-admin-title">
             <h2 id="copa-admin-title">Resultados de Copa Castell</h2>
             <p class="small-text muted">Publica el marcador final desde aquí. La página del torneo actualiza resultados, posiciones y goleadores aproximadamente cada 30 segundos. Alemania–Venezuela cuenta para la fecha 6.</p>
             <form method="post" id="copa-result-form" class="panel" hidden>
@@ -169,11 +158,11 @@
             </form>
           </section>
 
-          <section class="section-small" aria-labelledby="finance-title">
+          <section class="admin-workspace-section" id="admin-finanzas" aria-labelledby="finance-title">
             <div class="section-heading">
               <div>
                 <h2 id="finance-title">Control de ingresos y gastos</h2>
-                <p class="small-text muted">Totales históricos de pagos confirmados. Los pagos pendientes y simulados no se suman. El filtro de fechas de arriba solo afecta a la auditoría de pagos.</p>
+                <p class="small-text muted">Totales históricos de pagos confirmados. Los pagos pendientes y simulados no se suman. El filtro de fechas de la auditoría no cambia estos totales.</p>
               </div>
               <button class="btn secondary" type="button" id="expense-toggle"
                 aria-controls="expense-form" aria-expanded="false">Gastos</button>
@@ -211,17 +200,15 @@
             <div id="expenses-actions" class="cash-report"></div>
           </section>
 
-          <div class="stats-grid" id="admin-stats"></div>
-
+          <section class="admin-workspace-section" id="admin-reservas" aria-labelledby="admin-reservas-title">
           <div class="section-heading">
             <div>
-              <h2>Reservas realizadas</h2>
+              <h2 id="admin-reservas-title">Reservas realizadas</h2>
               <p class="small-text muted">Reservas de la web y de WhatsApp, con su horario y estado de cobro.</p>
             </div>
             <button class="btn secondary" type="button" id="manual-reservation-toggle"
               aria-controls="manual-reservation-form" aria-expanded="false">Registrar reserva</button>
           </div>
-
           <form method="post" id="manual-reservation-form" class="panel" hidden>
             <h3>Reserva acordada fuera de la web</h3>
             <p class="small-text muted">
@@ -271,6 +258,11 @@
                 </select>
                 <p id="manual-availability" class="small-text muted" role="status"></p>
               </div>
+              <div class="field full">
+                <label for="manual-monto">Pago a recibir (USD)</label>
+                <input id="manual-monto" name="monto" type="number" min="0.01" max="9999.99" step="0.01" inputmode="decimal" required />
+                <p class="small-text muted">Ingresa el valor acordado con el cliente. Solo afecta a esta reserva manual; las tarifas de la web no cambian.</p>
+              </div>
             </div>
             <div class="form-actions">
               <button class="btn" type="submit">Guardar y bloquear horario</button>
@@ -283,21 +275,25 @@
             <p class="small-text muted">Anular libera el horario y conserva el registro para revisión. No anules una reserva ya cobrada.</p>
             <div id="manual-reservation-actions" class="cash-report"></div>
           </details>
+          </section>
 
-          <div class="section">
-            <h2>Todas las operaciones</h2>
+          <section class="admin-workspace-section" id="admin-reportes" aria-labelledby="admin-operaciones-title">
+          <div class="admin-report-block">
+            <h2 id="admin-operaciones-title">Todas las operaciones</h2>
 
             <div id="operations-report"></div>
           </div>
 
-          <!-- Pagos en efectivo -->
-          <section class="section-small" aria-labelledby="transfer-report-title">
+          </section>
+
+          <section class="admin-workspace-section" id="admin-cobros" aria-labelledby="transfer-report-title">
+          <section class="admin-report-block" aria-labelledby="transfer-report-title">
             <h2 id="transfer-report-title">Transferencias por revisar</h2>
             <p class="small-text muted">Comprueba el abono en tu banco antes de aprobarlo. Una referencia enviada por el cliente no demuestra que recibiste el dinero. Al aprobar, se vuelve a comprobar el horario o cupo.</p>
             <div id="transfer-report" class="cash-report"></div>
           </section>
 
-          <section class="section-small" aria-labelledby="cash-report-title">
+          <section class="admin-report-block" aria-labelledby="cash-report-title">
             <h2 id="cash-report-title">Efectivo pendiente en cancha</h2>
             <p class="small-text muted">
               Registra el cobro únicamente después de recibir el dinero. La disponibilidad se vuelve
@@ -307,22 +303,39 @@
             <div id="cash-report" class="cash-report"></div>
           </section>
 
-          <h2>Auditoría de pagos</h2>
+          </section>
+
+          <section class="admin-workspace-section" id="admin-pagos" aria-labelledby="admin-pagos-title">
+          <h2 id="admin-pagos-title">Auditoría de pagos</h2>
+          <p class="small-text muted">Filtra únicamente el historial de pagos; los demás reportes muestran todos los registros.</p>
+          <form method="post" id="report-filter" class="panel">
+            <div class="form-grid">
+              <div class="field"><label for="desde">Pagos desde</label><input id="desde" name="desde" type="date" /></div>
+              <div class="field"><label for="hasta">Pagos hasta</label><input id="hasta" name="hasta" type="date" /></div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn">Filtrar pagos</button>
+              <button class="btn secondary" type="button" id="export-report">Exportar pagos CSV</button>
+            </div>
+          </form>
 
           <div id="payments-report"></div>
+          </section>
 
-          <div class="section">
-            <h2>Control de mensualidades</h2>
+          <section class="admin-workspace-section" id="admin-escuela" aria-labelledby="admin-escuela-title">
+            <h2 id="admin-escuela-title">Control de mensualidades</h2>
 
             <div id="school-report"></div>
-          </div>
+          </section>
 
-          <h2>Ocupación de cancha</h2>
+          <section class="admin-workspace-section" id="admin-ocupacion" aria-labelledby="admin-ocupacion-title">
+          <h2 id="admin-ocupacion-title">Ocupación de cancha</h2>
 
           <div id="occupancy-report"></div>
+          </section>
 
           <!-- Estado de correos -->
-          <section class="section-small" aria-labelledby="mail-report-title">
+          <section class="admin-workspace-section" aria-labelledby="mail-report-title">
             <h2 id="mail-report-title">Envío de correos</h2>
             <p class="muted small-text">
               Últimos 100 mensajes. “Enviado” significa que el servidor de correo lo aceptó; revisa

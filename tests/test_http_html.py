@@ -135,9 +135,10 @@ def test_http_admin_registra_reserva_manual_y_ocupa_horario(conn):
         assert status==200 and session['usuario']['rol']=='ADMIN'
         day=str(datetime.now(s.TZ).date()+timedelta(days=4))
         data={'cliente':'Cliente de WhatsApp','telefono':'0991234567',
-              'cancha_id':1,'tipo_evento':'HORA','fecha':day,'hora':'14:00','horas':2}
+              'cancha_id':1,'tipo_evento':'HORA','fecha':day,'hora':'14:00','horas':2,'monto':'25.00'}
         status,order,_=request('/api/admin/reservations',data,session['csrf'])
         assert status==200
+        assert conn.execute('SELECT monto FROM ordenes WHERE id=%s',(order['id'],)).fetchone()['monto']==25
         _,reports,_=request('/api/admin/reports')
         assert any(row['orden_id']==order['id'] and row['manual'] and row['estado']=='CONFIRMADA'
                    for row in reports['reservas'])
