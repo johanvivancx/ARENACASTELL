@@ -25,6 +25,7 @@ const mailStates = {
   CANCELADO: "Envío cancelado",
 };
 let availabilityRequest = 0;
+let manualAvailabilityRequest = 0;
 
 // Da formato al dinero
 const money = (value) =>
@@ -883,6 +884,83 @@ function table(headers, rows, caption) {
   return `<div class="table-wrap" tabindex="0" role="region" aria-label="${esc(caption)}"><table><caption>${esc(caption)}</caption><thead><tr>${headers.map((h) => `<th scope="col">${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
+// Prepara reservas recibidas por WhatsApp o en la cancha
+function initManualReservation() {
+  const form = $("#manual-reservation-form");
+  if (!form || !catalog) return;
+  $("#manual-cancha").innerHTML = catalog.canchas
+    .map((court) => `<option value="${court.id}">${esc(court.nombre)}</option>`)
+    .join("");
+  $("#manual-fecha").min = catalog.hoy;
+  $("#manual-fecha").max = catalog.limite;
+  $("#manual-fecha").value = catalog.hoy;
+  $("#manual-reservation-toggle").addEventListener("click", () => {
+    form.hidden = !form.hidden;
+    $("#manual-reservation-toggle").setAttribute("aria-expanded", String(!form.hidden));
+    if (!form.hidden) {
+      $("#manual-cliente").focus();
+      loadManualSlots();
+    }
+  });
+  ["manual-fecha", "manual-cancha", "manual-horas"].forEach((id) =>
+    $(`#${id}`).addEventListener("change", loadManualSlots),
+  );
+  const updateDuration = () => {
+    const duration = $("#manual-horas");
+    const previous = duration.value;
+    const choices = $("#manual-tipo").value === "CUMPLEANOS" ? [3] : [1, 2, 3, 4, 5, 6];
+    duration.innerHTML = choices
+      .map((hours) => `<option value="${hours}">${hours} ${hours === 1 ? "hora" : "horas"}</option>`)
+      .join("");
+    duration.value = choices.includes(Number(previous)) ? previous : String(choices[0]);
+  };
+  $("#manual-tipo").addEventListener("change", () => {
+    updateDuration();
+    loadManualSlots();
+  });
+  bindForm("#manual-reservation-form", async (data) => {
+    needUser();
+    if (session.usuario.rol !== "ADMIN") throw new Error("Solo administración puede registrar reservas manuales.");
+    if (!confirm(`¿Registrar la reserva de ${data.cliente} el ${dates(data.fecha)} a las ${data.hora} por ${data.horas} hora(s)? El horario quedará ocupado y el cobro pendiente.`)) return;
+    const result = await api("/admin/reservations", data);
+    await loadReports();
+    form.reset();
+    updateDuration();
+    $("#manual-horas").value = "1";
+    $("#manual-fecha").value = catalog.hoy;
+    await loadManualSlots();
+    showMessage(result.message, "success");
+  });
+}
+
+async function loadManualSlots() {
+  const date = $("#manual-fecha")?.value;
+  if (!date) return;
+  const request = ++manualAvailabilityRequest;
+  const select = $("#manual-hora");
+  const selected = select.value;
+  select.innerHTML = '<option value="">Consultando horarios…</option>';
+  $("#manual-availability").textContent = "Consultando horarios disponibles…";
+  try {
+    const result = await api(
+      `/availability?fecha=${encodeURIComponent(date)}&cancha=${encodeURIComponent($("#manual-cancha").value)}&horas=${encodeURIComponent($("#manual-horas").value)}`,
+    );
+    if (request !== manualAvailabilityRequest) return;
+    const available = result.horarios.filter((slot) => slot.disponible);
+    select.innerHTML = '<option value="">Selecciona una hora</option>' + available
+      .map((slot) => `<option value="${esc(slot.hora)}">${esc(slot.hora)}</option>`)
+      .join("");
+    if (available.some((slot) => slot.hora === selected)) select.value = selected;
+    $("#manual-availability").textContent = available.length
+      ? `${available.length} horarios disponibles. Se comprobará otra vez al guardar.`
+      : "No hay horarios libres para esa fecha y duración.";
+  } catch (error) {
+    if (request !== manualAvailabilityRequest) return;
+    select.innerHTML = '<option value="">No se pudieron cargar horarios</option>';
+    $("#manual-availability").textContent = error.message;
+  }
+}
+
 // Carga reportes administrativos
 async function loadReports(filters = {}) {
   needUser();
@@ -921,11 +999,11 @@ async function loadReports(filters = {}) {
   }));
   const cashHost = $("#cash-report");
   cashHost.innerHTML = reportData.efectivo_pendiente.length
-    ? reportData.efectivo_pendiente.map((o) => `<article class="cash-item"><div><h3>${esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><strong>${esc(money(o.monto))} · Efectivo pendiente</strong></div><button class="btn" type="button" data-collect-cash="${esc(o.id)}">Registrar efectivo recibido</button></article>`).join("")
+    ? reportData.efectivo_pendiente.map((o) => `<article class="cash-item"><div><h3>${o.descripcion.startsWith("Reserva manual · ") ? "Reserva manual" : esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><strong>${esc(money(o.monto))} · Efectivo pendiente</strong></div><button class="btn" type="button" data-collect-cash="${esc(o.id)}">Registrar efectivo recibido</button></article>`).join("")
     : '<p class="muted">No hay pagos en efectivo pendientes.</p>';
   $$('[data-collect-cash]', cashHost).forEach((button) => button.addEventListener('click', async () => {
     const order = reportData.efectivo_pendiente.find((o) => o.id === button.dataset.collectCash);
-    if (!order || !confirm(`¿Confirmas que ya recibiste ${money(order.monto)} en efectivo de ${order.titular}? Se volverá a comprobar la disponibilidad antes de confirmar la operación.`)) return;
+    if (!order || !confirm(`¿Confirmas que ya recibiste ${money(order.monto)} en efectivo por ${order.descripcion}? Se volverá a comprobar la disponibilidad antes de confirmar la operación.`)) return;
     button.disabled = true;
     try {
       const result = await api(`/admin/orders/${encodeURIComponent(order.id)}/collect-cash`, {});
@@ -958,11 +1036,12 @@ async function loadReports(filters = {}) {
       "Reserva",
       "Pago",
       "Valor",
+      "Origen / contacto",
     ],
     reportData.reservas.map((r) => [
-      r.titular,
-      r.email,
-      r.telefono,
+      r.manual ? "Administración" : r.titular,
+      r.manual ? "—" : r.email,
+      r.manual ? "—" : r.telefono,
       r.cancha,
       dates(r.inicio),
       `${times(r.inicio)}–${times(r.fin)}`,
@@ -970,8 +1049,31 @@ async function loadReports(filters = {}) {
       r.estado,
       r.estado_pago === "PAGADA" ? "Registrado" : r.estado_pago,
       money(r.monto),
+      r.manual ? r.detalle : "Web",
     ]),
     "Todas las reservas de la cancha, confirmadas o pendientes.",
+  );
+  const manualPending = reportData.reservas.filter(
+    (r) => r.manual && r.estado === "CONFIRMADA" && r.estado_pago === "PENDIENTE",
+  );
+  $("#manual-reservation-corrections").hidden = !manualPending.length;
+  $("#manual-reservation-actions").innerHTML = manualPending
+    .map((r) => `<article class="cash-item"><div><h3>${esc(r.detalle)}</h3><p>${esc(dates(r.inicio))} · ${esc(times(r.inicio))}–${esc(times(r.fin))}</p></div><button class="btn secondary" type="button" data-cancel-manual="${esc(r.orden_id)}">Anular y liberar horario</button></article>`)
+    .join("");
+  $$('[data-cancel-manual]', $("#manual-reservation-actions")).forEach((button) =>
+    button.addEventListener("click", async () => {
+      const reservation = manualPending.find((r) => r.orden_id === button.dataset.cancelManual);
+      if (!reservation || !confirm(`¿Anular la reserva manual de ${reservation.detalle}? El horario volverá a estar disponible.`)) return;
+      button.disabled = true;
+      try {
+        const result = await api(`/admin/reservations/${encodeURIComponent(reservation.orden_id)}/cancel`, {});
+        await loadReports();
+        showMessage(result.message, "success");
+      } catch (error) {
+        showMessage(error.message);
+        button.disabled = false;
+      }
+    }),
   );
   $("#operations-report").innerHTML = table(
     ["Fecha", "Titular", "Correo", "Servicio", "Detalle", "Estado", "Valor"],
@@ -1106,7 +1208,10 @@ async function initialize() {
     if (page === "profile") fillProfile();
     if (page === "history") await loadHistory();
     if (page === "team") await loadTeam();
-    if (page === "admin") await loadReports();
+    if (page === "admin") {
+      await loadReports();
+      initManualReservation();
+    }
   } catch (error) {
     showMessage(error.message);
   }

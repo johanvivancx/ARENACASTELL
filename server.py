@@ -294,6 +294,11 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if path == "/api/admin/reservations" and method == "POST":
+            return s.registrar_reserva_manual(conn, uid, data)
+        if match := re.fullmatch(r"/api/admin/reservations/([^/]+)/cancel", path):
+            if method == "POST":
+                return s.cancelar_reserva_manual(conn, uid, match[1])
         if match := re.fullmatch(r"/api/admin/orders/([^/]+)/(approve-transfer|reject-transfer)", path):
             if method == "POST":
                 return s.revisar_transferencia(conn, uid, match[1], data, aprobar=match[2] == "approve-transfer")

@@ -48,6 +48,11 @@ def test_http_csrf_auth_et_controle_acces(conn):
         assert status==200 and registered['usuario']['rol']=='CLIENTE'
         assert 'password_hash' not in registered['usuario']
         assert request('/api/admin/reports')[0]==403
+        manual={'cliente':'Prueba manual','cancha_id':1,'tipo_evento':'HORA',
+                'fecha':str(datetime.now(s.TZ).date()+timedelta(days=3)),
+                'hora':'12:00','horas':1}
+        assert request('/api/admin/reservations',manual)[0]==403
+        assert request('/api/admin/reservations',manual,registered['csrf'])[0]==403
         assert request('/api/history')[0]==200
         assert request('/api/auth/logout',{},session['csrf'])[0]==403
         assert request('/api/auth/logout',{},registered['csrf'])[0]==200
@@ -111,6 +116,33 @@ def test_http_tres_flujos_completos(conn,user):
         assert 'máximo 20' in next(c['cuerpo'] for c in activity['correos'] if 'lista de jugadores' in c['cuerpo'])
 
 
+def test_http_admin_registra_reserva_manual_y_ocupa_horario(conn):
+    admin=s.registrar(conn,{'nombre':'Operador HTTP','cedula':cedula_demo(752),
+        'telefono':'0990000000','email':'manual-http@arena.test',
+        'password':'ClaveOperador!2026','confirmacion':'ClaveOperador!2026','consentimiento':True})
+    conn.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s",(admin['id'],))
+    conn.commit()
+    with client() as request:
+        _,session,_=request('/api/session')
+        status,session,_=request('/api/auth/login',
+            {'email':'manual-http@arena.test','password':'ClaveOperador!2026'},session['csrf'])
+        assert status==200 and session['usuario']['rol']=='ADMIN'
+        day=str(datetime.now(s.TZ).date()+timedelta(days=4))
+        data={'cliente':'Cliente de WhatsApp','telefono':'0991234567',
+              'cancha_id':1,'tipo_evento':'HORA','fecha':day,'hora':'14:00','horas':2}
+        status,order,_=request('/api/admin/reservations',data,session['csrf'])
+        assert status==200
+        _,reports,_=request('/api/admin/reports')
+        assert any(row['orden_id']==order['id'] and row['manual'] and row['estado']=='CONFIRMADA'
+                   for row in reports['reservas'])
+        _,slots,_=request(f'/api/availability?fecha={day}&cancha=1&horas=1')
+        assert not next(slot for slot in slots['horarios'] if slot['hora']=='14:00')['disponible']
+        assert request(f"/api/admin/reservations/{order['id']}/cancel",{})[0]==403
+        assert request(f"/api/admin/reservations/{order['id']}/cancel",{},session['csrf'])[0]==200
+        _,slots,_=request(f'/api/availability?fecha={day}&cancha=1&horas=1')
+        assert next(slot for slot in slots['horarios'] if slot['hora']=='14:00')['disponible']
+
+
 class InspectHTML(HTMLParser):
     def __init__(self):
         super().__init__();self.links=[];self.ids=[];self.labels=[];self.controls=[];self.lang=None;self.main=0;self.h1=0;self.inline=[];self.forms=[]
@@ -131,7 +163,7 @@ class InspectHTML(HTMLParser):
 
 def test_html_semantica_et_enlaces():
     files=[STATIC/'index.html', *(STATIC/'pages').glob('*.html')]
-    assert len(files)==18
+    assert len(files)==19
     assert not (STATIC/'pages/index.html').exists()
     for path in files:
         text=path.read_text(encoding='utf8');document=InspectHTML();document.feed(text)

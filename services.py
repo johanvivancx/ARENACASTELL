@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 from correos import encolar_correo, habilitado, url_publica
 import hashlib
 import os
+import re
 import secrets
 import uuid
 
@@ -294,6 +295,50 @@ def reservar(conn, uid, data):
     return {"id": order["id"]}
 
 
+def registrar_reserva_manual(conn, admin_uid, data):
+    """Bloquea un horario acordado fuera de la web, sin registrar un cobro ficticio."""
+    exigir_administrador(conn, admin_uid)
+    cliente = texto(data.get("cliente"), "Nombre de contacto", 2, 70)
+    telefono = str(data.get("telefono", "")).strip()
+    if telefono and not re.fullmatch(r"\+?[0-9]{7,15}", telefono):
+        raise ErrorValidacion("Celular: escribe de 7 a 15 dígitos, con + opcional.")
+    order = reservar(conn, admin_uid, data)
+    descripcion = (
+        f"Reserva manual · {cliente} · {telefono or 'sin celular'} · "
+        f"{data['fecha']} {data['hora']}"
+    )
+    conn.execute(
+        "UPDATE ordenes SET descripcion=%s, metodo_previsto='EFECTIVO' WHERE id=%s",
+        (descripcion, order["id"]),
+    )
+    # El índice de exclusión de PostgreSQL impide dos reservas confirmadas solapadas.
+    conn.execute(
+        "UPDATE reservas SET estado='CONFIRMADA' WHERE orden_id=%s",
+        (order["id"],),
+    )
+    return {"id": order["id"], "message": "Reserva registrada. El horario quedó ocupado; el cobro sigue pendiente."}
+
+
+def cancelar_reserva_manual(conn, admin_uid, oid):
+    """Libera un horario manual aún no cobrado, conservando el registro anulado."""
+    exigir_administrador(conn, admin_uid)
+    order = conn.execute(
+        "SELECT * FROM ordenes WHERE id=%s FOR UPDATE", (identificador(oid),)
+    ).fetchone()
+    if not order or order["tipo"] != "RESERVA" or not order["descripcion"].startswith("Reserva manual · "):
+        raise HTTPError(404, "No encontramos esa reserva manual.")
+    if order["estado"] != "PENDIENTE":
+        raise ErrorValidacion("Solo puedes anular reservas manuales pendientes de cobro.")
+    reservation = conn.execute(
+        "SELECT estado FROM reservas WHERE orden_id=%s FOR UPDATE", (order["id"],)
+    ).fetchone()
+    if not reservation or reservation["estado"] != "CONFIRMADA":
+        raise ErrorValidacion("La reserva ya no ocupa ese horario.")
+    conn.execute("UPDATE reservas SET estado='CANCELADA' WHERE orden_id=%s", (order["id"],))
+    conn.execute("UPDATE ordenes SET estado='CANCELADA' WHERE id=%s", (order["id"],))
+    return {"id": order["id"], "message": "Reserva manual anulada. El horario vuelve a estar disponible."}
+
+
 # Crea un equipo pendiente
 def inscribir_torneo(conn, uid, data):
     tournament = conn.execute(
@@ -438,9 +483,15 @@ def _confirmar_pago(conn, admin_uid, order, method):
                 "SELECT c.id FROM canchas c JOIN reservas r ON r.cancha_id=c.id WHERE r.orden_id=%s FOR UPDATE OF c",
                 (order["id"],),
             )
-            conn.execute(
-                "UPDATE reservas SET estado='CONFIRMADA' WHERE orden_id=%s", (order["id"],)
-            )
+            reservation = conn.execute(
+                "SELECT estado FROM reservas WHERE orden_id=%s", (order["id"],)
+            ).fetchone()
+            if not reservation or reservation["estado"] == "CANCELADA":
+                raise ErrorValidacion("La reserva ya no está disponible para cobrar.")
+            if reservation["estado"] == "PENDIENTE":
+                conn.execute(
+                    "UPDATE reservas SET estado='CONFIRMADA' WHERE orden_id=%s", (order["id"],)
+                )
         elif order["tipo"] == "TORNEO":
             # Protege el último cupo
             conn.execute(
@@ -706,7 +757,8 @@ def reportes(conn, uid, data):
         "reservas": conn.execute(
             """SELECT r.id,r.inicio,r.fin,r.tipo_evento,r.estado,
                 c.nombre AS cancha,u.nombre AS titular,u.email,u.telefono,
-                o.id AS orden_id,o.monto,o.estado AS estado_pago
+                o.id AS orden_id,o.monto,o.estado AS estado_pago,o.descripcion AS detalle,
+                o.descripcion LIKE 'Reserva manual · %' AS manual
                 FROM reservas r JOIN canchas c ON c.id=r.cancha_id
                 JOIN ordenes o ON o.id=r.orden_id JOIN usuarios u ON u.id=o.usuario_id
                 ORDER BY r.inicio DESC,r.id DESC"""

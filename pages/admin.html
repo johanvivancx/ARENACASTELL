@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20260930-pagos" defer></script>
+    <script src="../assets/app.js?v=20261007-reservas-manuales" defer></script>
   </head>
 
   <body data-page="admin">
@@ -146,13 +146,76 @@
 
           <div class="stats-grid" id="admin-stats"></div>
 
-          <h2>Reservas realizadas</h2>
-          <p class="small-text muted">
-            Datos del titular, fecha, horario y estado de cada reserva, incluidas las pendientes de
-            pago.
-          </p>
+          <div class="section-heading">
+            <div>
+              <h2>Reservas realizadas</h2>
+              <p class="small-text muted">Reservas de la web y de WhatsApp, con su horario y estado de cobro.</p>
+            </div>
+            <button class="btn secondary" type="button" id="manual-reservation-toggle"
+              aria-controls="manual-reservation-form" aria-expanded="false">Registrar reserva</button>
+          </div>
+
+          <form method="post" id="manual-reservation-form" class="panel" hidden>
+            <h3>Reserva acordada fuera de la web</h3>
+            <p class="small-text muted">
+              Al guardar, el horario queda ocupado de inmediato. El pago en cancha se registra por
+              separado cuando recibas el dinero; no se contará como pagado antes.
+            </p>
+            <div class="form-grid">
+              <div class="field">
+                <label for="manual-cliente">Nombre de contacto</label>
+                <input id="manual-cliente" name="cliente" type="text" maxlength="70" autocomplete="off" required />
+              </div>
+              <div class="field">
+                <label for="manual-telefono">Celular de contacto (opcional)</label>
+                <input id="manual-telefono" name="telefono" type="tel" maxlength="16" inputmode="tel" placeholder="0991234567" />
+              </div>
+              <div class="field">
+                <label for="manual-tipo">Tipo de reserva</label>
+                <select id="manual-tipo" name="tipo_evento" required>
+                  <option value="HORA">Cancha por hora</option>
+                  <option value="EVENTO">Evento deportivo</option>
+                  <option value="CUMPLEANOS">Cumpleaños · 3 horas</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="manual-cancha">Cancha</label>
+                <select id="manual-cancha" name="cancha_id" required></select>
+              </div>
+              <div class="field">
+                <label for="manual-fecha">Fecha</label>
+                <input id="manual-fecha" name="fecha" type="date" required />
+              </div>
+              <div class="field">
+                <label for="manual-horas">Duración</label>
+                <select id="manual-horas" name="horas" required>
+                  <option value="1">1 hora</option>
+                  <option value="2">2 horas</option>
+                  <option value="3">3 horas</option>
+                  <option value="4">4 horas</option>
+                  <option value="5">5 horas</option>
+                  <option value="6">6 horas</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="manual-hora">Hora de inicio</label>
+                <select id="manual-hora" name="hora" aria-describedby="manual-availability" required>
+                  <option value="">Elige fecha y duración</option>
+                </select>
+                <p id="manual-availability" class="small-text muted" role="status"></p>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn" type="submit">Guardar y bloquear horario</button>
+            </div>
+          </form>
 
           <div id="reservations-report"></div>
+          <details id="manual-reservation-corrections" class="panel" hidden>
+            <summary>Corregir reservas manuales pendientes</summary>
+            <p class="small-text muted">Anular libera el horario y conserva el registro para revisión. No anules una reserva ya cobrada.</p>
+            <div id="manual-reservation-actions" class="cash-report"></div>
+          </details>
 
           <div class="section">
             <h2>Todas las operaciones</h2>
