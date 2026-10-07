@@ -19,7 +19,7 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, ROOT
+from db import conectar, preparar_control_financiero, ROOT
 from models import ErrorValidacion
 import services as s
 import correos
@@ -294,6 +294,11 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if path == "/api/admin/expenses" and method == "POST":
+            return s.registrar_gasto(conn, uid, data)
+        if match := re.fullmatch(r"/api/admin/expenses/(\d+)/void", path):
+            if method == "POST":
+                return s.anular_gasto(conn, uid, match[1], data)
         if path == "/api/admin/reservations" and method == "POST":
             return s.registrar_reserva_manual(conn, uid, data)
         if match := re.fullmatch(r"/api/admin/reservations/([^/]+)/cancel", path):
@@ -337,6 +342,7 @@ def direccion_escucha():
 # Inicia el servidor
 def main():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    preparar_control_financiero()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
     print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)

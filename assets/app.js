@@ -80,6 +80,11 @@ const events = {
   CUMPLEANOS: "Cumpleaños",
   EVENTO: "Evento deportivo",
 };
+const expenseCategories = {
+  RESERVAS: "Reservas",
+  TORNEOS: "Torneos",
+  SUPER_CHACA: "Súper Chaca",
+};
 
 // Construye listas de datos
 const detailList = (pairs) =>
@@ -961,11 +966,85 @@ async function loadManualSlots() {
   }
 }
 
+// Prepara el registro administrativo de salidas de dinero.
+function initExpenses() {
+  const form = $("#expense-form");
+  if (!form || !catalog) return;
+  $("#expense-date").max = catalog.hoy;
+  $("#expense-date").value = catalog.hoy;
+  $("#expense-toggle").addEventListener("click", () => {
+    form.hidden = !form.hidden;
+    $("#expense-toggle").setAttribute("aria-expanded", String(!form.hidden));
+    if (!form.hidden) $("#expense-category").focus();
+  });
+  bindForm("#expense-form", async (data) => {
+    needUser();
+    if (session.usuario.rol !== "ADMIN") throw new Error("Solo administración puede registrar gastos.");
+    if (!confirm(`¿Registrar un gasto de ${money(data.monto)} en ${expenseCategories[data.categoria]} por “${data.concepto}”? Se descontará de ese saldo.`)) return;
+    const result = await api("/admin/expenses", data);
+    await loadReports();
+    form.reset();
+    $("#expense-date").value = catalog.hoy;
+    showMessage(result.message, "success");
+  });
+}
+
 // Carga reportes administrativos
 async function loadReports(filters = {}) {
   needUser();
   reportData = await api(`/admin/reports?${new URLSearchParams(filters)}`);
   $("#admin-content").hidden = false;
+  const finance = reportData.finanzas;
+  $("#finance-stats").innerHTML = [
+    ["RESERVAS", "Reservas"],
+    ["TORNEOS", "Torneos"],
+    ["SUPER_CHACA", "Súper Chaca"],
+    ["GENERAL", "Total general"],
+  ].map(([key, title]) => {
+    const values = finance[key];
+    const school = key === "SUPER_CHACA"
+      ? `<p>Inscripciones: ${esc(money(values.inscripciones))} · Mensualidades: ${esc(money(values.mensualidades))}</p>`
+      : "";
+    return `<div class="stat"><span>${esc(title)}</span><p>Ingresó: ${esc(money(values.ingresos))}</p><p>Gastos: ${esc(money(values.gastos))}</p><strong class="${Number(values.saldo) < 0 ? "finance-negative" : ""}">Saldo: ${esc(money(values.saldo))}</strong>${school}</div>`;
+  }).join("");
+  $("#expenses-report").innerHTML = table(
+    ["Fecha", "Sale de", "Concepto", "Monto", "Registrado por", "Estado"],
+    reportData.gastos.map((g) => [
+      dates(g.fecha_gasto),
+      expenseCategories[g.categoria],
+      g.concepto,
+      money(g.monto),
+      g.registrado_por,
+      g.anulado_en ? `Anulado: ${g.motivo_anulacion}` : "Activo",
+    ]),
+    "Gastos registrados, incluidos los anulados para auditoría.",
+  );
+  const activeExpenses = reportData.gastos.filter((g) => !g.anulado_en);
+  $("#expenses-actions").innerHTML = activeExpenses.length
+    ? `<details class="panel"><summary>Corregir gastos registrados</summary><p class="small-text muted">La anulación conserva el registro original y devuelve el monto al saldo calculado.</p>${activeExpenses.map((g) => `<article class="cash-item"><div><h3>${esc(g.concepto)}</h3><p>${esc(expenseCategories[g.categoria])} · ${esc(dates(g.fecha_gasto))} · ${esc(money(g.monto))}</p></div><button class="btn secondary" type="button" data-void-expense="${esc(g.id)}">Anular gasto</button></article>`).join("")}</details>`
+    : "";
+  $$('[data-void-expense]', $("#expenses-actions")).forEach((button) =>
+    button.addEventListener("click", async () => {
+      const expense = activeExpenses.find((g) => String(g.id) === button.dataset.voidExpense);
+      if (!expense) return;
+      const reason = prompt(`Motivo para anular “${expense.concepto}” (${money(expense.monto)}):`);
+      if (reason === null) return;
+      if (reason.trim().length < 3 || reason.trim().length > 250) {
+        showMessage("Escribe un motivo de 3 a 250 caracteres.");
+        return;
+      }
+      if (!confirm("¿Confirmas la anulación? El registro permanecerá visible y el saldo se recalculará.")) return;
+      button.disabled = true;
+      try {
+        const result = await api(`/admin/expenses/${encodeURIComponent(expense.id)}/void`, {motivo: reason.trim()});
+        await loadReports();
+        showMessage(result.message, "success");
+      } catch (error) {
+        showMessage(error.message);
+        button.disabled = false;
+      }
+    }),
+  );
   const transferHost = $("#transfer-report");
   const transfers = reportData.transferencias_pendientes || [];
   transferHost.innerHTML = transfers.length
@@ -1089,7 +1168,6 @@ async function loadReports(filters = {}) {
     "Reservas, inscripciones y mensualidades de todos los clientes.",
   );
   $("#admin-stats").innerHTML = [
-    ["Importes registrados", money(reportData.resumen.ingresos)],
     ["Pagos registrados", reportData.resumen.pagos],
     ["Reservas pagadas", reportData.resumen.reservas],
     ["Equipos inscritos", reportData.resumen.equipos],
@@ -1100,13 +1178,14 @@ async function loadReports(filters = {}) {
     )
     .join("");
   $("#payments-report").innerHTML = table(
-    ["Fecha", "Titular", "Servicio", "Método", "Monto"],
+    ["Fecha", "Titular", "Servicio", "Método", "Monto", "Estado"],
     reportData.pagos.map((p) => [
       dates(p.pagado_en),
       p.nombre,
       p.descripcion,
       methods[p.metodo],
       money(p.monto),
+      p.simulado ? "Simulado" : "Confirmado",
     ]),
     "Pagos registrados en el rango seleccionado.",
   );
@@ -1211,6 +1290,7 @@ async function initialize() {
     if (page === "admin") {
       await loadReports();
       initManualReservation();
+      initExpenses();
     }
   } catch (error) {
     showMessage(error.message);

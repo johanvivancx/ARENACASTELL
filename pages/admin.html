@@ -16,10 +16,10 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261007-finanzas" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261007-reservas-manuales" defer></script>
+    <script src="../assets/app.js?v=20261007-finanzas" defer></script>
   </head>
 
   <body data-page="admin">
@@ -143,6 +143,48 @@
             El filtro de fechas afecta al reporte de pagos. Reservas, operaciones, escuela y
             ocupación muestran el registro completo.
           </p>
+
+          <section class="section-small" aria-labelledby="finance-title">
+            <div class="section-heading">
+              <div>
+                <h2 id="finance-title">Control de ingresos y gastos</h2>
+                <p class="small-text muted">Totales históricos de pagos confirmados. Los pagos pendientes y simulados no se suman. El filtro de fechas de arriba solo afecta a la auditoría de pagos.</p>
+              </div>
+              <button class="btn secondary" type="button" id="expense-toggle"
+                aria-controls="expense-form" aria-expanded="false">Gastos</button>
+            </div>
+            <div class="stats-grid finance-grid" id="finance-stats"></div>
+            <form method="post" id="expense-form" class="panel" hidden>
+              <h3>Registrar gasto</h3>
+              <p class="small-text muted">Elige de qué actividad sale el dinero. El gasto se descontará de ese saldo y del general. Si hubo un error, podrás anularlo conservando el historial.</p>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="expense-category">Sale de</label>
+                  <select id="expense-category" name="categoria" required>
+                    <option value="RESERVAS">Dinero de reservas</option>
+                    <option value="TORNEOS">Dinero de torneos</option>
+                    <option value="SUPER_CHACA">Dinero de Súper Chaca</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="expense-date">Fecha del gasto</label>
+                  <input id="expense-date" name="fecha_gasto" type="date" required />
+                </div>
+                <div class="field">
+                  <label for="expense-amount">Monto en USD</label>
+                  <input id="expense-amount" name="monto" type="number" min="0.01" max="9999999.99" step="0.01" inputmode="decimal" required />
+                </div>
+                <div class="field">
+                  <label for="expense-concept">Concepto o motivo</label>
+                  <input id="expense-concept" name="concepto" type="text" minlength="3" maxlength="180" placeholder="Ej.: trofeos para la final" required />
+                </div>
+              </div>
+              <div class="form-actions"><button class="btn" type="submit">Guardar gasto</button></div>
+            </form>
+            <h3>Historial de gastos</h3>
+            <div id="expenses-report"></div>
+            <div id="expenses-actions" class="cash-report"></div>
+          </section>
 
           <div class="stats-grid" id="admin-stats"></div>
 

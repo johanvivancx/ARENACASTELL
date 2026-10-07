@@ -77,7 +77,9 @@ El usuario ve las páginas creadas con HTML y CSS. `assets/app.js` toma los dato
 
 ## Base de datos
 
-La base se llama `arena_castell` y tiene 15 tablas. Allí se guardan usuarios, canchas, torneos, órdenes, reservas, equipos, jugadores, alumnos, mensualidades y pagos. Otras tablas controlan las sesiones, la recuperación de contraseñas, los intentos de acceso y la salida de correos.
+La base se llama `arena_castell` y tiene 16 tablas. Allí se guardan usuarios, canchas, torneos, órdenes, reservas, equipos, jugadores, alumnos, mensualidades, pagos y gastos. Otras tablas controlan las sesiones, la recuperación de contraseñas, los intentos de acceso y la salida de correos.
+
+El panel administrativo agrupa los pagos confirmados en reservas, torneos y Súper Chaca (inscripciones y mensualidades). Los gastos se registran por actividad y se descuentan del saldo correspondiente y del general. Los pagos pendientes o simulados no cuentan como dinero ingresado. Un gasto erróneo puede anularse con un motivo; permanece en el historial y deja de afectar el saldo. La tabla nueva se crea de forma idempotente al iniciar el servidor con `sql/migrations/008_control_financiero.sql`; la alternativa manual para pgAdmin es `sql/pgadmin/17_control_financiero.sql`. La migración no altera órdenes ni pagos anteriores.
 
 Separé la información para no repetirla. Por ejemplo, los datos del cliente se guardan una sola vez en `usuarios`. Después, cada orden se relaciona con ese usuario y con el servicio correspondiente. Los jugadores también se guardan por separado y se conectan con su equipo.
 

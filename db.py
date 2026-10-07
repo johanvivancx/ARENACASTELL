@@ -19,3 +19,9 @@ def conectar():
     with psycopg.connect(url, row_factory=dict_row, connect_timeout=5,
                          options="-c timezone=America/Guayaquil -c statement_timeout=10000") as conn:
         yield conn
+
+
+def preparar_control_financiero():
+    """Crea la tabla nueva al iniciar, sin tocar órdenes ni pagos históricos."""
+    with conectar() as conn:
+        conn.execute((ROOT / "sql/migrations/008_control_financiero.sql").read_text(encoding="utf8"))

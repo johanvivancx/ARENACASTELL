@@ -53,6 +53,9 @@ def test_http_csrf_auth_et_controle_acces(conn):
                 'hora':'12:00','horas':1}
         assert request('/api/admin/reservations',manual)[0]==403
         assert request('/api/admin/reservations',manual,registered['csrf'])[0]==403
+        expense={'categoria':'TORNEOS','concepto':'Trofeos','monto':'10.50',
+                 'fecha_gasto':str(datetime.now(s.TZ).date())}
+        assert request('/api/admin/expenses',expense,registered['csrf'])[0]==403
         assert request('/api/history')[0]==200
         assert request('/api/auth/logout',{},session['csrf'])[0]==403
         assert request('/api/auth/logout',{},registered['csrf'])[0]==200
@@ -141,6 +144,33 @@ def test_http_admin_registra_reserva_manual_y_ocupa_horario(conn):
         assert request(f"/api/admin/reservations/{order['id']}/cancel",{},session['csrf'])[0]==200
         _,slots,_=request(f'/api/availability?fecha={day}&cancha=1&horas=1')
         assert next(slot for slot in slots['horarios'] if slot['hora']=='14:00')['disponible']
+
+
+def test_http_admin_registra_y_anula_gasto(conn):
+    admin=s.registrar(conn,{'nombre':'Operador Gastos','cedula':cedula_demo(753),
+        'telefono':'0990000000','email':'gastos-http@arena.test',
+        'password':'ClaveOperador!2026','confirmacion':'ClaveOperador!2026','consentimiento':True})
+    conn.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s",(admin['id'],))
+    conn.commit()
+    with client() as request:
+        _,session,_=request('/api/session')
+        status,session,_=request('/api/auth/login',
+            {'email':'gastos-http@arena.test','password':'ClaveOperador!2026'},session['csrf'])
+        assert status==200
+        expense={'categoria':'TORNEOS','concepto':'Trofeos finales','monto':'12.50',
+                 'fecha_gasto':str(datetime.now(s.TZ).date())}
+        assert request('/api/admin/expenses',expense)[0]==403
+        status,created,_=request('/api/admin/expenses',expense,session['csrf'])
+        assert status==200
+        _,reports,_=request('/api/admin/reports')
+        assert reports['finanzas']['TORNEOS']['gastos']=='12.50'
+        assert request(f"/api/admin/expenses/{created['id']}/void",{'motivo':'Error'})[0]==403
+        status,_,_=request(f"/api/admin/expenses/{created['id']}/void",
+                           {'motivo':'Registro duplicado'},session['csrf'])
+        assert status==200
+        _,reports,_=request('/api/admin/reports')
+        assert reports['finanzas']['TORNEOS']['gastos']=='0'
+        assert reports['gastos'][0]['motivo_anulacion']=='Registro duplicado'
 
 
 class InspectHTML(HTMLParser):

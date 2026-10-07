@@ -1416,6 +1416,20 @@ td small {
   color: var(--accent-soft);
   margin-top: 8px;
 }
+.finance-grid .stat {
+  min-width: 0;
+}
+.finance-grid .stat strong {
+  font-size: clamp(20px, 2vw, 27px);
+}
+.finance-grid .stat p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.finance-grid .stat .finance-negative {
+  color: #ff8d8d;
+}
 
 /* Agrupa cada correo */
 .mail-item {

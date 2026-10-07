@@ -1,6 +1,7 @@
 """Casos de uso y transacciones. El navegador no decide precios ni permisos."""
 
 from datetime import date, datetime, timedelta
+from decimal import Decimal, InvalidOperation
 from zoneinfo import ZoneInfo
 from correos import encolar_correo, habilitado, url_publica
 import hashlib
@@ -22,6 +23,7 @@ from models import (
 
 TZ = ZoneInfo("America/Guayaquil")
 METHODS = {"TRANSFERENCIA", "EFECTIVO"}
+EXPENSE_CATEGORIES = {"RESERVAS", "TORNEOS", "SUPER_CHACA"}
 
 
 # Representa errores de solicitud
@@ -724,6 +726,53 @@ def actualizar_perfil(conn, uid, data):
     return {"message": "Tu perfil se actualizó correctamente."}
 
 
+# Registra un gasto verificable; nunca se descuenta de una orden o pago.
+def registrar_gasto(conn, admin_uid, data):
+    exigir_administrador(conn, admin_uid)
+    categoria = str(data.get("categoria", ""))
+    if categoria not in EXPENSE_CATEGORIES:
+        raise ErrorValidacion("Selecciona reservas, torneos o Súper Chaca para el gasto.")
+    concepto = texto(data.get("concepto"), "Concepto del gasto", 3, 180)
+    raw = str(data.get("monto", ""))
+    if not re.fullmatch(r"\d{1,7}(?:\.\d{1,2})?", raw):
+        raise ErrorValidacion("Monto: escribe dólares con hasta dos decimales.")
+    try:
+        monto = Decimal(raw)
+    except InvalidOperation:
+        raise ErrorValidacion("Monto: escribe una cantidad válida.") from None
+    if monto <= 0:
+        raise ErrorValidacion("El gasto debe ser mayor que cero.")
+    dia = fecha(data.get("fecha_gasto"))
+    if not date(2000, 1, 1) <= dia <= datetime.now(TZ).date():
+        raise ErrorValidacion("La fecha del gasto debe ser de hoy o anterior.")
+    row = conn.execute(
+        """INSERT INTO gastos(categoria,concepto,monto,fecha_gasto,registrado_por)
+           VALUES(%s,%s,%s,%s,%s) RETURNING id""",
+        (categoria, concepto, monto, dia, admin_uid),
+    ).fetchone()
+    return {"id": row["id"], "message": "Gasto registrado en el control financiero."}
+
+
+def anular_gasto(conn, admin_uid, expense_id, data):
+    """Corrige errores conservando el registro y su autoría."""
+    exigir_administrador(conn, admin_uid)
+    motivo = texto(data.get("motivo"), "Motivo de anulación", 3, 250)
+    expense = conn.execute(
+        "SELECT id,anulado_en FROM gastos WHERE id=%s FOR UPDATE",
+        (numero(expense_id, "Gasto"),),
+    ).fetchone()
+    if not expense:
+        raise HTTPError(404, "No encontramos ese gasto.")
+    if expense["anulado_en"]:
+        raise ErrorValidacion("Este gasto ya fue anulado.")
+    conn.execute(
+        """UPDATE gastos SET anulado_en=current_timestamp,anulado_por=%s,
+           motivo_anulacion=%s WHERE id=%s""",
+        (admin_uid, motivo, expense["id"]),
+    )
+    return {"id": expense["id"], "message": "Gasto anulado; el saldo fue recalculado."}
+
+
 # Consulta reportes administrativos
 def reportes(conn, uid, data):
     exigir_administrador(conn, uid)
@@ -736,8 +785,46 @@ def reportes(conn, uid, data):
        WHERE (pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s ORDER BY pagado_en DESC""",
         (start, end),
     ).fetchall()
+    received = conn.execute(
+        """SELECT o.tipo,coalesce(sum(p.monto),0) AS total
+           FROM pagos p JOIN ordenes o ON o.id=p.orden_id
+           WHERE p.simulado=false AND o.estado='PAGADA'
+           GROUP BY o.tipo"""
+    ).fetchall()
+    expenses = conn.execute(
+        """SELECT g.id,g.categoria,g.concepto,g.monto,g.fecha_gasto,g.creado_en,
+           g.anulado_en,g.motivo_anulacion,u.nombre AS registrado_por,
+           a.nombre AS anulado_por
+           FROM gastos g JOIN usuarios u ON u.id=g.registrado_por
+           LEFT JOIN usuarios a ON a.id=g.anulado_por
+           ORDER BY g.fecha_gasto DESC,g.id DESC"""
+    ).fetchall()
+    incomes = {kind: Decimal("0") for kind in ("RESERVA", "TORNEO", "ESCUELA", "MENSUALIDAD")}
+    for row in received:
+        incomes[row["tipo"]] = row["total"]
+    spent = {category: Decimal("0") for category in EXPENSE_CATEGORIES}
+    for row in expenses:
+        if row["anulado_en"] is None:
+            spent[row["categoria"]] += row["monto"]
+    categories = {
+        "RESERVAS": incomes["RESERVA"],
+        "TORNEOS": incomes["TORNEO"],
+        "SUPER_CHACA": incomes["ESCUELA"] + incomes["MENSUALIDAD"],
+    }
+    finance = {
+        category: {"ingresos": income, "gastos": spent[category], "saldo": income - spent[category]}
+        for category, income in categories.items()
+    }
+    finance["GENERAL"] = {
+        key: sum((values[key] for values in finance.values()), Decimal("0"))
+        for key in ("ingresos", "gastos", "saldo")
+    }
+    finance["SUPER_CHACA"]["inscripciones"] = incomes["ESCUELA"]
+    finance["SUPER_CHACA"]["mensualidades"] = incomes["MENSUALIDAD"]
     return {
         "pagos": payments,
+        "gastos": expenses,
+        "finanzas": finance,
         "efectivo_pendiente": conn.execute(
             """SELECT o.id,o.descripcion,o.monto,o.creado_en,
                 u.nombre AS titular FROM ordenes o JOIN usuarios u ON u.id=o.usuario_id
