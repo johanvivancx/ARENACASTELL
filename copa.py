@@ -75,6 +75,39 @@ def _resultados(conn):
     return results, by_match
 
 
+def calcular_posiciones(matches, groups):
+    """Recalcula desde cero; no arrastra puntos de tablas guardadas anteriormente."""
+    standings = {
+        group: [[row[0], 0, 0, 0, 0, 0, 0, 0, 0, 0] for row in rows]
+        for group, rows in groups.items()
+    }
+    lookup = {row[0]: row for rows in standings.values() for row in rows}
+    for match in matches:
+        if match.get("status") not in (None, "final", "finalizado"):
+            continue
+        home, away = match.get("homeGoals"), match.get("awayGoals")
+        if type(home) is not int or type(away) is not int or home < 0 or away < 0:
+            continue
+        for country, scored, received in ((match["home"], home, away),
+                                          (match["away"], away, home)):
+            row = lookup[country]
+            row[2] += 1
+            row[3] += scored > received
+            row[4] += scored == received
+            row[5] += scored < received
+            row[6] += scored
+            row[7] += received
+    for rows in standings.values():
+        for row in rows:
+            row[1] = row[3] * 3 + row[4]
+            row[8] = row[6] - row[7]
+        # Nombre solo estabiliza la presentación; no es un desempate deportivo.
+        rows.sort(key=lambda row: (-row[1], -row[8], -row[6], _normalizar(row[0])))
+        for position, row in enumerate(rows, 1):
+            row[9] = position
+    return standings
+
+
 def estado_publico(conn):
     data = base()
     fixtures, _ = catalogo()
@@ -88,8 +121,6 @@ def estado_publico(conn):
     for key, fixture in fixtures.items():
         if not any(m.get("id") == key for m in matches):
             matches.append(deepcopy(fixture))
-    standings = deepcopy(data["standings"])
-    lookup = {row[0]: row for rows in standings.values() for row in rows}
     scorers = deepcopy(data["scorers"])
     added_scorers = {}
     pending = 0
@@ -100,16 +131,6 @@ def estado_publico(conn):
         home, away = result["goles_local"], result["goles_visitante"]
         match.update({"homeGoals": home, "awayGoals": away, "status": "final",
                       "revision": result["revision"]})
-        for country, scored, received in ((match["home"], home, away), (match["away"], away, home)):
-            row = lookup[country]
-            row[1] += 3 if scored > received else 1 if scored == received else 0
-            row[2] += 1
-            row[3] += scored > received
-            row[4] += scored == received
-            row[5] += scored < received
-            row[6] += scored
-            row[7] += received
-            row[8] = row[6] - row[7]
         scored_goals = goals.get(match["id"], [])
         missing = home + away - sum(g["goles"] for g in scored_goals)
         match["goleadores_pendientes"] = missing
@@ -123,10 +144,7 @@ def estado_publico(conn):
                     added_scorers[key] = {"name": goal["jugador_nombre"], "number": goal["dorsal"],
                                           "country": goal["equipo"], "goals": 0}
                 added_scorers[key]["goals"] += goal["goles"]
-    for rows in standings.values():
-        rows.sort(key=lambda row: (-row[1], -row[8], -row[6], row[9]))
-        for position, row in enumerate(rows, 1):
-            row[9] = position
+    standings = calcular_posiciones(matches, data["standings"])
     scorers.extend(added_scorers.values())
     scorers.sort(key=lambda row: -row["goals"])
     round_seven = [f for f in fixtures.values() if f["round"] == 7]

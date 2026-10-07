@@ -7,6 +7,27 @@ import services as s
 from db import preparar_resultados_copa
 
 
+def test_posiciones_historicas_recalculadas_desde_los_partidos():
+    data = copa.base()
+    finished = [m for m in data['matches'] if m.get('status') not in ('suspended','rescheduled','scheduled')]
+    assert len(finished) == 41
+    assert sum(m['homeGoals']+m['awayGoals'] for m in finished) == 399
+    assert sum(player['goals'] for player in data['scorers']) == 395
+    standings = copa.calcular_posiciones(data['matches'], data['standings'])
+    assert standings == data['standings']
+    for rows in standings.values():
+        assert sum(row[6] for row in rows) == sum(row[7] for row in rows)
+        assert all(row[1] == row[3]*3+row[4] and row[2] == row[3]+row[4]+row[5]
+                   and row[8] == row[6]-row[7] for row in rows)
+
+
+def test_empate_completo_se_muestra_en_orden_alfabetico():
+    groups = {'Grupo de prueba': [['Zeta'], ['Álfa']]}
+    rows = copa.calcular_posiciones([], groups)['Grupo de prueba']
+    assert [row[0] for row in rows] == ['Álfa', 'Zeta']
+    assert [row[9] for row in rows] == [1, 2]
+
+
 def test_migracion_copa_repetible(conn):
     preparar_resultados_copa()
     preparar_resultados_copa()
