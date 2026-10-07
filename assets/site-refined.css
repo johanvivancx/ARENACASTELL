@@ -1,0 +1,91 @@
+/* Lenguaje visual compartido de las páginas internas de Arena Castell. */
+body {
+  --font: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --bg: #0c0e0f;
+  --surface: #17191b;
+  --surface2: #25282a;
+  --line: #42474a;
+  --text: #f5f4f1;
+  --muted: #bdc1c1;
+  --accent: #e1e2df;
+  --accent-soft: #f2f1ec;
+  --radius: 9px;
+  background: #0c0e0f;
+  color: var(--text);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+.site-header { background: #0c0e0f; border-bottom: 1px solid #373b3e; box-shadow: none; }
+.nav-wrap { min-height: 88px; }
+.brand strong { font-weight: 720; letter-spacing: .055em; }
+.main-nav a { font-size: 13px; font-weight: 600; }
+.main-nav a[aria-current="page"]::after { background: #e1e2df; }
+.eyebrow { color: #c9ccca; letter-spacing: .15em; font-weight: 700; }
+h1, h2 { letter-spacing: -.04em; }
+h1 { font-size: clamp(34px, 4.4vw, 58px); line-height: 1.09; font-weight: 730; }
+h2 { line-height: 1.16; font-weight: 680; }
+.page-intro h1 { margin-bottom: 18px; }
+.page-intro p { color: #c8cccb; font-size: 16px; line-height: 1.7; }
+.section-heading h2, .visit-copy h2 { font-size: clamp(31px, 3vw, 44px); }
+.btn {
+  min-height: 49px;
+  padding: 12px 21px;
+  border: 1px solid #e5e5e2;
+  border-radius: 5px;
+  background: #e5e5e2;
+  color: #17191a;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+.btn:hover { background: #ffffff; border-color: #ffffff; }
+.btn.secondary { background: #1c2022; border: 1px solid #838b8e; color: #f3f3f1; }
+.btn.secondary:hover { background: #303538; border-color: #d5d8d6; }
+.btn.quiet { border-color: transparent; background: transparent; color: #eceeed; }
+.btn.danger { background: #ad515b; border-color: #ad515b; color: #fff; }
+.btn.danger:hover { background: #bb616a; border-color: #bb616a; }
+.service-hero,
+.panel,
+.auth-card,
+.category,
+.stat,
+.mail-item,
+.flyer,
+.map-frame,
+.cash-item {
+  border-color: #4a5153;
+  border-radius: 9px;
+  background: #1a1d1f;
+  box-shadow: none;
+}
+.service-copy h2, .panel h2, .auth-card h1, .auth-card h2 { letter-spacing: -.03em; }
+.service-copy p, .panel p, .auth-story p { line-height: 1.7; }
+.section.alt { background: #131617; border-color: #3b4143; }
+.text-link { color: #e5e8e6; font-size: 13px; }
+.field label, legend { font-size: 13px; }
+.field input, .field select, .field textarea {
+  border: 1px solid #737c7f;
+  border-radius: 6px;
+  background: #111415;
+  color: #f5f4f1;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: #d9ddda; background: #181c1d; }
+.field input::placeholder, .field textarea::placeholder { color: #abb2b2; }
+.field input[readonly] { background: #24282a; color: #d9ddde; }
+.form-block > legend { font-size: 16px; }
+.payment-choice { border-color: #737c7f; background: #171a1c; }
+.payment-choice:has(input:checked) { border-color: #d5d9d7; background: #262a2c; box-shadow: inset 4px 0 #e1e2df; }
+.table-wrap { border-color: #4a5153; box-shadow: none; }
+caption, th { background: #252a2c; }
+td { color: #e4e7e5; }
+.cta-strip { border-color: #5a6365; border-radius: 8px; background: #202426; box-shadow: none; }
+.cta-strip h3 { font-family: Georgia, "Times New Roman", serif; font-size: 27px; }
+.site-footer { background: #0a0c0d; border-color: #383d3e; }
+a:focus-visible, button:focus-visible { outline: 3px solid #e9ece9; outline-offset: 4px; }
+@media (max-width: 820px) {
+  .main-nav { background: #141718; }
+  .nav-wrap { min-height: 82px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover { transform: none; }
+}
