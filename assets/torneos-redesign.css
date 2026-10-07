@@ -1,0 +1,153 @@
+/* Torneos: la Copa actual primero, la próxima edición después y el archivo al final. */
+body[data-page="torneos"] .page-intro {
+  padding-bottom: 22px;
+}
+body[data-page="torneos"] .page-intro p {
+  max-width: 660px;
+}
+body[data-page="torneos"] .content-section {
+  display: grid;
+  gap: clamp(32px, 5vw, 68px);
+}
+body[data-page="torneos"] .content-section > * {
+  min-width: 0;
+}
+body[data-page="torneos"] #copa-castell,
+body[data-page="torneos"] #pasochoa-sexta,
+body[data-page="torneos"] #pasochoa-cup {
+  scroll-margin-top: 110px;
+}
+.tournament-index {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.tournament-index a {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 64px;
+  padding: 17px 18px;
+  border: 1px solid #394146;
+  border-radius: 9px;
+  background: #171b1d;
+  color: #f3f3f1;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .2s ease, border-color .2s ease;
+}
+.tournament-index a:hover,
+.tournament-index a:focus-visible { background: #22282b; border-color: #aab4b8; }
+.tournament-index span { color: #91a7b0; font-size: 12px; font-variant-numeric: tabular-nums; }
+.tournament-index small { margin-left: auto; color: #b9c4c7; font-size: 11px; font-weight: 500; text-align: right; }
+.tournament-live {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  min-height: 420px;
+  overflow: hidden;
+  border: 1px solid #485256;
+  border-radius: 16px;
+  background: radial-gradient(circle at 12% 14%, #293236 0, #171c1e 52%, #111415 100%);
+}
+.tournament-live-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(26px, 4vw, 58px);
+}
+.tournament-live-copy .eyebrow { margin: 0 0 20px; }
+.tournament-live-status {
+  display: inline-block;
+  margin-bottom: 15px;
+  padding: 7px 11px;
+  border: 1px solid #7e969c;
+  border-radius: 999px;
+  color: #d8e8e9;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tournament-live h2 {
+  max-width: 640px;
+  margin: 0 0 16px;
+  font-size: clamp(34px, 4vw, 56px);
+  line-height: 1.06;
+}
+.tournament-live-copy > p:not(.eyebrow) { max-width: 500px; margin: 0 0 25px; color: #d3d9da; line-height: 1.6; }
+.tournament-live-actions,
+.pasochoa-next-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.tournament-live-meta { display: flex; flex-wrap: wrap; gap: 7px 19px; margin-top: 34px; color: #afbdc0; font-size: 12px; }
+.tournament-live-photo { position: relative; min-width: 0; min-height: 100%; margin: 0; }
+.tournament-live-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #171c1e 0%, transparent 22%); pointer-events: none; }
+.tournament-live-photo img { display: block; width: 100%; height: 100%; max-height: 530px; object-fit: cover; object-position: center 58%; }
+.tournament-live-photo figcaption { position: absolute; z-index: 1; right: 16px; bottom: 13px; padding: 7px 10px; border-radius: 5px; background: rgba(8, 12, 13, .76); color: #e8ebeb; font-size: 11px; }
+body[data-page="torneos"] .mundial-section { margin: 0; padding: clamp(20px, 3vw, 36px); border-color: #394246; border-radius: 15px; background: #121617; }
+.copa-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 22px; margin-bottom: 24px; }
+.copa-section-heading .eyebrow { margin: 0 0 10px; }
+.copa-section-heading h2 { margin: 0; font-size: clamp(29px, 3vw, 40px); }
+.copa-section-heading > p { max-width: 360px; margin: 0; color: #bbc5c7; font-size: 13px; line-height: 1.6; }
+.copa-section-nav { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 18px; border-bottom: 1px solid #394246; }
+.copa-section-nav a { display: inline-flex; align-items: center; justify-content: center; min-height: 43px; padding: 9px 14px; border: 1px solid #465156; border-radius: 7px; background: #1a2022; color: #e5e9e9; font-size: 13px; font-weight: 650; text-decoration: none; }
+.copa-section-nav a:hover,
+.copa-section-nav a:focus-visible { background: #2a3438; border-color: #9eafb4; }
+.copa-section-nav a.is-active { border-color: #ced8da; background: #dce4e4; color: #101617; }
+body[data-page="torneos"] .mundial-section > section { margin-top: 24px; }
+body[data-page="torneos"] .mundial-section > section[hidden] { display: none; }
+body[data-page="torneos"] .mundial-section > section > h3 { margin-top: 0; }
+.copa-more-info { margin-top: 28px; border-top: 1px solid #394246; }
+.copa-more-info summary { cursor: pointer; padding: 18px 4px 0; color: #c5d2d5; font-size: 13px; font-weight: 700; }
+.copa-more-info-body { padding: 10px 4px 6px; color: #c9d0d2; }
+.copa-more-info-body .event-facts { margin-block: 18px; }
+.pasochoa-next { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .83fr); overflow: hidden; border: 1px solid #465054; border-radius: 15px; background: #1a1f21; }
+.pasochoa-next-copy { padding: clamp(26px, 4vw, 52px); }
+.pasochoa-next .eyebrow { margin: 0 0 14px; }
+.pasochoa-next h2 { margin: 0 0 17px; font-size: clamp(32px, 3.5vw, 49px); }
+.pasochoa-next h2 span { display: block; color: #bdcbd0; font-size: .58em; letter-spacing: -.02em; }
+.pasochoa-next-copy > p:not(.eyebrow) { max-width: 560px; color: #d3dbdc; line-height: 1.6; }
+.pasochoa-next .tournament-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; margin-block: 25px; }
+.pasochoa-next .tournament-facts > div { min-width: 0; padding: 13px 0; border-top: 1px solid #455155; }
+.pasochoa-next .tournament-facts dt { color: #aebdc0; font-size: 12px; }
+.pasochoa-next .tournament-facts dd { margin: 5px 0 0; font-weight: 700; }
+.pasochoa-next-status { display: inline-block; padding: 8px 11px; border: 1px solid #6d8289; border-radius: 7px; font-size: 12px; font-weight: 700; }
+.pasochoa-next-copy .pasochoa-next-note { font-size: 12px; }
+.pasochoa-next-actions { margin-top: 22px; }
+.pasochoa-facebook { align-self: center; padding: 8px 4px; color: #d0dcde; font-size: 12px; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.pasochoa-facebook:hover { color: #fff; }
+.pasochoa-next-photo { position: relative; min-width: 0; margin: 0; }
+.pasochoa-next-photo img { display: block; width: 100%; height: 100%; max-height: 620px; object-fit: cover; object-position: center 55%; }
+.pasochoa-next-photo figcaption { position: absolute; right: 15px; bottom: 14px; left: 15px; padding: 8px 10px; border-radius: 5px; background: rgba(9, 14, 15, .77); color: #fff; font-size: 11px; text-align: center; }
+body[data-page="torneos"] .pasochoa-section { margin: 0; padding: clamp(24px, 3vw, 36px); border: 1px solid #394246; border-radius: 15px; background: #131718; }
+body[data-page="torneos"] .pasochoa-intro { margin-bottom: 0; }
+body[data-page="torneos"] .pasochoa-intro h2 { margin-bottom: 15px; }
+body[data-page="torneos"] .pasochoa-intro .pasochoa-photo img { aspect-ratio: 3 / 2; object-fit: cover; }
+.pasochoa-archive-details { margin-top: 23px; border-top: 1px solid #394246; }
+.pasochoa-archive-details summary { cursor: pointer; padding: 19px 0; color: #d5e0e1; font-weight: 700; }
+.pasochoa-archive-details .pasochoa-gallery { margin-top: 4px; }
+@media (max-width: 850px) {
+  .tournament-index { grid-template-columns: 1fr; }
+  .tournament-index a { min-height: 50px; }
+  .tournament-live { grid-template-columns: 1fr; }
+  .tournament-live-photo { min-height: 220px; max-height: 250px; }
+  .tournament-live-photo::after { background: linear-gradient(0deg, #171c1e, transparent 25%); }
+  .tournament-live-photo img { height: 250px; }
+  .pasochoa-next { grid-template-columns: 1fr; }
+  .pasochoa-next-photo { order: -1; max-height: 360px; }
+  .pasochoa-next-photo img { height: 360px; object-position: center 59%; }
+}
+@media (max-width: 600px) {
+  body[data-page="torneos"] .page-intro { padding-top: 32px; }
+  body[data-page="torneos"] .content-section { gap: 26px; }
+  .tournament-index a { padding: 12px 14px; }
+  .tournament-live h2 { font-size: clamp(31px, 9vw, 42px); }
+  .tournament-live-copy, .pasochoa-next-copy { padding: 25px 21px; }
+  .tournament-live-actions .btn, .pasochoa-next-actions .btn { width: 100%; text-align: center; }
+  .copa-section-heading { display: block; }
+  .copa-section-heading > p { margin-top: 10px; }
+  .copa-section-nav { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 12px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+  .copa-section-nav a { flex: 0 0 auto; scroll-snap-align: start; white-space: nowrap; }
+  .pasochoa-next .tournament-facts { gap: 6px 14px; }
+  body[data-page="torneos"] .pasochoa-section { padding: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tournament-index a { transition: none; }
+}
