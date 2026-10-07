@@ -148,6 +148,15 @@ def test_http_admin_registra_reserva_manual_y_ocupa_horario(conn):
         assert request(f"/api/admin/reservations/{order['id']}/cancel",{},session['csrf'])[0]==200
         _,slots,_=request(f'/api/availability?fecha={day}&cancha=1&horas=1')
         assert next(slot for slot in slots['horarios'] if slot['hora']=='14:00')['disponible']
+        _,preview,_=request('/api/admin/test-data-preview')
+        assert preview['resumen']['ordenes']==1
+        conn.commit()  # Libera la lectura de esta conexión antes del bloqueo exclusivo.
+        assert request('/api/admin/test-data-reset',{'confirmacion':'BORRAR DATOS DE PRUEBA',
+            'password':'ClaveOperador!2026','resumen':preview['resumen']})[0]==403
+        status,removed,_=request('/api/admin/test-data-reset',{'confirmacion':'BORRAR DATOS DE PRUEBA',
+            'password':'ClaveOperador!2026','resumen':preview['resumen']},session['csrf'])
+        assert status==200 and removed['eliminados']['ordenes']==1
+        assert request('/api/admin/test-data-preview')[1]['resumen']['ordenes']==0
 
 
 def test_http_admin_registra_y_anula_gasto(conn):

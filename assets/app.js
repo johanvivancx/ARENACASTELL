@@ -1094,6 +1094,79 @@ async function initCopaResults() {
   });
 }
 
+// Muestra una sola tarea administrativa y mantiene el resumen como inicio.
+function initAdminWorkspace() {
+  const menu = $(".admin-section-nav");
+  if (!menu) return;
+  const intro = $("#admin-menu-heading");
+  const toolbar = $("#admin-panel-toolbar");
+  const overview = $("#admin-resumen");
+  const panels = $$(".admin-workspace-section", $("#admin-content"))
+    .filter((section) => section !== overview);
+  const openPanel = (id) => {
+    const panel = panels.find((section) => section.id === id);
+    if (!panel) return;
+    intro.hidden = true;
+    menu.hidden = true;
+    overview.hidden = true;
+    toolbar.hidden = false;
+    panels.forEach((section) => { section.hidden = section !== panel; });
+    $("#admin-current-panel").textContent = panel.querySelector("h2")?.textContent || "";
+    panel.scrollIntoView({behavior: "smooth", block: "start"});
+  };
+  const showMenu = () => {
+    intro.hidden = false;
+    menu.hidden = false;
+    overview.hidden = false;
+    toolbar.hidden = true;
+    panels.forEach((section) => { section.hidden = true; });
+    intro.scrollIntoView({behavior: "smooth", block: "start"});
+  };
+  $$('[data-admin-target]', menu).forEach((button) => {
+    button.addEventListener("click", () => openPanel(button.dataset.adminTarget));
+  });
+  $("#admin-back-to-menu").addEventListener("click", showMenu);
+  const deepLink = location.hash.slice(1);
+  if (panels.some((section) => section.id === deepLink)) openPanel(deepLink);
+}
+
+// Permite revisar cantidades antes de reiniciar los datos operativos de prueba.
+function initAdminReset() {
+  const form = $("#admin-reset-form");
+  if (!form) return;
+  const previewHost = $("#reset-preview");
+  const labels = {
+    clientes: "Cuentas de clientes", ordenes: "Órdenes", reservas: "Reservas",
+    pagos: "Pagos", gastos: "Gastos", equipos: "Equipos", jugadores: "Jugadores",
+    inscripciones: "Inscripciones", mensualidades: "Mensualidades", correos: "Correos guardados",
+  };
+  let expected = null;
+  const loadPreview = async () => {
+    needUser();
+    const result = await api("/admin/test-data-preview");
+    expected = result.resumen;
+    previewHost.innerHTML = `<dl>${Object.entries(labels).map(([key, label]) =>
+      `<div><dt>${esc(label)}</dt><dd>${esc(expected[key])}</dd></div>`).join("")}</dl>`;
+    form.hidden = !Object.values(expected).some(Number);
+  };
+  $("#reset-preview-button").addEventListener("click", async () => {
+    try { await loadPreview(); } catch (error) { showMessage(error.message); }
+  });
+  bindForm("#admin-reset-form", async (data) => {
+    if (!expected) throw new Error("Revisa primero los registros que se eliminarán.");
+    if (!confirm("Esta acción eliminará permanentemente los datos operativos de prueba y las cuentas de clientes. Se conservarán los administradores, la configuración y Copa Castell. ¿Continuar?")) return;
+    try {
+      const result = await api("/admin/test-data-reset", {...data, resumen: expected});
+      form.reset();
+      await loadReports();
+      await loadPreview();
+      showMessage(result.message, "success");
+    } finally {
+      $("#reset-password").value = "";
+    }
+  });
+}
+
 // Carga reportes administrativos
 async function loadReports(filters = {}) {
   needUser();
@@ -1394,6 +1467,8 @@ async function initialize() {
     if (page === "team") await loadTeam();
     if (page === "admin") {
       await loadReports();
+      initAdminWorkspace();
+      initAdminReset();
       initManualReservation();
       initExpenses();
       await initCopaResults();

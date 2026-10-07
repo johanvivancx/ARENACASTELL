@@ -16,10 +16,10 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261007-admin-orden" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261007-admin-paneles" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261007-admin-orden" defer></script>
+    <script src="../assets/app.js?v=20261007-admin-paneles" defer></script>
   </head>
 
   <body data-page="admin">
@@ -115,17 +115,27 @@
         <div id="form-message" role="alert" tabindex="-1" hidden></div>
 
         <div id="admin-content" hidden>
+          <div id="admin-menu-heading" class="admin-menu-heading">
+            <p class="eyebrow">PANEL DE ADMINISTRACIÓN</p>
+            <h2>¿Qué quieres gestionar?</h2>
+            <p>Elige una tarea. Cada área se abre por separado para que puedas trabajar sin distracciones.</p>
+          </div>
           <nav class="admin-section-nav" aria-label="Secciones del panel de administrador">
-            <a href="#admin-resumen">Resumen</a>
-            <a href="#admin-copa">Copa Castell</a>
-            <a href="#admin-finanzas">Ingresos y gastos</a>
-            <a href="#admin-reservas">Reservas</a>
-            <a href="#admin-cobros">Cobros pendientes</a>
-            <a href="#admin-reportes">Operaciones</a>
-            <a href="#admin-pagos">Pagos</a>
-            <a href="#admin-escuela">Súper Chaca</a>
-            <a href="#admin-ocupacion">Ocupación</a>
+            <button type="button" data-admin-target="admin-copa"><span>01 / TORNEO</span><strong>Resultados de Copa Castell</strong><small>Marcador, goleadores y tabla de posiciones</small></button>
+            <button type="button" data-admin-target="admin-reservas"><span>02 / CANCHA</span><strong>Reservas</strong><small>Registrar, consultar y corregir horarios</small></button>
+            <button type="button" data-admin-target="admin-cobros"><span>03 / COBROS</span><strong>Pendientes por cobrar</strong><small>Transferencias y efectivo en cancha</small></button>
+            <button type="button" data-admin-target="admin-finanzas"><span>04 / FINANZAS</span><strong>Ingresos y gastos</strong><small>Saldos por actividad e historial de gastos</small></button>
+            <button type="button" data-admin-target="admin-reportes"><span>05 / HISTORIAL</span><strong>Operaciones</strong><small>Consulta todas las operaciones</small></button>
+            <button type="button" data-admin-target="admin-pagos"><span>06 / HISTORIAL</span><strong>Auditoría de pagos</strong><small>Filtra por fecha y exporta CSV</small></button>
+            <button type="button" data-admin-target="admin-escuela"><span>07 / ESCUELA</span><strong>Súper Chaca</strong><small>Inscripciones y mensualidades</small></button>
+            <button type="button" data-admin-target="admin-ocupacion"><span>08 / CANCHA</span><strong>Ocupación</strong><small>Horarios ocupados y disponibilidad</small></button>
+            <button type="button" data-admin-target="admin-correos"><span>09 / SISTEMA</span><strong>Envío de correos</strong><small>Estado de los mensajes enviados</small></button>
+            <button type="button" data-admin-target="admin-limpieza" class="admin-nav-danger"><span>10 / MANTENIMIENTO</span><strong>Vaciar datos de prueba</strong><small>Reinicia registros operativos con confirmación</small></button>
           </nav>
+          <div id="admin-panel-toolbar" class="admin-panel-toolbar" hidden>
+            <button id="admin-back-to-menu" type="button" class="btn secondary">← Volver al menú</button>
+            <span id="admin-current-panel"></span>
+          </div>
 
           <section class="admin-workspace-section" id="admin-resumen" aria-labelledby="admin-resumen-title">
             <h2 id="admin-resumen-title">Resumen general</h2>
@@ -133,7 +143,7 @@
             <div class="stats-grid" id="admin-stats"></div>
           </section>
 
-          <section class="admin-workspace-section" id="admin-copa" aria-labelledby="copa-admin-title">
+          <section class="admin-workspace-section" id="admin-copa" aria-labelledby="copa-admin-title" hidden>
             <h2 id="copa-admin-title">Resultados de Copa Castell</h2>
             <p class="small-text muted">Publica el marcador final desde aquí. La página del torneo actualiza resultados, posiciones y goleadores aproximadamente cada 30 segundos. Alemania–Venezuela cuenta para la fecha 6.</p>
             <form method="post" id="copa-result-form" class="panel" hidden>
@@ -158,7 +168,7 @@
             </form>
           </section>
 
-          <section class="admin-workspace-section" id="admin-finanzas" aria-labelledby="finance-title">
+          <section class="admin-workspace-section" id="admin-finanzas" aria-labelledby="finance-title" hidden>
             <div class="section-heading">
               <div>
                 <h2 id="finance-title">Control de ingresos y gastos</h2>
@@ -200,7 +210,7 @@
             <div id="expenses-actions" class="cash-report"></div>
           </section>
 
-          <section class="admin-workspace-section" id="admin-reservas" aria-labelledby="admin-reservas-title">
+          <section class="admin-workspace-section" id="admin-reservas" aria-labelledby="admin-reservas-title" hidden>
           <div class="section-heading">
             <div>
               <h2 id="admin-reservas-title">Reservas realizadas</h2>
@@ -277,7 +287,7 @@
           </details>
           </section>
 
-          <section class="admin-workspace-section" id="admin-reportes" aria-labelledby="admin-operaciones-title">
+          <section class="admin-workspace-section" id="admin-reportes" aria-labelledby="admin-operaciones-title" hidden>
           <div class="admin-report-block">
             <h2 id="admin-operaciones-title">Todas las operaciones</h2>
 
@@ -286,7 +296,7 @@
 
           </section>
 
-          <section class="admin-workspace-section" id="admin-cobros" aria-labelledby="transfer-report-title">
+          <section class="admin-workspace-section" id="admin-cobros" aria-labelledby="transfer-report-title" hidden>
           <section class="admin-report-block" aria-labelledby="transfer-report-title">
             <h2 id="transfer-report-title">Transferencias por revisar</h2>
             <p class="small-text muted">Comprueba el abono en tu banco antes de aprobarlo. Una referencia enviada por el cliente no demuestra que recibiste el dinero. Al aprobar, se vuelve a comprobar el horario o cupo.</p>
@@ -305,7 +315,7 @@
 
           </section>
 
-          <section class="admin-workspace-section" id="admin-pagos" aria-labelledby="admin-pagos-title">
+          <section class="admin-workspace-section" id="admin-pagos" aria-labelledby="admin-pagos-title" hidden>
           <h2 id="admin-pagos-title">Auditoría de pagos</h2>
           <p class="small-text muted">Filtra únicamente el historial de pagos; los demás reportes muestran todos los registros.</p>
           <form method="post" id="report-filter" class="panel">
@@ -322,20 +332,20 @@
           <div id="payments-report"></div>
           </section>
 
-          <section class="admin-workspace-section" id="admin-escuela" aria-labelledby="admin-escuela-title">
+          <section class="admin-workspace-section" id="admin-escuela" aria-labelledby="admin-escuela-title" hidden>
             <h2 id="admin-escuela-title">Control de mensualidades</h2>
 
             <div id="school-report"></div>
           </section>
 
-          <section class="admin-workspace-section" id="admin-ocupacion" aria-labelledby="admin-ocupacion-title">
+          <section class="admin-workspace-section" id="admin-ocupacion" aria-labelledby="admin-ocupacion-title" hidden>
           <h2 id="admin-ocupacion-title">Ocupación de cancha</h2>
 
           <div id="occupancy-report"></div>
           </section>
 
           <!-- Estado de correos -->
-          <section class="admin-workspace-section" aria-labelledby="mail-report-title">
+          <section class="admin-workspace-section" id="admin-correos" aria-labelledby="mail-report-title" hidden>
             <h2 id="mail-report-title">Envío de correos</h2>
             <p class="muted small-text">
               Últimos 100 mensajes. “Enviado” significa que el servidor de correo lo aceptó; revisa
@@ -343,6 +353,27 @@
             </p>
 
             <div id="email-report"></div>
+          </section>
+
+          <section class="admin-workspace-section" id="admin-limpieza" aria-labelledby="admin-limpieza-title" hidden>
+            <h2 id="admin-limpieza-title">Vaciar datos de prueba</h2>
+            <p>Elimina cuentas de clientes, reservas, órdenes, pagos, gastos, inscripciones, equipos, jugadores y correos guardados durante las pruebas. Es una acción permanente.</p>
+            <p class="small-text muted">Se conservan las cuentas administradoras, las tarifas y configuraciones de la cancha, y todos los resultados y goleadores de Copa Castell. Los correos que ya salieron del servidor no se pueden retirar.</p>
+            <button type="button" class="btn secondary" id="reset-preview-button">Revisar registros antes de vaciar</button>
+            <div id="reset-preview" class="admin-reset-preview" role="status"></div>
+            <form id="admin-reset-form" method="post" class="panel" hidden>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="reset-confirmation">Escribe BORRAR DATOS DE PRUEBA</label>
+                  <input id="reset-confirmation" name="confirmacion" type="text" autocomplete="off" required />
+                </div>
+                <div class="field">
+                  <label for="reset-password">Tu contraseña de administrador</label>
+                  <input id="reset-password" name="password" type="password" autocomplete="current-password" required />
+                </div>
+              </div>
+              <div class="form-actions"><button class="btn danger" type="submit">Vaciar todos los datos de prueba</button></div>
+            </form>
           </section>
         </div>
       </section>

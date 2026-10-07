@@ -785,6 +785,69 @@ def anular_gasto(conn, admin_uid, expense_id, data):
     return {"id": expense["id"], "message": "Gasto anulado; el saldo fue recalculado."}
 
 
+# La limpieza conserva cuentas administradoras, catálogos y resultados de Copa.
+RESET_TABLES = {
+    "clientes": "usuarios WHERE rol='CLIENTE'",
+    "ordenes": "ordenes",
+    "reservas": "reservas",
+    "pagos": "pagos",
+    "gastos": "gastos",
+    "equipos": "equipos",
+    "jugadores": "jugadores",
+    "inscripciones": "inscripciones_chaca",
+    "mensualidades": "mensualidades",
+    "correos": "correo_salida",
+}
+
+
+def resumen_datos_prueba(conn, admin_uid):
+    exigir_administrador(conn, admin_uid)
+    return {
+        name: conn.execute(f"SELECT count(*) AS total FROM {table}").fetchone()["total"]
+        for name, table in RESET_TABLES.items()
+    }
+
+
+def limpiar_datos_prueba(conn, admin_uid, data, ip_address=""):
+    """Borra datos operativos de prueba en una transacción, conservando el torneo."""
+    exigir_administrador(conn, admin_uid)
+    limitar_acceso(conn, f"admin-reset:{admin_uid}:{ip_address}")
+    if data.get("confirmacion") != "BORRAR DATOS DE PRUEBA":
+        raise ErrorValidacion("Escribe BORRAR DATOS DE PRUEBA para confirmar.")
+    admin = conn.execute("SELECT * FROM usuarios WHERE id=%s", (admin_uid,)).fetchone()
+    if not Usuario.desde_fila(admin).verificar_password(data.get("password", "")):
+        raise HTTPError(401, "La contraseña de administrador no coincide.")
+    expected = data.get("resumen")
+    if not isinstance(expected, dict) or set(expected) != set(RESET_TABLES) or any(
+        type(value) is not int or value < 0 for value in expected.values()
+    ):
+        raise ErrorValidacion("Actualiza la vista previa antes de limpiar los datos.")
+    conn.execute("SET LOCAL lock_timeout = '5s'")
+    conn.execute(
+        "LOCK TABLE usuarios,ordenes,reservas,pagos,gastos,equipos,jugadores,"
+        "inscripciones_chaca,mensualidades,correo_salida,restablecimientos,"
+        "sesiones,intentos_acceso IN ACCESS EXCLUSIVE MODE"
+    )
+    current = resumen_datos_prueba(conn, admin_uid)
+    if current != expected:
+        raise HTTPError(409, "Los registros cambiaron. Actualiza la vista previa antes de continuar.")
+    for table in (
+        "correo_salida", "jugadores", "mensualidades", "pagos", "gastos",
+        "reservas", "equipos", "inscripciones_chaca", "ordenes", "restablecimientos",
+    ):
+        conn.execute(f"DELETE FROM {table}")
+    conn.execute(
+        "DELETE FROM sesiones WHERE usuario_id IS NULL "
+        "OR usuario_id IN (SELECT id FROM usuarios WHERE rol='CLIENTE')"
+    )
+    conn.execute("DELETE FROM usuarios WHERE rol='CLIENTE'")
+    conn.execute("DELETE FROM intentos_acceso")
+    return {
+        "eliminados": current,
+        "message": "Datos de prueba eliminados. Administradores, catálogos y Copa Castell se conservaron.",
+    }
+
+
 # Consulta reportes administrativos
 def reportes(conn, uid, data):
     exigir_administrador(conn, uid)

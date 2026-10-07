@@ -297,6 +297,10 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if path == "/api/admin/test-data-preview" and method == "GET":
+            return {"resumen": s.resumen_datos_prueba(conn, uid)}
+        if path == "/api/admin/test-data-reset" and method == "POST":
+            return s.limpiar_datos_prueba(conn, uid, data, self.client_address[0])
         if path == "/api/admin/copa-fixtures" and method == "GET":
             return copa.panel_admin(conn, uid)
         if path == "/api/admin/copa-results" and method == "POST":

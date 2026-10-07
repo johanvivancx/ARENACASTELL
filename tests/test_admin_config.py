@@ -93,3 +93,45 @@ def test_reserva_manual_bloquea_horario_sin_inventar_un_pago(conn,user):
         s.registrar_reserva_manual(conn,admin_id,{**data,'hora':'17:00','monto':'0'})
     with pytest.raises(s.ErrorValidacion):
         s.registrar_reserva_manual(conn,admin_id,{**data,'hora':'17:00','monto':'24.567'})
+
+
+def test_limpieza_de_pruebas_conserva_administradores_y_copa(conn, user):
+    admin = s.registrar(conn, {
+        'nombre': 'Administrador de limpieza', 'cedula': cedula_demo(947),
+        'telefono': '0990000000', 'email': 'limpieza@arena.test',
+        'password': 'ClaveLimpieza!2026', 'confirmacion': 'ClaveLimpieza!2026',
+        'consentimiento': True,
+    })
+    conn.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s", (admin['id'],))
+    conn.execute(
+        """INSERT INTO copa_resultados(fixture_id,fecha,local,visitante,goles_local,goles_visitante,registrado_por)
+           VALUES('partido-conservado',7,'Argentina','Japón',2,1,%s)""",
+        (admin['id'],),
+    )
+    day = str(datetime.now(s.TZ).date() + timedelta(days=3))
+    booked = s.reservar(conn, user['id'], {
+        'cancha_id': 1, 'tipo_evento': 'HORA', 'fecha': day, 'hora': '12:00', 'horas': 1,
+    })
+    s.registrar_gasto(conn, admin['id'], {
+        'categoria': 'RESERVAS', 'fecha_gasto': str(datetime.now(s.TZ).date()),
+        'concepto': 'Prueba de gasto', 'monto': '2.00',
+    })
+    preview = s.resumen_datos_prueba(conn, admin['id'])
+    assert preview['clientes'] == 1 and preview['reservas'] == 1
+    assert preview['ordenes'] == 1 and preview['gastos'] == 1
+    with pytest.raises(s.HTTPError) as forbidden:
+        s.resumen_datos_prueba(conn, user['id'])
+    assert forbidden.value.status == 403
+    payload = {'confirmacion': 'BORRAR DATOS DE PRUEBA', 'password': 'ClaveLimpieza!2026',
+               'resumen': preview}
+    with pytest.raises(s.HTTPError) as stale:
+        s.limpiar_datos_prueba(conn, admin['id'], {**payload, 'resumen': {**preview, 'ordenes': 0}})
+    assert stale.value.status == 409
+    assert conn.execute('SELECT count(*) AS n FROM ordenes').fetchone()['n'] == 1
+    result = s.limpiar_datos_prueba(conn, admin['id'], payload)
+    assert result['eliminados']['ordenes'] == 1
+    assert all(value == 0 for value in s.resumen_datos_prueba(conn, admin['id']).values())
+    assert conn.execute('SELECT count(*) AS n FROM usuarios WHERE rol=\'ADMIN\'').fetchone()['n'] == 2
+    assert conn.execute('SELECT count(*) AS n FROM copa_resultados').fetchone()['n'] == 1
+    assert conn.execute('SELECT count(*) AS n FROM canchas').fetchone()['n'] > 0
+    assert conn.execute('SELECT count(*) AS n FROM torneos').fetchone()['n'] > 0
