@@ -12,6 +12,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit, parse_qs, unquote
 import hmac
+import ipaddress
 import json
 import logging
 import os
@@ -74,6 +75,11 @@ def json_default(value):
 class Handler(SimpleHTTPRequestHandler):
     server_version = "ArenaCastell"
 
+    def setup(self):
+        # Evita que una conexión incompleta retenga un hilo indefinidamente.
+        self.request.settimeout(15)
+        super().setup()
+
     # Define la carpeta pública
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(STATIC), **kwargs)
@@ -84,11 +90,24 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "same-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        if urlsplit(ORIGIN).scheme == "https":
+            self.send_header("Strict-Transport-Security", "max-age=15552000")
         self.send_header(
             "Content-Security-Policy",
             "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
         )
         super().end_headers()
+
+    def client_ip(self):
+        # En Render todo tráfico público pasa por su proxy; el primer X-Forwarded-For
+        # identifica al cliente. Fuera de ese entorno no se confía en ese encabezado.
+        if os.environ.get("PORT"):
+            forwarded = self.headers.get("X-Forwarded-For", "").split(",", 1)[0].strip()
+            try:
+                return str(ipaddress.ip_address(forwarded))
+            except ValueError:
+                pass
+        return self.client_address[0]
 
     # Registra solicitudes sin claves
     def log_message(self, fmt, *args):
@@ -142,7 +161,8 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(payload)))
         if cookie:
-            flags = "; Secure" if os.environ.get("COOKIE_SECURE", "false").lower() == "true" else ""
+            secure = urlsplit(ORIGIN).scheme == "https" or os.environ.get("COOKIE_SECURE", "false").lower() == "true"
+            flags = "; Secure" if secure else ""
             self.send_header(
                 "Set-Cookie",
                 f"arena_session={cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=28800{flags}",
@@ -176,6 +196,7 @@ class Handler(SimpleHTTPRequestHandler):
                 session = s.obtener_sesion(conn, token)
                 if self.command == "GET" and path == "/api/session":
                     if not session:
+                        s.limitar_acceso(conn, "session:" + self.client_ip(), max_attempts=60)
                         cookie_out, session = s.nueva_sesion(conn)
                     user = (
                         conn.execute(
@@ -203,8 +224,13 @@ class Handler(SimpleHTTPRequestHandler):
                         "/api/auth/login",
                         "/api/auth/register",
                         "/api/auth/forgot",
+                        "/api/auth/reset",
                     ):
-                        s.limitar_acceso(conn, self.client_address[0] + path)
+                        s.limitar_acceso(conn, "auth:" + self.client_ip() + path)
+                        if path in ("/api/auth/login", "/api/auth/forgot"):
+                            email = str(data.get("email", "")).strip().lower()[:254]
+                            if email:
+                                s.limitar_acceso(conn, path + ":" + email, max_attempts=20)
                     if path == "/api/auth/register" and self.command == "POST":
                         user = s.registrar(conn, data)
                         cookie_out, session = s.nueva_sesion(
@@ -301,7 +327,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/admin/test-data-preview" and method == "GET":
             return {"resumen": s.resumen_datos_prueba(conn, uid)}
         if path == "/api/admin/test-data-reset" and method == "POST":
-            return s.limpiar_datos_prueba(conn, uid, data, self.client_address[0])
+            return s.limpiar_datos_prueba(conn, uid, data, self.client_ip())
         if path == "/api/admin/copa-fixtures" and method == "GET":
             return copa.panel_admin(conn, uid)
         if path == "/api/admin/copa-caja" and method == "GET":

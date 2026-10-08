@@ -10,6 +10,7 @@ from urllib.request import build_opener,HTTPCookieProcessor,Request
 from urllib.error import HTTPError
 from urllib.parse import urlsplit,unquote
 import json
+import server
 import pytest
 from server import Handler,STATIC
 from manage import cedula_demo
@@ -63,6 +64,48 @@ def test_http_csrf_auth_et_controle_acces(conn):
         assert request('/api/auth/logout',{},session['csrf'])[0]==403
         assert request('/api/auth/logout',{},registered['csrf'])[0]==200
         assert request('/api/history')[0]==401
+
+
+def test_https_cookie_y_cabeceras_de_seguridad(conn, monkeypatch):
+    conn.commit()
+    monkeypatch.setattr(server, 'ORIGIN', 'https://arenacastell.com')
+    monkeypatch.setenv('COOKIE_SECURE', 'false')
+    with client() as request:
+        status, _, headers = request('/api/session')
+        assert status == 200
+        assert 'Secure' in headers['Set-Cookie']
+        assert headers['Strict-Transport-Security'] == 'max-age=15552000'
+
+
+def test_ip_de_cliente_solo_usa_proxy_en_alojamiento(monkeypatch):
+    handler = object.__new__(Handler)
+    handler.client_address = ('127.0.0.1', 1234)
+    handler.headers = {'X-Forwarded-For': '203.0.113.8, 192.0.2.1'}
+    monkeypatch.delenv('PORT', raising=False)
+    assert handler.client_ip() == '127.0.0.1'
+    monkeypatch.setenv('PORT', '10000')
+    assert handler.client_ip() == '203.0.113.8'
+    handler.headers = {'X-Forwarded-For': 'invalid'}
+    assert handler.client_ip() == '127.0.0.1'
+
+
+def test_limite_de_sesiones_anonimas_por_cliente(conn):
+    for _ in range(3):
+        s.limitar_acceso(conn, 'security-test-session', max_attempts=3)
+    with pytest.raises(s.HTTPError) as error:
+        s.limitar_acceso(conn, 'security-test-session', max_attempts=3)
+    assert error.value.status == 429
+
+
+def test_restablecimiento_de_password_tiene_limite_http(conn):
+    conn.commit()
+    with client() as request:
+        _, session, _ = request('/api/session')
+        payload = {'token': 'no-valido', 'password': 'ClaveSegura!2026',
+                   'confirmacion': 'ClaveSegura!2026'}
+        for _ in range(10):
+            assert request('/api/auth/reset', payload, session['csrf'])[0] == 400
+        assert request('/api/auth/reset', payload, session['csrf'])[0] == 429
 
 
 def test_http_archivos_privados_y_html(conn):

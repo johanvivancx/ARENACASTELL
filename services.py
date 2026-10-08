@@ -84,6 +84,12 @@ def exigir_usuario(session):
 # Crea una sesion segura
 def nueva_sesion(conn, usuario_id=None, anterior=None):
     token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
+    # Limpieza ocasional: evita crecimiento ilimitado por visitas anónimas.
+    if secrets.randbelow(64) == 0:
+        conn.execute("DELETE FROM sesiones WHERE vence_en <= current_timestamp")
+        conn.execute(
+            "DELETE FROM intentos_acceso WHERE inicio < current_timestamp - interval '1 day'"
+        )
     if anterior:
         conn.execute("DELETE FROM sesiones WHERE token_hash=%s", (anterior,))
     conn.execute(
@@ -103,7 +109,7 @@ def obtener_sesion(conn, token):
 
 
 # Frena intentos repetidos
-def limitar_acceso(conn, key):
+def limitar_acceso(conn, key, max_attempts=10):
     # Conserva intentos fallidos
     row = conn.execute(
         """INSERT INTO intentos_acceso(clave) VALUES(%s)
@@ -114,7 +120,7 @@ def limitar_acceso(conn, key):
         (sha(key),),
     ).fetchone()
     conn.commit()
-    if row["intentos"] > 10:
+    if row["intentos"] > max_attempts:
         raise HTTPError(
             429, "Se han realizado varios intentos. Espera 15 minutos y vuelve a intentar."
         )
