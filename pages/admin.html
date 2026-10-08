@@ -16,10 +16,10 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261007-admin-grupos" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261007-copa-caja" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261007-admin-grupos" defer></script>
+    <script src="../assets/app.js?v=20261007-copa-caja" defer></script>
   </head>
 
   <body data-page="admin">
@@ -122,9 +122,10 @@
           </div>
           <nav class="admin-section-nav" aria-label="Secciones del panel de administrador">
             <button type="button" data-admin-target="admin-copa"><span>01 / TORNEO</span><strong>Resultados de Copa Castell</strong><small>Marcador, goleadores y tabla de posiciones</small></button>
-            <button type="button" data-admin-target="admin-reservas"><span>02 / CANCHA</span><strong>Reservas</strong><small>Reservas, cobros pendientes y ocupación</small></button>
-            <button type="button" data-admin-target="admin-finanzas"><span>03 / FINANZAS</span><strong>Ingresos y gastos</strong><small>Saldos, operaciones y auditoría de pagos</small></button>
-            <button type="button" data-admin-target="admin-escuela"><span>04 / ESCUELA</span><strong>Súper Chaca</strong><small>Inscripciones y mensualidades</small></button>
+            <button type="button" data-admin-target="admin-copa-caja"><span>02 / COPA CASTELL</span><strong>Movimientos de la Copa</strong><small>Disponible, bar, entradas y vocalías por semana</small></button>
+            <button type="button" data-admin-target="admin-reservas"><span>03 / CANCHA</span><strong>Reservas</strong><small>Reservas, cobros pendientes y ocupación</small></button>
+            <button type="button" data-admin-target="admin-finanzas"><span>04 / FINANZAS</span><strong>Ingresos y gastos</strong><small>Saldos, operaciones y auditoría de pagos</small></button>
+            <button type="button" data-admin-target="admin-escuela"><span>05 / ESCUELA</span><strong>Súper Chaca</strong><small>Inscripciones y mensualidades</small></button>
           </nav>
           <details class="admin-more-tools">
             <summary>Más herramientas administrativas</summary>
@@ -168,6 +169,46 @@
               <p id="copa-result-status" class="small-text muted" role="status"></p>
               <div class="form-actions"><button class="btn" type="submit">Publicar resultado</button></div>
             </form>
+          </section>
+
+          <section class="admin-workspace-section" id="admin-copa-caja" aria-labelledby="copa-caja-title" hidden>
+            <h2 id="copa-caja-title">Copa Castell · Movimientos</h2>
+            <p class="small-text muted">Control de efectivo de la Copa, independiente de reservas, inscripciones al torneo y Súper Chaca. La caja entregada al bar o entradas es un traspaso, no una venta.</p>
+            <div class="field copa-week-picker"><label for="copa-week">Semana que quieres revisar</label><input id="copa-week" type="date" /></div>
+            <p id="copa-week-caption" class="small-text muted" role="status"></p>
+            <div id="copa-caja-balances" class="stats-grid copa-caja-balances"></div>
+            <div id="copa-caja-weekly" class="copa-caja-weekly"></div>
+            <form id="copa-caja-form" method="post" class="panel copa-caja-form">
+              <h3>Registrar movimiento</h3>
+              <div class="form-grid">
+                <div class="field"><label for="caja-tipo">Movimiento</label><select id="caja-tipo" name="tipo" required>
+                  <option value="APERTURA">Saldo inicial disponible (una sola vez)</option>
+                  <option value="TRASPASO">Caja entregada al bar o entradas</option>
+                  <option value="INGRESO">Venta, entrada o vocalía cobrada</option>
+                  <option value="GASTO">Gasto pagado</option>
+                </select></div>
+                <div class="field"><label for="caja-fecha">Fecha real</label><input id="caja-fecha" name="fecha" type="date" required /></div>
+                <div class="field"><label for="caja-cuenta">Cuenta que recibe o paga</label><select id="caja-cuenta" name="cuenta" required>
+                  <option value="DISPONIBLE">Dinero disponible</option><option value="BAR">Bar</option><option value="ENTRADAS">Entradas</option><option value="VOCALIAS">Vocalías</option>
+                </select></div>
+                <div class="field" id="caja-destino-field" hidden><label for="caja-destino">Caja que recibe</label><select id="caja-destino" name="destino"><option value="BAR">Bar</option><option value="ENTRADAS">Entradas</option></select></div>
+                <div class="field" id="caja-area-field" hidden><label for="caja-area">Gasto atribuido a</label><select id="caja-area" name="area"><option value="BAR">Bar</option><option value="ENTRADAS">Entradas</option><option value="VOCALIAS">Vocalías</option><option value="GENERAL">General de Copa</option></select></div>
+                <div class="field" id="caja-fixture-field" hidden><label for="caja-fixture">Partido</label><select id="caja-fixture" name="fixture_id"></select></div>
+                <div class="field" id="caja-equipo-field" hidden><label for="caja-equipo">Equipo que pagó</label><select id="caja-equipo" name="equipo"></select></div>
+                <div class="field"><label for="caja-monto">Monto en USD</label><input id="caja-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                <div class="field"><label for="caja-concepto">Concepto</label><input id="caja-concepto" name="concepto" type="text" minlength="3" maxlength="180" placeholder="Ej.: venta del bar; 7 jabas de cerveza; pago al árbitro" required /></div>
+              </div>
+              <p id="caja-form-help" class="small-text muted"></p>
+              <div class="form-actions"><button class="btn" type="submit">Guardar movimiento</button></div>
+            </form>
+            <h3>Vocalías de los partidos de esta semana</h3>
+            <p class="small-text muted">Referencia: $10 por equipo y $12 de pago al árbitro por partido. El pago al árbitro se descuenta solo cuando lo registras como gasto.</p>
+            <div id="copa-vocalias" class="copa-ledger-scroll"></div>
+            <h3>Resumen por día</h3>
+            <p class="small-text muted">Compara la caja entregada, el dinero cobrado y los gastos de cada actividad. Los gastos pagados desde Disponible aparecen en su actividad, pero salen de Disponible una sola vez.</p>
+            <div id="copa-caja-days" class="copa-ledger-scroll"></div>
+            <h3>Movimientos de la semana</h3>
+            <div id="copa-caja-history" class="copa-ledger-scroll"></div>
           </section>
 
           <section class="admin-workspace-section" id="admin-finanzas" aria-labelledby="finance-title" hidden>
@@ -360,7 +401,7 @@
           <section class="admin-workspace-section" id="admin-limpieza" aria-labelledby="admin-limpieza-title" hidden>
             <h2 id="admin-limpieza-title">Vaciar datos de prueba</h2>
             <p>Elimina cuentas de clientes, reservas, órdenes, pagos, gastos, inscripciones, equipos, jugadores y correos guardados durante las pruebas. Es una acción permanente.</p>
-            <p class="small-text muted">Se conservan las cuentas administradoras, las tarifas y configuraciones de la cancha, y todos los resultados y goleadores de Copa Castell. Los correos que ya salieron del servidor no se pueden retirar.</p>
+            <p class="small-text muted">Se conservan las cuentas administradoras, las tarifas y configuraciones de la cancha, los resultados, goleadores y movimientos de Copa Castell. Los correos que ya salieron del servidor no se pueden retirar.</p>
             <button type="button" class="btn secondary" id="reset-preview-button">Revisar registros antes de vaciar</button>
             <div id="reset-preview" class="admin-reset-preview" role="status"></div>
             <form id="admin-reset-form" method="post" class="panel" hidden>

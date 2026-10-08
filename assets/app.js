@@ -1094,6 +1094,112 @@ async function initCopaResults() {
   });
 }
 
+// Controla la caja operativa de Copa Castell sin mezclarla con pagos de la web.
+async function initCopaCaja() {
+  const form = $("#copa-caja-form");
+  if (!form) return;
+  const type = $("#caja-tipo"), account = $("#caja-cuenta"), target = $("#caja-destino");
+  const area = $("#caja-area"), fixture = $("#caja-fixture"), team = $("#caja-equipo");
+  const week = $("#copa-week"), day = $("#caja-fecha"), concept = $("#caja-concepto");
+  const names = {DISPONIBLE: "Disponible", BAR: "Bar", ENTRADAS: "Entradas", VOCALIAS: "Vocalías"};
+  const descriptions = {APERTURA: "Saldo inicial", TRASPASO: "Caja entregada", INGRESO: "Ingreso", GASTO: "Gasto"};
+  const today = catalog.hoy;
+  week.value = today;
+  day.value = today;
+  day.max = today;
+  let state = null;
+  const match = () => state?.partidos.find((item) => item.id === fixture.value);
+  const fillTeams = () => {
+    const selected = match();
+    team.innerHTML = selected ? [selected.home, selected.away]
+      .map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join("") : "";
+  };
+  const showFields = () => {
+    const kind = type.value;
+    if (kind === "APERTURA" || kind === "TRASPASO") account.value = "DISPONIBLE";
+    if (kind === "INGRESO" && account.value === "DISPONIBLE") account.value = "BAR";
+    account.querySelectorAll("option").forEach((option) => {
+      option.disabled = (kind === "APERTURA" || kind === "TRASPASO")
+        ? option.value !== "DISPONIBLE" : kind === "INGRESO" && option.value === "DISPONIBLE";
+    });
+    const moving = kind === "TRASPASO", spending = kind === "GASTO";
+    const voice = kind === "INGRESO" && account.value === "VOCALIAS";
+    $("#caja-destino-field").hidden = !moving;
+    $("#caja-area-field").hidden = !spending;
+    $("#caja-fixture-field").hidden = !voice && !(spending && account.value === "VOCALIAS");
+    $("#caja-equipo-field").hidden = !voice;
+    target.disabled = !moving;
+    area.disabled = !spending;
+    fixture.disabled = !voice && !(spending && account.value === "VOCALIAS");
+    team.disabled = !voice;
+    if (spending) {
+      [...area.options].forEach((option) => {
+        option.disabled = account.value !== "DISPONIBLE"
+          ? option.value !== account.value : option.value === "VOCALIAS";
+      });
+      if (area.selectedOptions[0]?.disabled) area.value = account.value === "DISPONIBLE" ? "BAR" : account.value;
+    }
+    $("#caja-form-help").textContent = {
+      APERTURA: "Escribe el dinero que ya había antes de usar este control. Solo se registra una vez.",
+      TRASPASO: "La caja entregada sale de Disponible y entra al bar o a entradas. No se contará como venta.",
+      INGRESO: voice ? "Selecciona partido y equipo. Se esperan $10 por equipo; puedes registrar pagos parciales." : "Registra lo vendido o cobrado realmente en esa actividad.",
+      GASTO: account.value === "DISPONIBLE" ? "El gasto saldrá de Disponible y aparecerá atribuido a la actividad elegida, sin descontarse dos veces." : "El gasto saldrá de la caja seleccionada. Para el árbitro, referencia: $12 por partido.",
+    }[kind];
+    if (voice && !concept.value) concept.value = "Vocalía de equipo";
+  };
+  async function refresh() {
+    state = await api(`/admin/copa-caja?semana=${encodeURIComponent(week.value)}`);
+    $("#copa-week-caption").textContent = `Semana del ${dates(state.semana)} al ${dates(state.hasta)}. Los saldos de caja son acumulados hasta hoy; las cifras de abajo corresponden a la semana seleccionada.`;
+    $("#copa-caja-balances").innerHTML = [...Object.entries(names), ["TOTAL", "Total en cajas"]]
+      .map(([key, label]) => `<div class="stat"><span>${esc(label)} · saldo actual</span><strong>${esc(money(key === "TOTAL" ? state.saldo_total : state.saldos[key]))}</strong></div>`).join("");
+    $("#copa-caja-weekly").innerHTML = ["BAR", "ENTRADAS", "VOCALIAS"].map((key) =>
+      `<article class="copa-week-card"><h3>${esc(names[key])}</h3><dl>
+        ${key !== "VOCALIAS" ? `<div><dt>Caja entregada</dt><dd>${esc(money(state.caja_entregada[key]))}</dd></div>` : ""}
+        <div><dt>Ingresos cobrados</dt><dd>${esc(money(state.ingresos[key]))}</dd></div>
+        <div><dt>Gastos atribuidos</dt><dd>${esc(money(state.gastos[key]))}</dd></div>
+        <div><dt>Resultado de la semana</dt><dd>${esc(money(Number(state.ingresos[key]) - Number(state.gastos[key])))}</dd></div>
+      </dl></article>`).join("") + `<article class="copa-week-card"><h3>Vocalías esperadas</h3><p>${esc(money(state.vocalias_esperadas))} de ${state.vocalias.length / 2} partidos</p><p>Pendiente: ${esc(money(state.vocalias_pendientes))}</p><p>Gasto general de Copa: ${esc(money(state.gastos.GENERAL))}</p></article>`;
+    fixture.innerHTML = '<option value="">Selecciona un partido</option>' + state.partidos.map((item) =>
+      `<option value="${esc(item.id)}">${esc(dates(item.date))} · Fecha ${esc(item.round)} · ${esc(item.home)} vs. ${esc(item.away)}</option>`).join("");
+    fillTeams();
+    $("#copa-vocalias").innerHTML = state.vocalias.length ? `<table class="copa-ledger-table"><thead><tr><th>Partido</th><th>Equipo</th><th>Esperado</th><th>Pagado</th><th>Pendiente</th></tr></thead><tbody>${state.vocalias.map((item) =>
+      `<tr><td>${esc(item.fixture_id)}</td><td>${esc(item.equipo)}</td><td>${esc(money(item.esperado))}</td><td>${esc(money(item.pagado))}</td><td>${esc(money(item.pendiente))}</td></tr>`).join("")}</tbody></table>` : '<p class="small-text muted">No hay partidos programados en esta semana.</p>';
+    $("#copa-caja-days").innerHTML = state.dias.length ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Actividad</th><th>Caja entregada</th><th>Cobrado</th><th>Gastado</th></tr></thead><tbody>${state.dias.flatMap((item) => ["BAR", "ENTRADAS", "VOCALIAS"].map((key) =>
+      `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(names[key])}</td><td>${key === "VOCALIAS" ? "—" : esc(money(item[key].caja))}</td><td>${esc(money(item[key].ingreso))}</td><td>${esc(money(item[key].gasto))}</td></tr>`)).join("")}</tbody></table>` : '<p class="small-text muted">Aún no hay registros diarios en esta semana.</p>';
+    $("#copa-caja-history").innerHTML = state.movimientos.length ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Cuenta / destino</th><th>Concepto</th><th>Monto</th><th></th></tr></thead><tbody>${state.movimientos.map((item) =>
+      `<tr class="${item.anulado_en ? "copa-void" : ""}"><td>${esc(dates(item.fecha))}</td><td>${esc(descriptions[item.tipo])}${item.anulado_en ? " · Anulado" : ""}</td><td>${esc(names[item.cuenta])}${item.destino ? ` → ${esc(names[item.destino])}` : ""}${item.area && item.area !== item.cuenta ? ` · ${esc(item.area)}` : ""}</td><td>${esc(item.concepto)}${item.equipo ? ` · ${esc(item.equipo)}` : ""}</td><td>${esc(money(item.monto))}</td><td>${item.anulado_en ? esc(item.motivo_anulacion) : `<button class="btn secondary" type="button" data-caja-void="${esc(item.id)}">Anular</button>`}</td></tr>`).join("")}</tbody></table>` : '<p class="small-text muted">Aún no hay movimientos en esta semana.</p>';
+  }
+  type.addEventListener("change", showFields);
+  account.addEventListener("change", showFields);
+  fixture.addEventListener("change", fillTeams);
+  week.addEventListener("change", async () => { try { await refresh(); } catch (error) { showMessage(error.message); } });
+  $("#copa-caja-history").addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-caja-void]");
+    if (!button) return;
+    const reason = prompt("Motivo de anulación (se conservará el historial):");
+    if (reason === null) return;
+    try {
+      const result = await api(`/admin/copa-caja/${button.dataset.cajaVoid}/void`, {motivo: reason});
+      await refresh();
+      showMessage(result.message, "success");
+    } catch (error) { showMessage(error.message); }
+  });
+  bindForm("#copa-caja-form", async (data) => {
+    if (data.tipo === "INGRESO" && data.cuenta === "VOCALIAS" && !data.fixture_id) throw new Error("Selecciona el partido.");
+    if (!confirm(`¿Registrar ${money(data.monto)} como ${descriptions[data.tipo].toLowerCase()} de Copa Castell?`)) return;
+    const result = await api("/admin/copa-caja", data);
+    const selected = week.value;
+    form.reset();
+    week.value = selected;
+    day.value = today;
+    showFields();
+    await refresh();
+    showMessage(result.message, "success");
+  });
+  showFields();
+  await refresh();
+}
+
 // Agrupa las tareas relacionadas sin alterar sus formularios ni reportes.
 function initAdminWorkspace() {
   const menu = $(".admin-section-nav");
@@ -1107,6 +1213,7 @@ function initAdminWorkspace() {
     .filter((section) => section !== overview);
   const groups = {
     "admin-copa": {title: "Resultados de Copa Castell", tabs: [["admin-copa", "Resultados"]]},
+    "admin-copa-caja": {title: "Copa Castell · Movimientos", tabs: [["admin-copa-caja", "Movimientos"]]},
     "admin-reservas": {title: "Reservas", tabs: [["admin-reservas", "Reservas realizadas"], ["admin-cobros", "Pendientes por cobrar"], ["admin-ocupacion", "Ocupación"]]},
     "admin-finanzas": {title: "Ingresos y gastos", tabs: [["admin-finanzas", "Saldos y gastos"], ["admin-reportes", "Operaciones"], ["admin-pagos", "Auditoría de pagos"]]},
     "admin-escuela": {title: "Súper Chaca", tabs: [["admin-escuela", "Mensualidades"]]},
@@ -1497,6 +1604,7 @@ async function initialize() {
       initManualReservation();
       initExpenses();
       await initCopaResults();
+      await initCopaCaja();
     }
   } catch (error) {
     showMessage(error.message);

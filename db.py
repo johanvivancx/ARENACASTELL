@@ -31,3 +31,9 @@ def preparar_resultados_copa():
     """Habilita los resultados de Copa Castell sin cambiar el historial base."""
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/009_resultados_copa.sql").read_text(encoding="utf8"))
+
+
+def preparar_movimientos_copa():
+    """Crea el libro de caja operativo, separado del control financiero web."""
+    with conectar() as conn:
+        conn.execute((ROOT / "sql/migrations/010_movimientos_copa.sql").read_text(encoding="utf8"))

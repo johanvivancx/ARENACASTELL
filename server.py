@@ -19,10 +19,11 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, preparar_control_financiero, preparar_resultados_copa, ROOT
+from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, ROOT
 from models import ErrorValidacion
 import services as s
 import copa
+import copa_caja
 import correos
 
 STATIC = ROOT
@@ -303,6 +304,13 @@ class Handler(SimpleHTTPRequestHandler):
             return s.limpiar_datos_prueba(conn, uid, data, self.client_address[0])
         if path == "/api/admin/copa-fixtures" and method == "GET":
             return copa.panel_admin(conn, uid)
+        if path == "/api/admin/copa-caja" and method == "GET":
+            return copa_caja.resumen(conn, uid, params.get("semana"))
+        if path == "/api/admin/copa-caja" and method == "POST":
+            return copa_caja.registrar(conn, uid, data)
+        if match := re.fullmatch(r"/api/admin/copa-caja/(\d+)/void", path):
+            if method == "POST":
+                return copa_caja.anular(conn, uid, match[1], data)
         if path == "/api/admin/copa-results" and method == "POST":
             return copa.guardar_resultado(conn, uid, data)
         if path == "/api/admin/expenses" and method == "POST":
@@ -355,6 +363,7 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     preparar_control_financiero()
     preparar_resultados_copa()
+    preparar_movimientos_copa()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
     print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)

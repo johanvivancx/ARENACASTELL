@@ -36,7 +36,9 @@ def catalogo():
     for day in data["upcoming"]["days"]:
         for time, home, away in day["matches"]:
             key = postponed.get((home, away)) or f'{data["upcoming"]["round"]}:{home}:{away}'
-            if key not in fixtures:
+            if key in fixtures:
+                fixtures[key] = {**fixtures[key], "date": day["date"], "time": time}
+            else:
                 fixtures[key] = {"id": key, "round": data["upcoming"]["round"],
                                  "home": home, "away": away, "date": day["date"],
                                  "time": time, "status": "scheduled"}

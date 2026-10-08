@@ -1588,6 +1588,23 @@ td small {
 .finance-grid .stat .finance-negative {
   color: #ff8d8d;
 }
+.copa-week-picker { max-width: 320px; margin: 22px 0 8px; }
+.copa-caja-balances { margin-top: 24px; }
+.copa-caja-weekly { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 22px 0 34px; }
+.copa-week-card { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface2); }
+.copa-week-card h3 { margin: 0 0 14px; }
+.copa-week-card dl { margin: 0; }
+.copa-week-card dl > div { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-top: 1px solid var(--line); }
+.copa-week-card dt { color: var(--muted); }
+.copa-week-card dd { margin: 0; text-align: right; font-weight: 700; }
+.copa-caja-form { margin-bottom: 36px; }
+.copa-ledger-scroll { width: 100%; max-width: 100%; overflow-x: auto; margin: 12px 0 32px; }
+.copa-ledger-table { width: 100%; border-collapse: collapse; min-width: 680px; font-size: 13px; }
+.copa-ledger-table th, .copa-ledger-table td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.copa-ledger-table th { color: var(--muted); white-space: nowrap; }
+.copa-ledger-table .btn { padding: 8px 10px; font-size: 12px; }
+.copa-void { opacity: .58; }
+@media (max-width: 720px) { .copa-caja-weekly { grid-template-columns: 1fr; } }
 .copa-goal-rows {
   display: grid;
   gap: 12px;
