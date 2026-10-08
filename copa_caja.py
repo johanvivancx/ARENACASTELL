@@ -104,6 +104,7 @@ def resumen(conn, admin_uid, semana=None):
                         "pendiente": max(CERO, ESPERADO_VOCALIA - paid)})
     return {"semana": start, "hasta": end - timedelta(days=1),
             "saldos": balances, "saldo_total": sum(balances.values(), CERO),
+            "saldo_inicial_registrado": any(r["tipo"] == "APERTURA" and not r["anulado_en"] for r in rows),
             "ingresos": income, "gastos": expenses, "caja_entregada": transfers,
             "dias": [{"fecha": day, **daily[day]} for day in sorted(daily, reverse=True)],
             "movimientos": list(reversed(weekly)), "vocalias": due,

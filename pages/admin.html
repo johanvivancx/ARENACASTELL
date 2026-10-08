@@ -16,10 +16,11 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261007-copa-caja" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261007-copa-areas" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261007-copa-caja" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261007-copa-areas" defer></script>
+    <script src="../assets/app.js?v=20261007-copa-areas" defer></script>
   </head>
 
   <body data-page="admin">
@@ -176,38 +177,119 @@
             <p class="small-text muted">Control de efectivo de la Copa, independiente de reservas, inscripciones al torneo y Súper Chaca. La caja entregada al bar o entradas es un traspaso, no una venta.</p>
             <div class="field copa-week-picker"><label for="copa-week">Semana que quieres revisar</label><input id="copa-week" type="date" /></div>
             <p id="copa-week-caption" class="small-text muted" role="status"></p>
-            <div id="copa-caja-balances" class="stats-grid copa-caja-balances"></div>
-            <div id="copa-caja-weekly" class="copa-caja-weekly"></div>
-            <form id="copa-caja-form" method="post" class="panel copa-caja-form">
-              <h3>Registrar movimiento</h3>
-              <div class="form-grid">
-                <div class="field"><label for="caja-tipo">Movimiento</label><select id="caja-tipo" name="tipo" required>
-                  <option value="APERTURA">Saldo inicial disponible (una sola vez)</option>
-                  <option value="TRASPASO">Caja entregada al bar o entradas</option>
-                  <option value="INGRESO">Venta, entrada o vocalía cobrada</option>
-                  <option value="GASTO">Gasto pagado</option>
-                </select></div>
-                <div class="field"><label for="caja-fecha">Fecha real</label><input id="caja-fecha" name="fecha" type="date" required /></div>
-                <div class="field"><label for="caja-cuenta">Cuenta que recibe o paga</label><select id="caja-cuenta" name="cuenta" required>
-                  <option value="DISPONIBLE">Dinero disponible</option><option value="BAR">Bar</option><option value="ENTRADAS">Entradas</option><option value="VOCALIAS">Vocalías</option>
-                </select></div>
-                <div class="field" id="caja-destino-field" hidden><label for="caja-destino">Caja que recibe</label><select id="caja-destino" name="destino"><option value="BAR">Bar</option><option value="ENTRADAS">Entradas</option></select></div>
-                <div class="field" id="caja-area-field" hidden><label for="caja-area">Gasto atribuido a</label><select id="caja-area" name="area"><option value="BAR">Bar</option><option value="ENTRADAS">Entradas</option><option value="VOCALIAS">Vocalías</option><option value="GENERAL">General de Copa</option></select></div>
-                <div class="field" id="caja-fixture-field" hidden><label for="caja-fixture">Partido</label><select id="caja-fixture" name="fixture_id"></select></div>
-                <div class="field" id="caja-equipo-field" hidden><label for="caja-equipo">Equipo que pagó</label><select id="caja-equipo" name="equipo"></select></div>
-                <div class="field"><label for="caja-monto">Monto en USD</label><input id="caja-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
-                <div class="field"><label for="caja-concepto">Concepto</label><input id="caja-concepto" name="concepto" type="text" minlength="3" maxlength="180" placeholder="Ej.: venta del bar; 7 jabas de cerveza; pago al árbitro" required /></div>
+            <p id="copa-caja-total" class="copa-total-line" role="status"></p>
+            <nav class="copa-area-nav" aria-label="Cajas de Copa Castell">
+              <button type="button" data-copa-area="DISPONIBLE" aria-pressed="true"><span>01 / FONDO</span><strong>Dinero disponible</strong><small>Saldo inicial, entregar caja y gastos directos</small><em data-area-balance="DISPONIBLE"></em></button>
+              <button type="button" data-copa-area="BAR" aria-pressed="false"><span>02 / VENTAS</span><strong>Bar</strong><small>Ventas y compras del bar</small><em data-area-balance="BAR"></em></button>
+              <button type="button" data-copa-area="ENTRADAS" aria-pressed="false"><span>03 / BOLETERÍA</span><strong>Entradas</strong><small>Recaudación y gastos de entradas</small><em data-area-balance="ENTRADAS"></em></button>
+              <button type="button" data-copa-area="VOCALIAS" aria-pressed="false"><span>04 / PARTIDOS</span><strong>Vocalías</strong><small>Pago de cada equipo y gastos arbitrales</small><em data-area-balance="VOCALIAS"></em></button>
+            </nav>
+
+            <div class="copa-area-panel" data-copa-panel="DISPONIBLE">
+              <h3>Dinero disponible</h3>
+              <p class="small-text muted">Es el fondo que ya tenías. Entregar dinero a una caja no es una venta. Los gastos pagados aquí se descuentan solo de Disponible, aunque se atribuyan al bar o entradas.</p>
+              <div class="copa-area-summary" data-area-summary="DISPONIBLE"></div>
+              <div class="copa-form-grid">
+                <form id="caja-apertura-form" class="panel copa-caja-form" data-caja-kind="APERTURA" data-caja-account="DISPONIBLE" method="post">
+                  <h4>Registrar saldo inicial</h4><p class="small-text muted">Hazlo una sola vez con el dinero que había antes de usar este control.</p>
+                  <div class="field"><label for="caja-apertura-form-fecha">Fecha</label><input id="caja-apertura-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-apertura-form-monto">Dinero disponible en USD</label><input id="caja-apertura-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-apertura-form-concepto">Descripción</label><input id="caja-apertura-form-concepto" name="concepto" type="text" value="Saldo inicial de Copa Castell" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar saldo inicial</button></div>
+                </form>
+                <form id="caja-traspaso-form" class="panel copa-caja-form" data-caja-kind="TRASPASO" data-caja-account="DISPONIBLE" method="post">
+                  <h4>Entregar caja</h4><p class="small-text muted">Pasa efectivo de Disponible a Bar o Entradas para ese día. No suma ingresos nuevos.</p>
+                  <div class="field"><label for="caja-traspaso-form-fecha">Fecha de entrega</label><input id="caja-traspaso-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-traspaso-form-destino">Se entrega a</label><select id="caja-traspaso-form-destino" name="destino" required><option value="BAR">Caja del bar</option><option value="ENTRADAS">Caja de entradas</option></select></div>
+                  <div class="field"><label for="caja-traspaso-form-monto">Monto entregado en USD</label><input id="caja-traspaso-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-traspaso-form-concepto">Referencia</label><input id="caja-traspaso-form-concepto" name="concepto" type="text" placeholder="Ej.: caja entregada el viernes" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Registrar caja entregada</button></div>
+                </form>
+                <form id="caja-disponible-gasto-form" class="panel copa-caja-form" data-caja-kind="GASTO" data-caja-account="DISPONIBLE" method="post">
+                  <h4>Gasto pagado desde Disponible</h4><p class="small-text muted">Ejemplo: comprar jabas para el bar. Aparecerá en Bar, pero el dinero saldrá solo de Disponible.</p>
+                  <div class="field"><label for="caja-disponible-gasto-form-fecha">Fecha del gasto</label><input id="caja-disponible-gasto-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-disponible-gasto-form-area">Asignar gasto a</label><select id="caja-disponible-gasto-form-area" name="area" required><option value="BAR">Bar</option><option value="ENTRADAS">Entradas</option><option value="GENERAL">General de la Copa</option></select></div>
+                  <div class="field"><label for="caja-disponible-gasto-form-monto">Monto gastado en USD</label><input id="caja-disponible-gasto-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-disponible-gasto-form-concepto">¿Qué se compró o pagó?</label><input id="caja-disponible-gasto-form-concepto" name="concepto" type="text" placeholder="Ej.: 7 jabas de cerveza" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Registrar gasto de Disponible</button></div>
+                </form>
               </div>
-              <p id="caja-form-help" class="small-text muted"></p>
-              <div class="form-actions"><button class="btn" type="submit">Guardar movimiento</button></div>
-            </form>
-            <h3>Vocalías de los partidos de esta semana</h3>
-            <p class="small-text muted">Referencia: $10 por equipo y $12 de pago al árbitro por partido. El pago al árbitro se descuenta solo cuando lo registras como gasto.</p>
-            <div id="copa-vocalias" class="copa-ledger-scroll"></div>
-            <h3>Resumen por día</h3>
-            <p class="small-text muted">Compara la caja entregada, el dinero cobrado y los gastos de cada actividad. Los gastos pagados desde Disponible aparecen en su actividad, pero salen de Disponible una sola vez.</p>
-            <div id="copa-caja-days" class="copa-ledger-scroll"></div>
-            <h3>Movimientos de la semana</h3>
+            </div>
+
+            <div class="copa-area-panel" data-copa-panel="BAR" hidden>
+              <h3>Bar</h3><p class="small-text muted">Aquí solo registras ventas y gastos pagados con la caja del bar. Si una compra se pagó desde Disponible, regístrala en “Dinero disponible” y asígnala al Bar.</p>
+              <div class="copa-area-summary" data-area-summary="BAR"></div>
+              <div class="copa-form-grid">
+                <form id="caja-bar-ingreso-form" class="panel copa-caja-form" data-caja-kind="INGRESO" data-caja-account="BAR" method="post">
+                  <h4>Registrar venta del bar</h4>
+                  <div class="field"><label for="caja-bar-ingreso-form-fecha">Fecha de venta</label><input id="caja-bar-ingreso-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-bar-ingreso-form-monto">Dinero cobrado en USD</label><input id="caja-bar-ingreso-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-bar-ingreso-form-concepto">Descripción</label><input id="caja-bar-ingreso-form-concepto" name="concepto" type="text" placeholder="Ej.: ventas del sábado" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar venta del bar</button></div>
+                </form>
+                <form id="caja-bar-gasto-form" class="panel copa-caja-form" data-caja-kind="GASTO" data-caja-account="BAR" method="post">
+                  <h4>Registrar gasto del bar</h4>
+                  <div class="field"><label for="caja-bar-gasto-form-fecha">Fecha del gasto</label><input id="caja-bar-gasto-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-bar-gasto-form-monto">Monto gastado en USD</label><input id="caja-bar-gasto-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-bar-gasto-form-concepto">¿Qué se compró?</label><input id="caja-bar-gasto-form-concepto" name="concepto" type="text" placeholder="Ej.: gaseosas, papas o golosinas" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar gasto del bar</button></div>
+                </form>
+              </div>
+            </div>
+
+            <div class="copa-area-panel" data-copa-panel="ENTRADAS" hidden>
+              <h3>Entradas</h3><p class="small-text muted">Registra aquí la recaudación de boletería y los gastos pagados con esa caja. La caja entregada desde Disponible se registra en “Dinero disponible”.</p>
+              <div class="copa-area-summary" data-area-summary="ENTRADAS"></div>
+              <div class="copa-form-grid">
+                <form id="caja-entradas-ingreso-form" class="panel copa-caja-form" data-caja-kind="INGRESO" data-caja-account="ENTRADAS" method="post">
+                  <h4>Registrar dinero de entradas</h4>
+                  <div class="field"><label for="caja-entradas-ingreso-form-fecha">Fecha de cobro</label><input id="caja-entradas-ingreso-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-entradas-ingreso-form-monto">Dinero recaudado en USD</label><input id="caja-entradas-ingreso-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-entradas-ingreso-form-concepto">Descripción</label><input id="caja-entradas-ingreso-form-concepto" name="concepto" type="text" placeholder="Ej.: entradas del viernes" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar recaudación</button></div>
+                </form>
+                <form id="caja-entradas-gasto-form" class="panel copa-caja-form" data-caja-kind="GASTO" data-caja-account="ENTRADAS" method="post">
+                  <h4>Registrar gasto de entradas</h4>
+                  <div class="field"><label for="caja-entradas-gasto-form-fecha">Fecha del gasto</label><input id="caja-entradas-gasto-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-entradas-gasto-form-monto">Monto gastado en USD</label><input id="caja-entradas-gasto-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-entradas-gasto-form-concepto">¿Qué se compró o pagó?</label><input id="caja-entradas-gasto-form-concepto" name="concepto" type="text" placeholder="Ej.: rollos de boletos" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar gasto de entradas</button></div>
+                </form>
+              </div>
+            </div>
+
+            <div class="copa-area-panel" data-copa-panel="VOCALIAS" hidden>
+              <h3>Vocalías</h3><p class="small-text muted">Registra lo que pagó cada equipo por su partido. La referencia es $10 por equipo. Los pagos al árbitro o al vocal se registran como gastos cuando se entreguen.</p>
+              <div class="copa-area-summary" data-area-summary="VOCALIAS"></div>
+              <div class="copa-form-grid">
+                <form id="caja-vocalia-ingreso-form" class="panel copa-caja-form" data-caja-kind="INGRESO" data-caja-account="VOCALIAS" method="post">
+                  <h4>Cobro de vocalía</h4>
+                  <div class="field"><label for="caja-vocalia-ingreso-form-fecha">Fecha en que pagó</label><input id="caja-vocalia-ingreso-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-vocalia-ingreso-form-fixture_id">Partido</label><select id="caja-vocalia-ingreso-form-fixture_id" name="fixture_id" data-vocalia-fixture required></select></div>
+                  <div class="field"><label for="caja-vocalia-equipo">Equipo que pagó</label><select name="equipo" id="caja-vocalia-equipo" required></select></div>
+                  <p id="caja-vocalia-pendiente" class="small-text muted" role="status">Selecciona un partido y equipo para consultar lo pendiente.</p>
+                  <div class="field"><label for="caja-vocalia-ingreso-form-monto">Monto recibido en USD</label><input id="caja-vocalia-ingreso-form-monto" name="monto" type="number" min="0.01" max="10" step="0.01" value="10" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-vocalia-ingreso-form-concepto">Referencia</label><input id="caja-vocalia-ingreso-form-concepto" name="concepto" type="text" value="Vocalía de equipo" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar vocalía cobrada</button></div>
+                </form>
+                <form id="caja-vocalia-gasto-form" class="panel copa-caja-form" data-caja-kind="GASTO" data-caja-account="VOCALIAS" method="post">
+                  <h4>Gasto de vocalías</h4><p class="small-text muted">Árbitro: referencia de $12 por partido. También puedes registrar pago al vocal, trofeos u otros gastos de esta caja.</p>
+                  <div class="field"><label for="caja-vocalia-gasto-form-fecha">Fecha de pago</label><input id="caja-vocalia-gasto-form-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="caja-vocalia-gasto-form-fixture_id">Partido (opcional)</label><select id="caja-vocalia-gasto-form-fixture_id" name="fixture_id" data-vocalia-fixture></select></div>
+                  <div class="field"><label for="caja-vocalia-gasto-form-monto">Monto pagado en USD</label><input id="caja-vocalia-gasto-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-vocalia-gasto-form-concepto">¿A quién o por qué se pagó?</label><input id="caja-vocalia-gasto-form-concepto" name="concepto" type="text" placeholder="Ej.: pago al árbitro, pago al vocal o trofeos" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar gasto de vocalías</button></div>
+                </form>
+              </div>
+              <h4>Pago de cada equipo · semana seleccionada</h4>
+              <div id="copa-vocalias" class="copa-ledger-scroll"></div>
+            </div>
+
+            <div class="copa-area-records">
+              <h3 id="copa-area-days-title">Resumen por día</h3>
+              <div id="copa-caja-days" class="copa-ledger-scroll"></div>
+              <h3 id="copa-area-history-title">Movimientos de la semana</h3>
+            </div>
             <div id="copa-caja-history" class="copa-ledger-scroll"></div>
           </section>
 

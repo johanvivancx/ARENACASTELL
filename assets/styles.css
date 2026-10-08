@@ -1598,13 +1598,37 @@ td small {
 .copa-week-card dt { color: var(--muted); }
 .copa-week-card dd { margin: 0; text-align: right; font-weight: 700; }
 .copa-caja-form { margin-bottom: 36px; }
+.copa-total-line { margin: 8px 0 22px; color: var(--text); font-weight: 700; }
+.copa-area-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0 30px; }
+.copa-area-nav button { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 148px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface2); color: var(--text); text-align: left; font: inherit; cursor: pointer; }
+.copa-area-nav button:hover, .copa-area-nav button:focus-visible { border-color: #a6bdc6; }
+.copa-area-nav button[aria-pressed="true"] { border-color: #b5ccd4; background: linear-gradient(145deg, #273136, var(--surface2)); box-shadow: inset 3px 0 #b5ccd4; }
+.copa-area-nav span { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .09em; }
+.copa-area-nav strong { font-size: 18px; }
+.copa-area-nav small { color: var(--muted); line-height: 1.45; }
+.copa-area-nav em { margin-top: auto; color: var(--accent-soft); font-size: 13px; font-style: normal; font-weight: 700; }
+.copa-area-panel > h3 { margin-bottom: 8px; }
+.copa-area-panel > p { max-width: 760px; }
+.copa-area-panel[hidden], .copa-caja-form[hidden] { display: none; }
+.copa-area-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 22px 0; }
+.copa-area-summary > div { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface2); }
+.copa-area-summary span { display: block; color: var(--muted); font-size: 12px; }
+.copa-area-summary strong { display: block; margin-top: 8px; font-size: clamp(18px, 2vw, 24px); overflow-wrap: anywhere; }
+.copa-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; margin-bottom: 30px; }
+.copa-form-grid .panel { margin: 0; }
+.copa-caja-form h4 { margin: 0 0 12px; font-size: 18px; }
+.copa-caja-form .field { margin: 16px 0; }
+.copa-caja-form .form-actions { margin-top: 22px; }
+.copa-area-records { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line); }
 .copa-ledger-scroll { width: 100%; max-width: 100%; overflow-x: auto; margin: 12px 0 32px; }
 .copa-ledger-table { width: 100%; border-collapse: collapse; min-width: 680px; font-size: 13px; }
 .copa-ledger-table th, .copa-ledger-table td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
 .copa-ledger-table th { color: var(--muted); white-space: nowrap; }
 .copa-ledger-table .btn { padding: 8px 10px; font-size: 12px; }
 .copa-void { opacity: .58; }
-@media (max-width: 720px) { .copa-caja-weekly { grid-template-columns: 1fr; } }
+@media (max-width: 960px) { .copa-area-nav, .copa-area-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .copa-caja-weekly, .copa-form-grid { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .copa-area-nav, .copa-area-summary { grid-template-columns: 1fr; } .copa-area-nav button { min-height: auto; } }
 .copa-goal-rows {
   display: grid;
   gap: 12px;
