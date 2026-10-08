@@ -18,6 +18,7 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
+    <link rel="stylesheet" href="../assets/reservas-refined.css?v=20261007-1" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20260930-pagos" defer></script>
   </head>
@@ -83,7 +84,7 @@
     <!-- Contenido principal -->
     <main id="contenido">
       <!-- Título de la página -->
-      <div class="page-intro container">
+      <div class="page-intro container reservation-form-intro">
         <!-- Ruta de navegación -->
         <nav class="breadcrumb" aria-label="Ruta de navegación">
           <a href="../index.html">Inicio</a>
@@ -91,14 +92,15 @@
           <span>Planea tu próximo partido.</span>
         </nav>
 
-        <h1>Planea tu próximo partido.</h1>
+        <p class="eyebrow">RESERVA EN LÍNEA · ARENA CASTELL</p>
+        <h1>Elige tu momento<br /><span>en la cancha.</span></h1>
         <p>
           Escoge el día, la hora y la ocasión. Todos los horarios corresponden a Ecuador (UTC−5).
         </p>
       </div>
 
       <!-- Formulario de reserva -->
-      <section class="container content-section">
+      <section class="container content-section reservation-form-content">
         <!-- Pasos del proceso -->
         <ol class="steps" aria-label="Progreso de la operación">
           <li class="current" aria-current="step">Información</li>
@@ -120,47 +122,9 @@
         <!-- Mensajes del formulario -->
         <div id="form-message" role="alert" tabindex="-1" hidden></div>
 
-        <div class="form-layout">
+        <div class="form-layout reservation-form-layout">
           <!-- Datos de la reserva -->
-          <form method="post" id="reservation-form" class="panel">
-            <!-- Grupo de datos -->
-            <fieldset class="form-block">
-              <legend>Datos del titular</legend>
-
-              <div class="form-grid">
-                <div class="field">
-                  <label for="nombre">Nombre completo</label>
-                  <input id="nombre" name="nombre" type="text" readonly data-profile="nombre" />
-                </div>
-
-                <div class="field">
-                  <label for="email">Correo electrónico</label>
-                  <input id="email" name="email" type="email" readonly data-profile="email" />
-                </div>
-
-                <div class="field">
-                  <label for="cedula">Cédula</label>
-                  <input id="cedula" name="cedula" type="text" readonly data-profile="cedula" />
-                </div>
-
-                <div class="field">
-                  <label for="telefono">Celular</label>
-                  <input
-                    id="telefono"
-                    name="telefono"
-                    type="tel"
-                    readonly
-                    data-profile="telefono"
-                  />
-                </div>
-              </div>
-
-              <p class="small-text muted">
-                Se usarán los datos de tu cuenta.
-                <a href="mi_perfil.html">Actualizar mis datos</a>
-              </p>
-            </fieldset>
-
+          <form method="post" id="reservation-form" class="panel reservation-form-panel">
             <!-- Grupo de datos -->
             <fieldset class="form-block">
               <legend>Personaliza tu reserva</legend>
@@ -219,6 +183,35 @@
               <div id="time-slots" class="time-slots"></div>
             </fieldset>
 
+            <!-- Datos de la cuenta: se muestran después de elegir el horario. -->
+            <fieldset class="form-block reservation-account-details">
+              <legend>Datos del titular</legend>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="nombre">Nombre completo</label>
+                  <input id="nombre" name="nombre" type="text" readonly data-profile="nombre" />
+                </div>
+
+                <div class="field">
+                  <label for="email">Correo electrónico</label>
+                  <input id="email" name="email" type="email" readonly data-profile="email" />
+                </div>
+
+                <div class="field">
+                  <label for="cedula">Cédula</label>
+                  <input id="cedula" name="cedula" type="text" readonly data-profile="cedula" />
+                </div>
+
+                <div class="field">
+                  <label for="telefono">Celular</label>
+                  <input id="telefono" name="telefono" type="tel" readonly data-profile="telefono" />
+                </div>
+              </div>
+
+              <p class="small-text muted">Usaremos los datos de tu cuenta. <a href="mi_perfil.html">Actualizar mis datos</a></p>
+            </fieldset>
+
             <!-- Acciones del formulario -->
             <div class="form-actions">
               <a href="reservas.html" class="text-link">Volver a reservas</a>
@@ -233,7 +226,7 @@
           </form>
 
           <!-- Resumen de la operación -->
-          <aside class="panel summary">
+          <aside class="panel summary reservation-summary">
             <p class="eyebrow">ARENA CASTELL</p>
             <h2>Tu próxima jugada</h2>
 

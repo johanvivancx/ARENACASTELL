@@ -18,6 +18,7 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
+    <link rel="stylesheet" href="../assets/reservas-refined.css?v=20261007-1" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20260930-pagos" defer></script>
   </head>
@@ -82,64 +83,37 @@
 
     <!-- Contenido principal -->
     <main id="contenido">
-      <!-- Título de la página -->
-      <div class="page-intro container">
-        <!-- Ruta de navegación -->
-        <nav class="breadcrumb" aria-label="Ruta de navegación">
-          <a href="../index.html">Inicio</a>
-          <span aria-hidden="true">/</span>
-          <span>Cada ocasión merece cancha.</span>
-        </nav>
+      <div class="container reservation-breadcrumb"><nav class="breadcrumb" aria-label="Ruta de navegación"><a href="../index.html">Inicio</a><span aria-hidden="true">/</span><span>Reservas</span></nav></div>
 
-        <h1>Cada ocasión merece cancha.</h1>
-        <p>
-          Un partido de siempre o una celebración especial. Elige cómo quieres vivir ARENA CASTELL.
-        </p>
-      </div>
+      <!-- Presentación de la cancha y acceso directo a la reserva -->
+      <section class="container reservation-hero" aria-labelledby="reservation-hero-title">
+        <div class="reservation-hero-copy">
+          <p class="eyebrow">ARENA CASTELL · AMAGUAÑA</p>
+          <h1 id="reservation-hero-title">Tu cancha.<br /><span>Tu próximo partido.</span></h1>
+          <p>Fútbol 7, celebraciones y eventos en una cancha preparada para jugar. Elige una fecha, revisa los horarios disponibles y confirma tu reserva.</p>
+          <div class="reservation-hero-actions">
+            <a class="btn" href="informacion_reservas.html">Consultar horarios <span aria-hidden="true">→</span></a>
+            <a class="btn secondary" href="#reservation-options">Ver opciones</a>
+          </div>
+          <div class="reservation-hero-facts" aria-label="Servicios de la cancha"><span>08:00–23:00</span><span>Parqueadero privado</span><span>Servicio de bar</span></div>
+        </div>
+        <figure class="reservation-hero-photo">
+          <img src="../assets/cancha-real.jpeg" alt="Cancha sintética de Arena Castell iluminada al atardecer" width="960" height="1280" fetchpriority="high" decoding="async" />
+          <figcaption>Cancha sintética e iluminación para tus partidos.</figcaption>
+        </figure>
+      </section>
 
       <!-- Opciones de reserva -->
-      <section class="container content-section">
-        <div class="service-hero with-photo">
-          <div class="service-copy">
-            <p class="eyebrow">LA CANCHA ES TUYA</p>
-            <h2>
-              Reúne a los tuyos.
-              <br />
-              Nosotros ponemos el lugar.
-            </h2>
-            <p>
-              Cancha sintética para fútbol 7. Reserva de una a seis horas, selecciona el día y
-              revisa la disponibilidad antes de continuar. Contamos con parqueadero privado y
-              seguro, y servicio de bar.
-            </p>
-            <a class="btn" href="informacion_reservas.html">
-              Reservar ahora
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </a>
-          </div>
-
-          <figure class="service-photo">
-            <img
-              src="../assets/cancha-real.jpeg"
-              alt="Cancha sintética de Arena Castell iluminada al atardecer"
-              width="960"
-              height="1280"
-              class="court-photo"
-              fetchpriority="high"
-              decoding="async"
-            />
-            <figcaption>
-              Así es nuestra cancha: césped sintético e iluminación para tus partidos.
-            </figcaption>
-          </figure>
+      <section class="container content-section reservation-content" id="reservation-options" aria-labelledby="reservation-options-title">
+        <div class="reservation-section-heading">
+          <div><p class="eyebrow">ELIGE TU PLAN</p><h2 id="reservation-options-title">Una cancha. Distintas formas de vivirla.</h2></div>
+          <p>Selecciona la opción que necesitas. Podrás comprobar los horarios libres antes de pagar.</p>
         </div>
 
         <!-- Tarjetas de reserva -->
-        <div class="cards">
+        <div class="cards reservation-options-grid">
           <!-- Tarjeta informativa -->
-          <article class="card">
+          <article class="card reservation-option-card">
             <div class="card-content">
               <span class="tag">PARTIDO</span>
               <h3 class="scroll-anchor">Por hora</h3>
@@ -153,14 +127,11 @@
 
               <ul class="check-list">
                 <li>De 1 a 6 horas por reserva</li>
-                <li>Parqueadero privado y seguro</li>
-                <li>Servicio de bar</li>
-                <li>Horario de 08:00 a 23:00</li>
-                <li>Comprobante en tu historial</li>
+                <li>Revisa los horarios disponibles</li>
               </ul>
 
               <a class="btn" href="informacion_reservas.html?tipo=HORA">
-                Reservar
+                Elegir horario
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
@@ -169,7 +140,7 @@
           </article>
 
           <!-- Tarjeta informativa -->
-          <article class="card">
+          <article class="card reservation-option-card">
             <div class="card-content">
               <span class="tag">CELEBRACIÓN</span>
               <h3 class="scroll-anchor">Cumpleaños</h3>
@@ -188,14 +159,10 @@
               <ul class="check-list">
                 <li>Paquete de 3 horas de cancha</li>
                 <li>Decoración incluida</li>
-                <li>Parqueadero privado y seguro</li>
-                <li>Servicio de bar</li>
-                <li>Horario de 08:00 a 23:00</li>
-                <li>Comprobante en tu historial</li>
               </ul>
 
               <a class="btn" href="informacion_reservas.html?tipo=CUMPLEANOS">
-                Reservar
+                Planear cumpleaños
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
@@ -204,7 +171,7 @@
           </article>
 
           <!-- Tarjeta informativa -->
-          <article class="card">
+          <article class="card reservation-option-card">
             <div class="card-content">
               <span class="tag">ENCUENTRO</span>
               <h3 class="scroll-anchor">Evento deportivo</h3>
@@ -218,14 +185,11 @@
 
               <ul class="check-list">
                 <li>De 1 a 6 horas por reserva</li>
-                <li>Parqueadero privado y seguro</li>
-                <li>Servicio de bar</li>
-                <li>Horario de 08:00 a 23:00</li>
-                <li>Comprobante en tu historial</li>
+                <li>Coordina tu encuentro deportivo</li>
               </ul>
 
               <a class="btn" href="informacion_reservas.html?tipo=EVENTO">
-                Reservar
+                Planear evento
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
@@ -234,7 +198,7 @@
           </article>
         </div>
 
-        <div class="faq">
+        <div class="faq reservation-faq">
           <h2>Antes de reservar</h2>
 
           <details>
