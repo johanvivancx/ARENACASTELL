@@ -1398,6 +1398,16 @@ async function loadReports(filters = {}) {
     ]),
     "Pagos registrados en el rango seleccionado.",
   );
+  const schoolRows = [...reportData.escuela].sort((a, b) =>
+    Number(a.mes_actual_pagado) - Number(b.mes_actual_pagado) ||
+    a.alumno.localeCompare(b.alumno, "es"));
+  const schoolPaid = schoolRows.filter((row) => row.mes_actual_pagado).length;
+  $("#school-admin-stats").innerHTML = [
+    ["Alumnos registrados", schoolRows.length],
+    ["Al día este mes", schoolPaid],
+    ["Pendientes este mes", schoolRows.length - schoolPaid],
+    ["Total pagado", money(schoolRows.reduce((sum, row) => sum + Number(row.total_pagado || 0), 0))],
+  ].map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("");
   $("#school-report").innerHTML = table(
     [
       "Alumno",
@@ -1407,7 +1417,7 @@ async function loadReports(filters = {}) {
       "Total",
       "Mes actual",
     ],
-    reportData.escuela.map((s) => [
+    schoolRows.map((s) => [
       s.alumno,
       s.categoria,
       s.representante,

@@ -18,6 +18,7 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
+    <link rel="stylesheet" href="../assets/super-chaca.css?v=20261007-1" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20260930-pagos" defer></script>
   </head>
@@ -83,7 +84,7 @@
     <!-- Contenido principal -->
     <main id="contenido">
       <!-- Título de la página -->
-      <div class="page-intro container">
+      <div class="page-intro container school-intro">
         <!-- Ruta de navegación -->
         <nav class="breadcrumb" aria-label="Ruta de navegación">
           <a href="../index.html">Inicio</a>
@@ -91,49 +92,45 @@
           <span>Escuela de fútbol Súper Chaca</span>
         </nav>
 
-        <h1>Escuela de fútbol Súper Chaca</h1>
-        <p>
-          Chaca Amaguaña: formación de fútbol para niños y jóvenes de 4 a 17 años en el complejo
-          Arena Castell.
-        </p>
       </div>
 
       <!-- Información de la escuela -->
-      <section class="container content-section">
-        <div class="service-hero with-photo">
-          <div class="service-copy">
-            <p class="eyebrow">CHACA AMAGUAÑA · 4 A 17 AÑOS</p>
-            <h2>Aprendemos en equipo.</h2>
-            <p>
-              Entrenamiento técnico, táctico y físico, participación en torneos y desarrollo
-              integral. Una escuela donde se trabajan la disciplina, el respeto, el esfuerzo, el
-              trabajo en equipo y la pasión por el fútbol.
-            </p>
-            <p class="price">
-              $65
-              <small>/ inscripción</small>
-            </p>
-            <p>La inscripción incluye el primer mes de entrenamiento, dos uniformes y una mochila pequeña.</p>
-            <p><strong>Mensualidades siguientes: $30 al mes.</strong></p>
-
-            <a class="btn" href="informacion_super_chaca.html">¡Inscribirme ahora!</a>
+      <section class="container content-section school-page">
+        <section class="school-hero" aria-labelledby="school-hero-title">
+          <div class="school-hero-copy">
+            <p class="school-kicker">CHACA AMAGUAÑA <span aria-hidden="true">/</span> ESCUELA DE FÚTBOL</p>
+            <h1 id="school-hero-title">Escuela<br />Súper Chaca.<br /><span>Juega. Crece.</span></h1>
+            <p class="school-hero-lead">Formación para niños y jóvenes de 4 a 17 años en Arena Castell. Técnica, disciplina y trabajo en equipo dentro y fuera de la cancha.</p>
+            <div class="school-hero-facts" aria-label="Datos de la escuela">
+              <span>4 a 17 años</span><span>Amaguaña · Quito</span><span>Cancha Arena Castell</span>
+            </div>
+            <div class="school-hero-actions">
+              <a class="btn" href="informacion_super_chaca.html">Inscribir a un alumno <span aria-hidden="true">→</span></a>
+              <a class="btn secondary" href="#school-schedules-title">Ver horarios</a>
+            </div>
           </div>
+          <div class="school-hero-visual">
+            <figure class="school-hero-photo">
+              <img src="../assets/familia-chaca.jpg" alt="Jugadores y entrenador de Chaca Amaguaña en una premiación" width="2048" height="1536" fetchpriority="high" decoding="async" />
+              <figcaption>Una escuela que crece en equipo.</figcaption>
+            </figure>
+            <div class="school-crest"><img src="../assets/chaca-amaguana-logo.jpeg" alt="Escudo de Chaca Amaguaña" width="1000" height="1000" /></div>
+          </div>
+        </section>
 
-          <figure class="service-photo team-photo">
-            <img
-              src="../assets/familia-chaca.jpg"
-              alt="Equipo de Chaca Amaguaña en la premiación de Pasochoa Cup"
-              width="2048"
-              height="1536"
-              class="family-photo"
-              loading="lazy"
-              decoding="async"
-            />
-            <figcaption>La familia Chaca Amaguaña en la premiación de Pasochoa Cup.</figcaption>
-          </figure>
-        </div>
+        <section class="school-pricing" aria-labelledby="school-pricing-title">
+          <div>
+            <p class="school-kicker">EMPIEZA AQUÍ</p>
+            <h2 id="school-pricing-title">Un lugar para aprender y competir.</h2>
+            <p>La inscripción incluye el primer mes de entrenamiento, dos uniformes y una mochila pequeña. Después continúas con la mensualidad.</p>
+          </div>
+          <div class="school-price-list" aria-label="Precios de la escuela">
+            <div><span>Inscripción</span><strong>$65</strong><small>Incluye el primer mes</small></div>
+            <div><span>Mensualidad siguiente</span><strong>$30</strong><small>Por mes</small></div>
+          </div>
+        </section>
 
-        <div class="section-heading">
+        <div class="section-heading school-section-heading">
           <div>
             <p class="eyebrow">FORMACIÓN POR EDADES</p>
             <h2>Encuentra su categoría.</h2>
@@ -180,7 +177,7 @@
           </div>
         </div>
 
-        <div class="split school-schedules">
+        <div class="split school-schedules" id="school-schedules-title">
           <div class="panel">
             <h2>Horarios de entrenamiento</h2>
             <dl class="event-facts">
@@ -230,6 +227,8 @@
         <section class="school-flyers" aria-labelledby="flyers-title">
           <h2 id="flyers-title">Información de la escuela</h2>
           <p>Consulta los programas y las jornadas anunciadas por Chaca Amaguaña.</p>
+          <details class="school-flyers-details">
+            <summary>Ver flyers de horarios y programas <span aria-hidden="true">↗</span></summary>
 
           <div class="flyer-grid">
             <figure class="flyer">
@@ -276,6 +275,7 @@
               </figcaption>
             </figure>
           </div>
+          </details>
         </section>
 
         <div class="cta-strip">

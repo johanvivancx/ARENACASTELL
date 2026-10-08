@@ -18,9 +18,10 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261007-copa-areas" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
+    <link rel="stylesheet" href="../assets/super-chaca.css?v=20261007-1" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261007-copa-areas" defer></script>
-    <script src="../assets/app.js?v=20261007-copa-areas" defer></script>
+    <script src="../assets/app.js?v=20261007-chaca" defer></script>
   </head>
 
   <body data-page="admin">
@@ -458,8 +459,19 @@
           </section>
 
           <section class="admin-workspace-section" id="admin-escuela" aria-labelledby="admin-escuela-title" hidden>
-            <h2 id="admin-escuela-title">Control de mensualidades</h2>
-
+            <div class="school-admin-hero">
+              <img src="../assets/chaca-amaguana-logo.jpeg" alt="Escudo de Chaca Amaguaña" width="1000" height="1000" loading="lazy" decoding="async" />
+              <div>
+                <p class="school-kicker">CHACA AMAGUAÑA / ADMINISTRACIÓN</p>
+                <h2 id="admin-escuela-title">Súper Chaca</h2>
+                <p>Alumnos, mensualidades y estado del mes en un solo lugar.</p>
+                <a href="super_chaca.html" class="school-admin-link">Ver página de la escuela <span aria-hidden="true">→</span></a>
+              </div>
+            </div>
+            <div id="school-admin-stats" class="school-admin-stats" aria-label="Resumen de Súper Chaca"></div>
+            <div class="school-admin-list-heading">
+              <div><h3>Alumnos y mensualidades</h3><p class="small-text muted">Los pendientes aparecen primero para facilitar el seguimiento.</p></div>
+            </div>
             <div id="school-report"></div>
           </section>
 
