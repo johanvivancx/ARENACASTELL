@@ -4,7 +4,7 @@ BEGIN;
 
 -- Valida cada reserva
 CREATE FUNCTION controlar_reserva() RETURNS trigger LANGUAGE plpgsql AS $$
-DECLARE hora_inicio timestamp; hora_fin timestamp;
+DECLARE hora_inicio timestamp; hora_fin timestamp; es_manual_admin boolean;
 BEGIN
   -- Exige tres horas
   -- Conserva reservas anteriores
@@ -18,8 +18,15 @@ BEGIN
   hora_inicio := NEW.inicio AT TIME ZONE 'America/Guayaquil';
   hora_fin := NEW.fin AT TIME ZONE 'America/Guayaquil';
   IF NEW.estado <> 'CANCELADA' THEN
-    IF NEW.inicio <= current_timestamp OR NEW.inicio > current_timestamp + interval '90 days' THEN
-      RAISE EXCEPTION 'Elige una fecha futura dentro de los próximos 90 días.' USING ERRCODE='23514';
+    SELECT EXISTS (
+      SELECT 1 FROM ordenes o JOIN usuarios u ON u.id=o.usuario_id
+      WHERE o.id=NEW.orden_id AND u.rol='ADMIN'
+        AND o.descripcion LIKE 'Reserva manual · %'
+    ) INTO es_manual_admin;
+    IF NEW.inicio > current_timestamp + interval '90 days'
+       OR (NEW.inicio <= current_timestamp AND
+           (NOT es_manual_admin OR hora_inicio::date <> (current_timestamp AT TIME ZONE 'America/Guayaquil')::date)) THEN
+      RAISE EXCEPTION 'Elige una fecha futura; administración puede registrar horas anteriores de hoy.' USING ERRCODE='23514';
     END IF;
     IF hora_inicio::date <> hora_fin::date OR hora_inicio::time < time '08:00'
        OR hora_fin::time > time '23:00' OR extract(minute FROM hora_inicio) <> 0

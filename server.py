@@ -356,6 +356,9 @@ class Handler(SimpleHTTPRequestHandler):
                 return s.anular_gasto(conn, uid, match[1], data)
         if path == "/api/admin/reservations" and method == "POST":
             return s.registrar_reserva_manual(conn, uid, data)
+        if path == "/api/admin/reservation-availability" and method == "GET":
+            s.exigir_administrador(conn, uid)
+            return s.disponibilidad(conn, params, incluir_horas_pasadas=True)
         if match := re.fullmatch(r"/api/admin/reservations/([^/]+)/cancel", path):
             if method == "POST":
                 return s.cancelar_reserva_manual(conn, uid, match[1])

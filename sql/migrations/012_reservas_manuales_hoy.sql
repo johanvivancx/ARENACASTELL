@@ -1,21 +1,8 @@
--- Actualiza tarifas y cumpleaños
--- Actualiza una base anterior
--- Conserva valores anteriores
-BEGIN;
-
-INSERT INTO canchas(nombre,tarifa_hora,tarifa_evento,tarifa_cumpleanos)
-VALUES ('Cancha principal · Fútbol 7',27.00,30.00,25.00)
-ON CONFLICT (nombre) DO UPDATE SET
-  tarifa_hora=EXCLUDED.tarifa_hora,
-  tarifa_evento=EXCLUDED.tarifa_evento,
-  tarifa_cumpleanos=EXCLUDED.tarifa_cumpleanos;
-
--- Valida cada reserva
+-- Permite registrar una reserva manual de horas ya pasadas, solo durante el mismo día.
+-- Las reservas de la web siguen exigiendo una fecha y hora futuras.
 CREATE OR REPLACE FUNCTION controlar_reserva() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE hora_inicio timestamp; hora_fin timestamp; es_manual_admin boolean;
 BEGIN
-  -- Exige tres horas
-  -- Conserva reservas anteriores
   IF NEW.tipo_evento = 'CUMPLEANOS' AND NEW.fin - NEW.inicio <> interval '3 hours' THEN
     IF TG_OP = 'INSERT' THEN
       RAISE EXCEPTION 'El paquete de cumpleaños tiene una duración de 3 horas.' USING ERRCODE='23514';
@@ -51,7 +38,3 @@ BEGIN
   END IF;
   RETURN NEW;
 END; $$;
-
-COMMIT;
-
-SELECT nombre, tarifa_hora, tarifa_cumpleanos, tarifa_evento FROM canchas ORDER BY id;

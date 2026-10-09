@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261007-1" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261008-vocalias-deudas" defer></script>
-    <script src="../assets/app.js?v=20261008-admins" defer></script>
+    <script src="../assets/app.js?v=20261008-reserva-manual" defer></script>
   </head>
 
   <body data-page="admin">
@@ -363,8 +363,8 @@
           <form method="post" id="manual-reservation-form" class="panel" hidden>
             <h3>Reserva acordada fuera de la web</h3>
             <p class="small-text muted">
-              Al guardar, el horario queda ocupado de inmediato. El pago en cancha se registra por
-              separado cuando recibas el dinero; no se contará como pagado antes.
+              Puedes registrar una hora que ya pasó hoy si no estaba ocupada. El horario queda
+              ocupado al guardar; el dinero solo se suma cuando indiques que ya lo recibiste.
             </p>
             <div class="form-grid">
               <div class="field">
@@ -410,9 +410,24 @@
                 <p id="manual-availability" class="small-text muted" role="status"></p>
               </div>
               <div class="field full">
-                <label for="manual-monto">Pago a recibir (USD)</label>
+                <label for="manual-monto">Valor acordado (USD)</label>
                 <input id="manual-monto" name="monto" type="number" min="0.01" max="9999.99" step="0.01" inputmode="decimal" required />
                 <p class="small-text muted">Ingresa el valor acordado con el cliente. Solo afecta a esta reserva manual; las tarifas de la web no cambian.</p>
+              </div>
+              <div class="field">
+                <label for="manual-metodo">Forma de pago</label>
+                <select id="manual-metodo" name="metodo" required>
+                  <option value="">Selecciona una forma</option>
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="TRANSFERENCIA">Transferencia</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="manual-cobro-estado">¿Ya recibiste el dinero?</label>
+                <select id="manual-cobro-estado" name="cobro_estado" required>
+                  <option value="PENDIENTE">No, quedó pendiente</option>
+                  <option value="PAGADA">Sí, pago recibido</option>
+                </select>
               </div>
             </div>
             <div class="form-actions">
@@ -420,6 +435,8 @@
             </div>
           </form>
 
+          <p class="small-text muted">Total histórico cobrado por reservas manuales (los pagos pendientes no se incluyen):</p>
+          <div id="manual-payment-stats" class="stats-grid" aria-label="Dinero cobrado por reservas manuales"></div>
           <div id="reservations-report"></div>
           <details id="manual-reservation-corrections" class="panel" hidden>
             <summary>Corregir reservas manuales pendientes</summary>

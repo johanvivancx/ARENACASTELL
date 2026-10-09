@@ -248,7 +248,7 @@ def catalogo(conn):
 
 
 # Busca horarios libres
-def disponibilidad(conn, data):
+def disponibilidad(conn, data, *, incluir_horas_pasadas=False):
     day = fecha(data.get("fecha"))
     cid = numero(data.get("cancha", 1), "Cancha")
     duration = numero(data.get("horas", 1), "Duración", 1, 6)
@@ -262,7 +262,10 @@ def disponibilidad(conn, data):
     for hour in range(8, 24 - duration):
         start = datetime.combine(day, datetime.min.time(), TZ) + timedelta(hours=hour)
         end = start + timedelta(hours=duration)
-        available = now < start <= now + timedelta(days=90) and not any(
+        in_window = now < start <= now + timedelta(days=90)
+        if incluir_horas_pasadas and day == now.date() and start <= now:
+            in_window = True
+        available = in_window and not any(
             start < r["fin"] and end > r["inicio"] for r in rows
         )
         slots.append({"hora": f"{hour:02}:00", "disponible": available})
@@ -279,7 +282,7 @@ def crear_orden(conn, uid, kind, description, service):
 
 
 # Crea una reserva pendiente
-def reservar(conn, uid, data):
+def reservar(conn, uid, data, *, descripcion_manual=None):
     court = conn.execute(
         "SELECT * FROM canchas WHERE id=%s", (numero(data.get("cancha_id", 1), "Cancha"),)
     ).fetchone()
@@ -294,7 +297,9 @@ def reservar(conn, uid, data):
     start = datetime.combine(day, datetime.strptime(hour, "%H:%M").time(), TZ)
     end = start + timedelta(hours=duration)
     order = crear_orden(
-        conn, uid, "RESERVA", f"{court['nombre']} · {day:%d/%m/%Y} · {hour} · {duration} h", service
+        conn, uid, "RESERVA",
+        descripcion_manual or f"{court['nombre']} · {day:%d/%m/%Y} · {hour} · {duration} h",
+        service
     )
     conn.execute(
         """INSERT INTO reservas(orden_id,cancha_id,tipo_evento,inicio,fin)
@@ -305,8 +310,18 @@ def reservar(conn, uid, data):
 
 
 def registrar_reserva_manual(conn, admin_uid, data):
-    """Bloquea un horario acordado fuera de la web, sin registrar un cobro ficticio."""
+    """Registra una reserva externa y solo contabiliza el dinero ya recibido."""
     exigir_administrador(conn, admin_uid)
+    day = fecha(data.get("fecha"))
+    today = datetime.now(TZ).date()
+    if not today <= day <= today + timedelta(days=90):
+        raise ErrorValidacion("La fecha de una reserva manual debe ser desde hoy y hasta 90 días después.")
+    method = data.get("metodo", "EFECTIVO")
+    if method not in METHODS:
+        raise ErrorValidacion("Selecciona efectivo o transferencia para esta reserva.")
+    cobro_estado = data.get("cobro_estado", "PENDIENTE")
+    if cobro_estado not in ("PENDIENTE", "PAGADA"):
+        raise ErrorValidacion("Selecciona si el pago ya fue recibido o quedó pendiente.")
     cliente = texto(data.get("cliente"), "Nombre de contacto", 2, 70)
     telefono = str(data.get("telefono", "")).strip()
     if telefono and not re.fullmatch(r"\+?[0-9]{7,15}", telefono):
@@ -322,22 +337,30 @@ def registrar_reserva_manual(conn, admin_uid, data):
         monto = Decimal(raw_monto)
         if monto <= 0:
             raise ErrorValidacion("El pago a recibir debe ser mayor que cero.")
-    order = reservar(conn, admin_uid, data)
+    duration = numero(data.get("horas"), "Duración", 1, 6)
+    hour = str(data.get("hora", ""))
+    if hour not in [f"{h:02}:00" for h in range(8, 24 - duration)]:
+        raise ErrorValidacion("Selecciona una hora dentro del horario de la cancha.")
     descripcion = (
         f"Reserva manual · {cliente} · {telefono or 'sin celular'} · "
         f"{data['fecha']} {data['hora']}"
     )
+    order = reservar(conn, admin_uid, data, descripcion_manual=descripcion)
     conn.execute(
-        "UPDATE ordenes SET descripcion=%s, metodo_previsto='EFECTIVO', "
+        "UPDATE ordenes SET descripcion=%s, metodo_previsto=%s, "
         "monto=COALESCE(%s, monto) WHERE id=%s",
-        (descripcion, monto, order["id"]),
+        (descripcion, method, monto, order["id"]),
     )
     # El índice de exclusión de PostgreSQL impide dos reservas confirmadas solapadas.
     conn.execute(
         "UPDATE reservas SET estado='CONFIRMADA' WHERE orden_id=%s",
         (order["id"],),
     )
-    return {"id": order["id"], "message": "Reserva registrada. El horario quedó ocupado; el cobro sigue pendiente."}
+    if cobro_estado == "PAGADA":
+        paid_order = conn.execute("SELECT * FROM ordenes WHERE id=%s FOR UPDATE", (order["id"],)).fetchone()
+        _confirmar_pago(conn, admin_uid, paid_order, method)
+        return {"id": order["id"], "message": f"Reserva y pago en {method.lower()} registrados. El horario quedó ocupado."}
+    return {"id": order["id"], "message": f"Reserva registrada. El horario quedó ocupado; el pago en {method.lower()} sigue pendiente."}
 
 
 def cancelar_reserva_manual(conn, admin_uid, oid):
@@ -929,6 +952,16 @@ def reportes(conn, uid, data):
            WHERE p.simulado=false AND o.estado='PAGADA'
            GROUP BY o.tipo"""
     ).fetchall()
+    manual_payments = conn.execute(
+        """SELECT p.metodo,coalesce(sum(p.monto),0) AS total
+           FROM pagos p JOIN ordenes o ON o.id=p.orden_id
+           WHERE o.tipo='RESERVA' AND o.descripcion LIKE 'Reserva manual · %'
+             AND o.estado='PAGADA' AND p.simulado=false
+           GROUP BY p.metodo"""
+    ).fetchall()
+    manual_by_method = {method: Decimal("0") for method in METHODS}
+    for row in manual_payments:
+        manual_by_method[row["metodo"]] = row["total"]
     expenses = conn.execute(
         """SELECT g.id,g.categoria,g.concepto,g.monto,g.fecha_gasto,g.creado_en,
            g.anulado_en,g.motivo_anulacion,u.nombre AS registrado_por,
@@ -963,6 +996,7 @@ def reportes(conn, uid, data):
         "pagos": payments,
         "gastos": expenses,
         "finanzas": finance,
+        "reservas_manuales_cobradas": manual_by_method,
         "efectivo_pendiente": conn.execute(
             """SELECT o.id,o.descripcion,o.monto,o.creado_en,
                 u.nombre AS titular FROM ordenes o JOIN usuarios u ON u.id=o.usuario_id
@@ -982,10 +1016,12 @@ def reportes(conn, uid, data):
         "reservas": conn.execute(
             """SELECT r.id,r.inicio,r.fin,r.tipo_evento,r.estado,
                 c.nombre AS cancha,u.nombre AS titular,u.email,u.telefono,
-                o.id AS orden_id,o.monto,o.estado AS estado_pago,o.descripcion AS detalle,
+                o.id AS orden_id,o.monto,o.estado AS estado_pago,o.metodo_previsto,
+                p.metodo AS metodo_pagado,o.descripcion AS detalle,
                 o.descripcion LIKE 'Reserva manual · %' AS manual
                 FROM reservas r JOIN canchas c ON c.id=r.cancha_id
                 JOIN ordenes o ON o.id=r.orden_id JOIN usuarios u ON u.id=o.usuario_id
+                LEFT JOIN pagos p ON p.orden_id=o.id
                 ORDER BY r.inicio DESC,r.id DESC"""
         ).fetchall(),
         "operaciones": conn.execute(

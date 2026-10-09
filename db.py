@@ -25,6 +25,7 @@ def preparar_control_financiero():
     """Crea la tabla nueva al iniciar, sin tocar órdenes ni pagos históricos."""
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/008_control_financiero.sql").read_text(encoding="utf8"))
+        conn.execute((ROOT / "sql/migrations/012_reservas_manuales_hoy.sql").read_text(encoding="utf8"))
 
 
 def preparar_resultados_copa():

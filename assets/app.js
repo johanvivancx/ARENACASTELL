@@ -942,7 +942,10 @@ function initManualReservation() {
   bindForm("#manual-reservation-form", async (data) => {
     needUser();
     if (session.usuario.rol !== "ADMIN") throw new Error("Solo administración puede registrar reservas manuales.");
-    if (!confirm(`¿Registrar la reserva de ${data.cliente} el ${dates(data.fecha)} a las ${data.hora} por ${data.horas} hora(s), con ${money(Number(data.monto))} por recibir? El horario quedará ocupado y el cobro pendiente.`)) return;
+    const paymentText = data.cobro_estado === "PAGADA"
+      ? `Confirmo que recibí ${money(Number(data.monto))} en ${data.metodo === "EFECTIVO" ? "efectivo" : "transferencia"}. Se sumará a los ingresos.`
+      : `El pago de ${money(Number(data.monto))} quedará pendiente y no se sumará a los ingresos.`;
+    if (!confirm(`¿Registrar la reserva de ${data.cliente} el ${dates(data.fecha)} a las ${data.hora} por ${data.horas} hora(s)? El horario quedará ocupado. ${paymentText}`)) return;
     const result = await api("/admin/reservations", data);
     await loadReports();
     form.reset();
@@ -965,7 +968,7 @@ async function loadManualSlots() {
   $("#manual-availability").textContent = "Consultando horarios disponibles…";
   try {
     const result = await api(
-      `/availability?fecha=${encodeURIComponent(date)}&cancha=${encodeURIComponent($("#manual-cancha").value)}&horas=${encodeURIComponent($("#manual-horas").value)}`,
+      `/admin/reservation-availability?fecha=${encodeURIComponent(date)}&cancha=${encodeURIComponent($("#manual-cancha").value)}&horas=${encodeURIComponent($("#manual-horas").value)}`,
     );
     if (request !== manualAvailabilityRequest) return;
     const available = result.horarios.filter((slot) => slot.disponible);
@@ -1223,6 +1226,11 @@ async function loadReports(filters = {}) {
   reportData = await api(`/admin/reports?${new URLSearchParams(filters)}`);
   $("#admin-content").hidden = false;
   const finance = reportData.finanzas;
+  const manualPaid = reportData.reservas_manuales_cobradas || {};
+  $("#manual-payment-stats").innerHTML = [
+    ["Efectivo recibido · reservas manuales", manualPaid.EFECTIVO || 0],
+    ["Transferencias recibidas · reservas manuales", manualPaid.TRANSFERENCIA || 0],
+  ].map(([label, amount]) => `<div class="stat"><span>${esc(label)}</span><strong>${esc(money(amount))}</strong></div>`).join("");
   $("#finance-stats").innerHTML = [
     ["RESERVAS", "Reservas"],
     ["TORNEOS", "Torneos"],
@@ -1276,7 +1284,7 @@ async function loadReports(filters = {}) {
   const transferHost = $("#transfer-report");
   const transfers = reportData.transferencias_pendientes || [];
   transferHost.innerHTML = transfers.length
-    ? transfers.map((o) => `<article class="cash-item"><div><h3>${esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><p>Referencia: ${esc(o.referencia_transferencia)}</p><strong>${esc(money(o.monto))} · Pendiente de revisión</strong></div><div class="actions"><button class="btn" type="button" data-transfer-action="approve-transfer" data-order="${esc(o.id)}">Aprobar abono recibido</button><button class="btn secondary" type="button" data-transfer-action="reject-transfer" data-order="${esc(o.id)}">Rechazar</button></div></article>`).join("")
+    ? transfers.map((o) => `<article class="cash-item"><div><h3>${o.descripcion.startsWith("Reserva manual · ") ? "Reserva manual" : esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><p>Referencia: ${esc(o.referencia_transferencia || "sin referencia (registro manual)")}</p><strong>${esc(money(o.monto))} · Pendiente de revisión</strong></div><div class="actions"><button class="btn" type="button" data-transfer-action="approve-transfer" data-order="${esc(o.id)}">Aprobar abono recibido</button><button class="btn secondary" type="button" data-transfer-action="reject-transfer" data-order="${esc(o.id)}">Rechazar</button></div></article>`).join("")
     : '<p class="muted">No hay transferencias pendientes de revisión.</p>';
   $$('[data-transfer-action]', transferHost).forEach((button) => button.addEventListener('click', async () => {
     const order = transfers.find((o) => o.id === button.dataset.order);
@@ -1284,7 +1292,7 @@ async function loadReports(filters = {}) {
     const action = button.dataset.transferAction;
     const data = {revision: order.revision_pago};
     if (action === "approve-transfer") {
-      if (!confirm(`¿Comprobaste en tu banco el abono de ${money(order.monto)} de ${order.titular}, referencia ${order.referencia_transferencia}? Solo aprueba si recibiste el dinero. Se volverá a revisar la disponibilidad.`)) return;
+      if (!confirm(`¿Comprobaste en tu banco el abono de ${money(order.monto)} por ${order.descripcion}${order.referencia_transferencia ? `, referencia ${order.referencia_transferencia}` : ""}? Solo aprueba si recibiste el dinero. Se volverá a revisar la disponibilidad.`)) return;
     } else {
       const reason = prompt("Escribe el motivo del rechazo. El cliente podrá verlo en su actividad.");
       if (reason === null) return;
@@ -1366,6 +1374,7 @@ async function loadReports(filters = {}) {
       "Tipo",
       "Reserva",
       "Pago",
+      "Forma de pago",
       "Valor",
       "Origen / contacto",
     ],
@@ -1379,6 +1388,7 @@ async function loadReports(filters = {}) {
       events[r.tipo_evento],
       r.estado,
       r.estado_pago === "PAGADA" ? "Registrado" : r.estado_pago,
+      methods[r.metodo_pagado || r.metodo_previsto] || "—",
       money(r.monto),
       r.manual ? r.detalle : "Web",
     ]),

@@ -124,6 +124,45 @@ def test_reserva_manual_bloquea_horario_sin_inventar_un_pago(conn,user):
         s.registrar_reserva_manual(conn,admin_id,{**data,'hora':'17:00','monto':'24.567'})
 
 
+def test_reserva_manual_pasada_y_cobros_por_metodo(conn, monkeypatch):
+    test_date = datetime.now(s.TZ).date()
+
+    class HoraDePrueba(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime.combine(test_date, datetime.min.time(), tz or s.TZ).replace(hour=21)
+
+    monkeypatch.setattr(s, "datetime", HoraDePrueba)
+    admin = Administrador('Admin de reservas', 'reservas@arena.test', cedula_demo(914), '0990000000')
+    admin.set_password('AdminSegura!2026')
+    insert_user(conn, admin)
+    aid = conn.execute("SELECT id FROM usuarios WHERE email='reservas@arena.test'").fetchone()['id']
+    data = {
+        'cliente': 'Reserva anterior', 'cancha_id': 1, 'tipo_evento': 'HORA',
+        'fecha': test_date.isoformat(), 'horas': 1, 'monto': '25.00',
+        'cobro_estado': 'PAGADA',
+    }
+    request = {'fecha': data['fecha'], 'cancha': 1, 'horas': 1}
+    assert not next(slot for slot in s.disponibilidad(conn, request)['horarios'] if slot['hora'] == '19:00')['disponible']
+    assert next(slot for slot in s.disponibilidad(conn, request, incluir_horas_pasadas=True)['horarios'] if slot['hora'] == '19:00')['disponible']
+    cash = s.registrar_reserva_manual(conn, aid, {**data, 'hora': '19:00', 'metodo': 'EFECTIVO'})
+    transfer = s.registrar_reserva_manual(conn, aid, {**data, 'hora': '20:00', 'metodo': 'TRANSFERENCIA', 'monto': '24.00'})
+    pending = s.registrar_reserva_manual(conn, aid, {**data, 'hora': '18:00', 'metodo': 'TRANSFERENCIA', 'cobro_estado': 'PENDIENTE'})
+    rows = conn.execute("SELECT orden_id,metodo,monto,simulado FROM pagos ORDER BY id").fetchall()
+    assert [(row['metodo'], row['monto'], row['simulado']) for row in rows] == [
+        ('EFECTIVO', Decimal('25.00'), False),
+        ('TRANSFERENCIA', Decimal('24.00'), False),
+    ]
+    assert {row['orden_id'] for row in rows} == {cash['id'], transfer['id']}
+    report = s.reportes(conn, aid, {})
+    assert report['reservas_manuales_cobradas'] == {
+        'EFECTIVO': Decimal('25.00'), 'TRANSFERENCIA': Decimal('24.00'),
+    }
+    assert report['finanzas']['RESERVAS']['ingresos'] == Decimal('49.00')
+    assert any(row['id'] == pending['id'] for row in report['transferencias_pendientes'])
+    assert not next(slot for slot in s.disponibilidad(conn, request, incluir_horas_pasadas=True)['horarios'] if slot['hora'] == '19:00')['disponible']
+
+
 def test_limpieza_de_pruebas_conserva_administradores_y_copa(conn, user):
     admin = s.registrar(conn, {
         'nombre': 'Administrador de limpieza', 'cedula': cedula_demo(947),
