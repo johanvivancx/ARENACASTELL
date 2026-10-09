@@ -27,6 +27,7 @@ def test_traspaso_no_inventa_ingreso_y_gasto_disponible_no_descuenta_dos_veces(c
     _save(conn, admin, "INGRESO", "BAR", "35")
     _save(conn, admin, "GASTO", "DISPONIBLE", "12", area="BAR", concepto="Compra de cerveza")
     data = caja.resumen(conn, admin)
+    assert all(row['registrado_por_nombre']=='Administrador de pruebas' for row in data['movimientos'])
     assert data["saldos"] == {"DISPONIBLE": Decimal("68"), "BAR": Decimal("55"),
         "ENTRADAS": Decimal("0"), "VOCALIAS": Decimal("0")}
     assert data["saldo_total"] == Decimal("123")

@@ -184,11 +184,18 @@ def test_http_admin_registra_reserva_manual_y_ocupa_horario(conn):
         assert conn.execute('SELECT monto FROM ordenes WHERE id=%s',(order['id'],)).fetchone()['monto']==25
         _,reports,_=request('/api/admin/reports')
         assert any(row['orden_id']==order['id'] and row['manual'] and row['estado']=='CONFIRMADA'
+                   and row['registrado_por']=='Operador HTTP'
                    for row in reports['reservas'])
+        assert any(row['administrador_nombre']=='Operador HTTP' and
+                   row['accion']=='Registró una reserva manual' and row['referencia']==order['id']
+                   for row in reports['actividad_admin'])
         _,slots,_=request(f'/api/availability?fecha={day}&cancha=1&horas=1')
         assert not next(slot for slot in slots['horarios'] if slot['hora']=='14:00')['disponible']
         assert request(f"/api/admin/reservations/{order['id']}/cancel",{})[0]==403
         assert request(f"/api/admin/reservations/{order['id']}/cancel",{},session['csrf'])[0]==200
+        _,reports,_=request('/api/admin/reports')
+        assert any(row['accion']=='Anuló una reserva manual' and
+                   row['administrador_nombre']=='Operador HTTP' for row in reports['actividad_admin'])
         _,slots,_=request(f'/api/availability?fecha={day}&cancha=1&horas=1')
         assert next(slot for slot in slots['horarios'] if slot['hora']=='14:00')['disponible']
         _,preview,_=request('/api/admin/test-data-preview')
@@ -200,6 +207,36 @@ def test_http_admin_registra_reserva_manual_y_ocupa_horario(conn):
             'password':'ClaveOperador!2026','resumen':preview['resumen']},session['csrf'])
         assert status==200 and removed['eliminados']['ordenes']==1
         assert request('/api/admin/test-data-preview')[1]['resumen']['ordenes']==0
+
+
+def test_historial_distingue_dos_cuentas_administradoras(conn):
+    for number,name,email in ((760,'Administradora Ana','ana@arena.test'),
+                              (761,'Administrador Luis','luis@arena.test')):
+        account=s.registrar(conn,{'nombre':name,'cedula':cedula_demo(number),
+            'telefono':'0990000000','email':email,'password':'ClaveOperador!2026',
+            'confirmacion':'ClaveOperador!2026','consentimiento':True})
+        conn.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s",(account['id'],))
+    conn.commit()
+    with client() as request:
+        _,session,_=request('/api/session')
+        _,ana,_=request('/api/auth/login',{'email':'ana@arena.test',
+            'password':'ClaveOperador!2026'},session['csrf'])
+        day=str(datetime.now(s.TZ).date()+timedelta(days=3))
+        status,booking,_=request('/api/admin/reservations',{'cliente':'Cliente WhatsApp',
+            'cancha_id':1,'tipo_evento':'HORA','fecha':day,'hora':'14:00','horas':1},ana['csrf'])
+        assert status==200
+        _,logged_out,_=request('/api/auth/logout',{},ana['csrf'])
+        _,luis,_=request('/api/auth/login',{'email':'luis@arena.test',
+            'password':'ClaveOperador!2026'},logged_out['csrf'])
+        assert request('/api/admin/expenses',{'categoria':'TORNEOS','concepto':'Trofeos de prueba',
+            'monto':'10.00','fecha_gasto':str(datetime.now(s.TZ).date())},luis['csrf'])[0]==200
+        _,report,_=request('/api/admin/reports')
+        assert next(r for r in report['reservas'] if r['orden_id']==booking['id'])['registrado_por']=='Administradora Ana'
+        assert report['gastos'][0]['registrado_por']=='Administrador Luis'
+        assert {(r['administrador_nombre'],r['accion']) for r in report['actividad_admin']} >= {
+            ('Administradora Ana','Registró una reserva manual'),
+            ('Administrador Luis','Registró un gasto')}
+        assert all('password' not in str(r).lower() for r in report['actividad_admin'])
 
 
 def test_http_admin_registra_y_anula_gasto(conn):
@@ -227,6 +264,9 @@ def test_http_admin_registra_y_anula_gasto(conn):
         _,reports,_=request('/api/admin/reports')
         assert reports['finanzas']['TORNEOS']['gastos']=='0'
         assert reports['gastos'][0]['motivo_anulacion']=='Registro duplicado'
+        assert reports['gastos'][0]['registrado_por']=='Operador Gastos'
+        assert reports['gastos'][0]['anulado_por']=='Operador Gastos'
+        assert {row['accion'] for row in reports['actividad_admin']} >= {'Registró un gasto','Anuló un gasto'}
 
 
 def test_http_admin_publica_resultado_copa_y_publico_lo_ve(conn):
@@ -247,6 +287,7 @@ def test_http_admin_publica_resultado_copa_y_publico_lo_ve(conn):
         assert request('/api/admin/copa-results',payload)[0]==403
         status,saved,_=request('/api/admin/copa-results',payload,session['csrf'])
         assert status==200 and saved['goleadores_pendientes']==3
+        assert next(m for m in request('/api/admin/copa-fixtures')[1]['fixtures'] if m['id']==fixture['id'])['result']['registrado_por']=='Operador Copa'
         status,public,_=request('/api/copa-castell')
         assert status==200 and public['goleadoresPendientes']==3
         played=next(m for m in public['matches'] if m.get('id')==fixture['id'])
@@ -275,6 +316,7 @@ def test_http_admin_registra_alumno_y_cobro_manual_escuela(conn):
         assert status==200
         row=next(row for row in school['alumnos'] if row['id']==f"manual:{created['id']}")
         assert not row['mes_pagado'] and not row['inscripcion_pagada']
+        assert row['registrado_por']=='Operador Escuela'
         payment={'alumno_id':created['id'],'tipo':'MENSUALIDAD','periodo':month,
                  'monto':'24','metodo':'EFECTIVO'}
         status,_,_=request('/api/admin/school/payments',payment,session['csrf'])
@@ -282,6 +324,7 @@ def test_http_admin_registra_alumno_y_cobro_manual_escuela(conn):
         _,school,_=request('/api/admin/school?periodo='+month)
         row=next(row for row in school['alumnos'] if row['id']==f"manual:{created['id']}")
         assert row['mes_pagado'] and row['mes_monto']=='24.00' and row['mes_metodo']=='EFECTIVO'
+        assert row['mes_registrado_por']=='Operador Escuela'
         _,report,_=request('/api/admin/reports')
         assert report['finanzas']['SUPER_CHACA']['mensualidades']=='24.00'
 

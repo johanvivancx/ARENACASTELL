@@ -98,8 +98,8 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       ? renderDisponibleDays() : renderActivityDays();
     const rows = activeRows();
     $("#copa-caja-history", root).innerHTML = rows.length
-      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Sale de / entra a</th><th>Concepto</th><th>Monto</th><th></th></tr></thead><tbody>${rows.map((item) =>
-          `<tr class="${item.anulado_en ? "copa-void" : ""}"><td>${esc(dates(item.fecha))}</td><td>${esc(descriptions[item.tipo])}${item.anulado_en ? " · Anulado" : ""}</td><td>${esc(names[item.cuenta])}${item.destino ? ` → ${esc(names[item.destino])}` : ""}${item.area && item.area !== item.cuenta ? ` · gasto de ${esc(names[item.area] || "la Copa")}` : ""}</td><td>${esc(item.concepto)}${item.equipo ? ` · ${esc(item.equipo)}` : ""}${item.cuenta === "VOCALIAS" && item.tipo === "INGRESO" && item.monto_efectivo !== null ? ` · efectivo ${esc(money(item.monto_efectivo))}, transferencia ${esc(money(item.monto_transferencia))}` : ""}</td><td>${esc(money(item.monto))}</td><td>${item.anulado_en ? esc(item.motivo_anulacion) : `<button class="btn secondary" type="button" data-caja-void="${esc(item.id)}">Anular</button>`}</td></tr>`).join("")}</tbody></table>`
+      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Sale de / entra a</th><th>Concepto</th><th>Monto</th><th>Registrado por</th><th>Estado</th></tr></thead><tbody>${rows.map((item) =>
+          `<tr class="${item.anulado_en ? "copa-void" : ""}"><td>${esc(dates(item.fecha))}</td><td>${esc(descriptions[item.tipo])}${item.anulado_en ? " · Anulado" : ""}</td><td>${esc(names[item.cuenta])}${item.destino ? ` → ${esc(names[item.destino])}` : ""}${item.area && item.area !== item.cuenta ? ` · gasto de ${esc(names[item.area] || "la Copa")}` : ""}</td><td>${esc(item.concepto)}${item.equipo ? ` · ${esc(item.equipo)}` : ""}${item.cuenta === "VOCALIAS" && item.tipo === "INGRESO" && item.monto_efectivo !== null ? ` · efectivo ${esc(money(item.monto_efectivo))}, transferencia ${esc(money(item.monto_transferencia))}` : ""}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td>${item.anulado_en ? `Anulado por ${esc(item.anulado_por_nombre)}: ${esc(item.motivo_anulacion)}` : `<button class="btn secondary" type="button" data-caja-void="${esc(item.id)}">Anular</button>`}</td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">Aún no hay movimientos de esta área en la semana seleccionada.</p>';
   };
 
@@ -135,8 +135,8 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       : '<p class="small-text muted">No hay partidos programados en esta semana.</p>';
     $("#copa-bar-deuda-total", root).textContent = `Total pendiente por cobrar: ${money(state.bar_deuda_pendiente)}. Las deudas no están incluidas en el saldo del bar.`;
     $("#copa-bar-deudas", root).innerHTML = state.bar_deudas.length
-      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Qué debe</th><th>Monto</th><th>Estado</th></tr></thead><tbody>${state.bar_deudas.map((item) =>
-          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${item.cobrada_en ? "Cobrada" : `<button class="btn secondary" type="button" data-bar-debt-collect="${esc(item.id)}">Registrar cobro</button>`}</td></tr>`).join("")}</tbody></table>`
+      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Qué debe</th><th>Monto</th><th>Registrado por</th><th>Estado</th></tr></thead><tbody>${state.bar_deudas.map((item) =>
+          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td>${item.cobrada_en ? `Cobrada por ${esc(item.cobrada_por_nombre)}` : `<button class="btn secondary" type="button" data-bar-debt-collect="${esc(item.id)}">Registrar cobro</button>`}</td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">No hay deudas del bar registradas.</p>';
     renderArea();
   }

@@ -93,6 +93,7 @@ def main():
                 conn.execute((ROOT / "sql/schema.sql").read_text(encoding="utf8"))
                 conn.execute((ROOT / "sql/migrations/011_vocalias_bar_deudas.sql").read_text(encoding="utf8"))
                 conn.execute((ROOT / "sql/migrations/013_escuela_manual.sql").read_text(encoding="utf8"))
+                conn.execute((ROOT / "sql/migrations/014_actividad_administrativa.sql").read_text(encoding="utf8"))
                 print("Esquema inicializado.")
             elif args.command == "seed":
                 conn.execute((ROOT / "sql/seed.sql").read_text(encoding="utf8"))

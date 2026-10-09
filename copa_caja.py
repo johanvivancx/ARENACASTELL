@@ -39,10 +39,13 @@ def _fecha(value):
 
 
 def _movimientos(conn):
-    return conn.execute("""SELECT id,fecha,tipo,cuenta,destino,area,monto,concepto,
-        fixture_id,equipo,monto_efectivo,monto_transferencia,
-        registrado_por,creado_en,anulado_en,anulado_por,motivo_anulacion
-        FROM copa_movimientos ORDER BY fecha,id""").fetchall()
+    return conn.execute("""SELECT m.id,m.fecha,m.tipo,m.cuenta,m.destino,m.area,m.monto,m.concepto,
+        m.fixture_id,m.equipo,m.monto_efectivo,m.monto_transferencia,
+        m.registrado_por,autor.nombre AS registrado_por_nombre,m.creado_en,
+        m.anulado_en,m.anulado_por,anulador.nombre AS anulado_por_nombre,m.motivo_anulacion
+        FROM copa_movimientos m JOIN usuarios autor ON autor.id=m.registrado_por
+        LEFT JOIN usuarios anulador ON anulador.id=m.anulado_por
+        ORDER BY m.fecha,m.id""").fetchall()
 
 
 def _saldos(rows):
@@ -107,8 +110,11 @@ def resumen(conn, admin_uid, semana=None):
                 else:
                     vocalia_efectivo += row["monto_efectivo"]
                     vocalia_transferencia += row["monto_transferencia"]
-    debts = conn.execute("""SELECT id,fecha,nombre,monto,concepto,creado_en,cobrada_en
-        FROM copa_bar_deudas ORDER BY fecha DESC,id DESC""").fetchall()
+    debts = conn.execute("""SELECT d.id,d.fecha,d.nombre,d.monto,d.concepto,d.creado_en,d.cobrada_en,
+        autor.nombre AS registrado_por_nombre,cobrador.nombre AS cobrada_por_nombre
+        FROM copa_bar_deudas d JOIN usuarios autor ON autor.id=d.registrado_por
+        LEFT JOIN usuarios cobrador ON cobrador.id=d.cobrada_por
+        ORDER BY d.fecha DESC,d.id DESC""").fetchall()
     pending_debts = [row for row in debts if row["cobrada_en"] is None]
     # Solo partidos programados para la semana seleccionada; el reprogramado usa la fecha nueva.
     due = []

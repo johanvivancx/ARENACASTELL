@@ -45,3 +45,9 @@ def preparar_escuela_manual():
     """Crea el registro privado de alumnos y pagos manuales sin tocar cobros web."""
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/013_escuela_manual.sql").read_text(encoding="utf8"))
+
+
+def preparar_actividad_administrativa():
+    """Guarda la autoría de los cambios administrativos futuros."""
+    with conectar() as conn:
+        conn.execute((ROOT / "sql/migrations/014_actividad_administrativa.sql").read_text(encoding="utf8"))

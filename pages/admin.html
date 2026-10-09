@@ -16,12 +16,12 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261008-admin-menu" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261009-autores" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261009-escuela-manual" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/copa-caja-admin.js?v=20261008-vocalias-deudas" defer></script>
-    <script src="../assets/app.js?v=20261009-escuela-manual" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261009-autores" defer></script>
+    <script src="../assets/app.js?v=20261009-autores" defer></script>
   </head>
 
   <body data-page="admin">
@@ -172,6 +172,11 @@
             <h2 id="admin-resumen-title">Resumen general</h2>
             <p class="small-text muted">Una vista rápida de pagos, reservas e inscripciones.</p>
             <div class="stats-grid" id="admin-stats"></div>
+            <details class="panel admin-activity">
+              <summary>Actividad reciente de administradores</summary>
+              <p class="small-text muted">Cada acción nueva muestra la cuenta que la realizó. Los registros anteriores conservan la autoría que ya estaba guardada.</p>
+              <div id="admin-activity-report"></div>
+            </details>
           </section>
 
           <section class="admin-workspace-section" id="admin-copa" aria-labelledby="copa-admin-title" hidden>
@@ -614,7 +619,7 @@
           <section class="admin-workspace-section" id="admin-limpieza" aria-labelledby="admin-limpieza-title" hidden>
             <h2 id="admin-limpieza-title">Vaciar datos de prueba</h2>
             <p>Elimina cuentas de clientes, reservas, órdenes, pagos, gastos, inscripciones, equipos, jugadores y correos guardados durante las pruebas. Es una acción permanente.</p>
-            <p class="small-text muted">Se conservan las cuentas administradoras, las tarifas y configuraciones de la cancha, los resultados, goleadores y movimientos de Copa Castell. Los correos que ya salieron del servidor no se pueden retirar.</p>
+            <p class="small-text muted">Se conservan las cuentas administradoras, el historial de acciones administrativas, las tarifas y configuraciones de la cancha, los resultados, goleadores y movimientos de Copa Castell. Los correos que ya salieron del servidor no se pueden retirar.</p>
             <button type="button" class="btn secondary" id="reset-preview-button">Revisar registros antes de vaciar</button>
             <div id="reset-preview" class="admin-reset-preview" role="status"></div>
             <form id="admin-reset-form" method="post" class="panel" hidden>

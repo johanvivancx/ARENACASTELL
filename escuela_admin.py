@@ -136,12 +136,18 @@ def resumen(conn, admin_uid, value=None):
                  "mes_monto": r["mes_monto"], "mes_metodo": r["mes_metodo"]} for r in rows]
     rows = conn.execute(
         """SELECT a.id,a.alumno,a.categoria,a.cedula,a.telefono_representante,
-           a.fecha_ingreso,pi.monto AS inscripcion_monto,pi.metodo AS inscripcion_metodo,
-           pm.monto AS mes_monto,pm.metodo AS mes_metodo
+           a.fecha_ingreso,autor.nombre AS registrado_por,
+           pi.monto AS inscripcion_monto,pi.metodo AS inscripcion_metodo,
+           autor_inscripcion.nombre AS inscripcion_registrada_por,
+           pm.monto AS mes_monto,pm.metodo AS mes_metodo,
+           autor_mes.nombre AS mes_registrado_por
            FROM alumnos_chaca_manuales a
+           JOIN usuarios autor ON autor.id=a.registrado_por
            LEFT JOIN pagos_chaca_manuales pi ON pi.alumno_id=a.id AND pi.tipo='INSCRIPCION'
+           LEFT JOIN usuarios autor_inscripcion ON autor_inscripcion.id=pi.registrado_por
            LEFT JOIN pagos_chaca_manuales pm ON pm.alumno_id=a.id
              AND pm.tipo='MENSUALIDAD' AND pm.periodo=%s
+           LEFT JOIN usuarios autor_mes ON autor_mes.id=pm.registrado_por
            WHERE a.fecha_ingreso < (%s + interval '1 month')::date
            ORDER BY a.alumno,a.id""", (period, period)
     ).fetchall()
@@ -149,8 +155,11 @@ def resumen(conn, admin_uid, value=None):
                      "categoria": r["categoria"], "cedula": r["cedula"],
                      "telefono_representante": r["telefono_representante"],
                      "fecha_ingreso": r["fecha_ingreso"], "estado": "ACTIVA",
+                     "registrado_por": r["registrado_por"],
                      "inscripcion_pagada": r["inscripcion_monto"] is not None,
                      "inscripcion_monto": r["inscripcion_monto"], "inscripcion_metodo": r["inscripcion_metodo"],
+                     "inscripcion_registrada_por": r["inscripcion_registrada_por"],
                      "mes_pagado": r["mes_monto"] is not None,
-                     "mes_monto": r["mes_monto"], "mes_metodo": r["mes_metodo"]} for r in rows)
+                     "mes_monto": r["mes_monto"], "mes_metodo": r["mes_metodo"],
+                     "mes_registrado_por": r["mes_registrado_por"]} for r in rows)
     return {"periodo": period.strftime("%Y-%m"), "alumnos": students}

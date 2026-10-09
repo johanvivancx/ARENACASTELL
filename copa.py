@@ -172,12 +172,17 @@ def panel_admin(conn, admin_uid):
     fixtures, players = catalogo()
     results, goals = _resultados(conn)
     by_id = {row["fixture_id"]: row for row in results}
+    authors = {row["fixture_id"]: row["nombre"] for row in conn.execute(
+        """SELECT r.fixture_id,u.nombre FROM copa_resultados r
+           JOIN usuarios u ON u.id=r.registrado_por"""
+    ).fetchall()}
     schedule = []
     for key, fixture in fixtures.items():
         result = by_id.get(key)
         schedule.append({**fixture, "result": {
             "homeGoals": result["goles_local"], "awayGoals": result["goles_visitante"],
             "revision": result["revision"],
+            "registrado_por": authors.get(key),
             "goals": [dict(row) for row in goals[key]],
         } if result else None})
     return {"fixtures": schedule, "players": players}

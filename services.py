@@ -642,6 +642,55 @@ def exigir_administrador(conn, uid):
         raise HTTPError(403, "Esta sección está disponible solo para administradores.")
 
 
+ACCIONES_ADMIN = {
+    "/api/admin/reservations": "Registró una reserva manual",
+    "/api/admin/copa-results": "Publicó o corrigió un resultado",
+    "/api/admin/copa-caja": "Registró un movimiento de Copa Castell",
+    "/api/admin/copa-bar-deudas": "Registró una deuda del bar",
+    "/api/admin/expenses": "Registró un gasto",
+    "/api/admin/school/students": "Registró un alumno de Súper Chaca",
+    "/api/admin/school/payments": "Registró un pago de Súper Chaca",
+    "/api/admin/admins": "Creó una cuenta administradora",
+    "/api/admin/test-data-reset": "Vació los datos de prueba",
+}
+
+
+def registrar_actividad_admin(conn, uid, path, result):
+    """Registra acciones exitosas en la misma transacción, sin guardar datos del formulario."""
+    if result.get("message", "").startswith((
+        "El efectivo ya estaba registrado", "La transferencia ya estaba aprobada"
+    )):
+        return
+    accion = ACCIONES_ADMIN.get(path)
+    if not accion:
+        if re.fullmatch(r"/api/admin/reservations/[^/]+/cancel", path):
+            accion = "Anuló una reserva manual"
+        elif re.fullmatch(r"/api/admin/copa-caja/\d+/void", path):
+            accion = "Anuló un movimiento de Copa Castell"
+        elif re.fullmatch(r"/api/admin/copa-bar-deudas/\d+/collect", path):
+            accion = "Cobró una deuda del bar"
+        elif re.fullmatch(r"/api/admin/expenses/\d+/void", path):
+            accion = "Anuló un gasto"
+        elif re.fullmatch(r"/api/admin/orders/[^/]+/approve-transfer", path):
+            accion = "Aprobó una transferencia"
+        elif re.fullmatch(r"/api/admin/orders/[^/]+/reject-transfer", path):
+            accion = "Rechazó una transferencia"
+        elif re.fullmatch(r"/api/admin/orders/[^/]+/collect-cash", path):
+            accion = "Registró efectivo recibido"
+        elif re.fullmatch(r"/api/admin/emails/\d+/queue-receipt", path):
+            accion = "Reactivó un comprobante por correo"
+    if not accion:
+        return
+    exigir_administrador(conn, uid)
+    referencia = str(result.get("id") or result.get("fixture_id") or "")[:100] or None
+    conn.execute(
+        """INSERT INTO actividad_administrativa
+           (administrador_id,administrador_nombre,administrador_email,accion,referencia)
+           SELECT id,nombre,email,%s,%s FROM usuarios WHERE id=%s""",
+        (accion, referencia, uid),
+    )
+
+
 def crear_administrador(conn, uid, data, ip_address=""):
     """Solo el propietario puede crear admins con su contraseña y clave privada."""
     exigir_administrador(conn, uid)
@@ -1004,13 +1053,17 @@ def reportes(conn, uid, data):
     if start > end:
         raise ErrorValidacion("La fecha inicial debe ser anterior a la final.")
     payments = conn.execute(
-        """SELECT * FROM vista_reporte_administrador
-       WHERE (pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s ORDER BY pagado_en DESC""",
+        """SELECT v.*,a.nombre AS registrado_por FROM vista_reporte_administrador v
+       LEFT JOIN pagos p ON p.id=v.pago_id LEFT JOIN usuarios a ON a.id=p.confirmado_por
+       WHERE (v.pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s
+       ORDER BY v.pagado_en DESC""",
         (start, end),
     ).fetchall()
     school_manual = conn.execute(
-        """SELECT p.id,p.tipo,p.periodo,p.monto,p.metodo,p.pagado_en,a.alumno
+        """SELECT p.id,p.tipo,p.periodo,p.monto,p.metodo,p.pagado_en,a.alumno,
+           admin.nombre AS registrado_por
            FROM pagos_chaca_manuales p JOIN alumnos_chaca_manuales a ON a.id=p.alumno_id
+           JOIN usuarios admin ON admin.id=p.registrado_por
            WHERE (p.pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s
            ORDER BY p.pagado_en DESC""", (start, end)
     ).fetchall()
@@ -1019,7 +1072,8 @@ def reportes(conn, uid, data):
                      "descripcion": f"Súper Chaca · {p['alumno']} · " +
                      ("inscripción manual" if p["tipo"] == "INSCRIPCION" else f"mensualidad {p['periodo']:%m/%Y}"),
                      "monto": p["monto"], "metodo": p["metodo"],
-                     "referencia": f"CHACA-MANUAL-{p['id']}", "simulado": False} for p in school_manual)
+                     "referencia": f"CHACA-MANUAL-{p['id']}", "simulado": False,
+                     "registrado_por": p["registrado_por"]} for p in school_manual)
     payments.sort(key=lambda p: p["pagado_en"], reverse=True)
     received = conn.execute(
         """SELECT o.tipo,coalesce(sum(p.monto),0) AS total
@@ -1076,6 +1130,10 @@ def reportes(conn, uid, data):
     return {
         "pagos": payments,
         "gastos": expenses,
+        "actividad_admin": conn.execute(
+            """SELECT id,administrador_nombre,administrador_email,accion,referencia,creado_en
+               FROM actividad_administrativa ORDER BY creado_en DESC,id DESC LIMIT 40"""
+        ).fetchall(),
         "finanzas": finance,
         "reservas_manuales_cobradas": manual_by_method,
         "efectivo_pendiente": conn.execute(
@@ -1099,10 +1157,13 @@ def reportes(conn, uid, data):
                 c.nombre AS cancha,u.nombre AS titular,u.email,u.telefono,
                 o.id AS orden_id,o.monto,o.estado AS estado_pago,o.metodo_previsto,
                 p.metodo AS metodo_pagado,o.descripcion AS detalle,
-                o.descripcion LIKE 'Reserva manual · %' AS manual
+                o.descripcion LIKE 'Reserva manual · %' AS manual,
+                CASE WHEN o.descripcion LIKE 'Reserva manual · %' THEN u.nombre END AS registrado_por,
+                aprobador.nombre AS cobrado_por
                 FROM reservas r JOIN canchas c ON c.id=r.cancha_id
                 JOIN ordenes o ON o.id=r.orden_id JOIN usuarios u ON u.id=o.usuario_id
                 LEFT JOIN pagos p ON p.orden_id=o.id
+                LEFT JOIN usuarios aprobador ON aprobador.id=p.confirmado_por
                 ORDER BY r.inicio DESC,r.id DESC"""
         ).fetchall(),
         "operaciones": conn.execute(

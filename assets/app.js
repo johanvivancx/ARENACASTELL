@@ -1056,7 +1056,7 @@ async function initCopaResults() {
     goalsHost.replaceChildren();
     for (const goal of fixture.result?.goals || []) addGoalRow(goal.equipo, goal);
     $("#copa-result-status").textContent = fixture.result
-      ? `Publicado: ${fixture.result.homeGoals}–${fixture.result.awayGoals}. Puedes corregir el marcador y los goleadores; se reemplazará el registro anterior.`
+      ? `Publicado: ${fixture.result.homeGoals}–${fixture.result.awayGoals}. Último cambio: ${fixture.result.registrado_por || "administración"}. Puedes corregir el marcador y los goleadores; se reemplazará el registro anterior.`
       : "Sin resultado publicado. El partido no suma puntos ni goles todavía.";
   };
   const fillSchedule = (selected) => {
@@ -1157,6 +1157,7 @@ function initAdminWorkspace() {
     toolbar.hidden = true;
     groupNav.hidden = true;
     panels.forEach((section) => { section.hidden = true; });
+    loadReports().catch((error) => showMessage(error.message));
     intro.scrollIntoView({behavior: "smooth", block: "start"});
   };
   $$('[data-admin-target]', $("#admin-content")).forEach((button) => {
@@ -1266,12 +1267,12 @@ function renderSchoolAdmin() {
       student.categoria,
       student.telefono_representante || "—",
       student.inscripcion_pagada
-        ? `Pagada · ${money(student.inscripcion_monto)} · ${methods[student.inscripcion_metodo] || student.inscripcion_metodo}`
+        ? `Pagada · ${money(student.inscripcion_monto)} · ${methods[student.inscripcion_metodo] || student.inscripcion_metodo}${student.inscripcion_registrada_por ? ` · Cobró: ${student.inscripcion_registrada_por}` : ""}`
         : "Pendiente",
       student.mes_pagado
-        ? `Pagado · ${money(student.mes_monto)} · ${methods[student.mes_metodo] || student.mes_metodo}`
+        ? `Pagado · ${money(student.mes_monto)} · ${methods[student.mes_metodo] || student.mes_metodo}${student.mes_registrado_por ? ` · Cobró: ${student.mes_registrado_por}` : ""}`
         : "Pendiente",
-      student.origen === "MANUAL" ? "Administración" : "Página web",
+      student.origen === "MANUAL" ? `Administración · ${student.registrado_por}` : "Página web",
     ]),
     `Estado de Súper Chaca para ${schoolData.periodo}. El cobro web inicial incluye inscripción y primer mes.`,
   );
@@ -1375,7 +1376,7 @@ async function loadReports(filters = {}) {
       g.concepto,
       money(g.monto),
       g.registrado_por,
-      g.anulado_en ? `Anulado: ${g.motivo_anulacion}` : "Activo",
+      g.anulado_en ? `Anulado por ${g.anulado_por || "administración"}: ${g.motivo_anulacion}` : "Activo",
     ]),
     "Gastos registrados, incluidos los anulados para auditoría.",
   );
@@ -1408,7 +1409,7 @@ async function loadReports(filters = {}) {
   const transferHost = $("#transfer-report");
   const transfers = reportData.transferencias_pendientes || [];
   transferHost.innerHTML = transfers.length
-    ? transfers.map((o) => `<article class="cash-item"><div><h3>${o.descripcion.startsWith("Reserva manual · ") ? "Reserva manual" : esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><p>Referencia: ${esc(o.referencia_transferencia || "sin referencia (registro manual)")}</p><strong>${esc(money(o.monto))} · Pendiente de revisión</strong></div><div class="actions"><button class="btn" type="button" data-transfer-action="approve-transfer" data-order="${esc(o.id)}">Aprobar abono recibido</button><button class="btn secondary" type="button" data-transfer-action="reject-transfer" data-order="${esc(o.id)}">Rechazar</button></div></article>`).join("")
+    ? transfers.map((o) => `<article class="cash-item"><div><h3>${o.descripcion.startsWith("Reserva manual · ") ? `Reserva manual · ${esc(o.titular)}` : esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><p>Referencia: ${esc(o.referencia_transferencia || "sin referencia (registro manual)")}</p><strong>${esc(money(o.monto))} · Pendiente de revisión</strong></div><div class="actions"><button class="btn" type="button" data-transfer-action="approve-transfer" data-order="${esc(o.id)}">Aprobar abono recibido</button><button class="btn secondary" type="button" data-transfer-action="reject-transfer" data-order="${esc(o.id)}">Rechazar</button></div></article>`).join("")
     : '<p class="muted">No hay transferencias pendientes de revisión.</p>';
   $$('[data-transfer-action]', transferHost).forEach((button) => button.addEventListener('click', async () => {
     const order = transfers.find((o) => o.id === button.dataset.order);
@@ -1438,7 +1439,7 @@ async function loadReports(filters = {}) {
   }));
   const cashHost = $("#cash-report");
   cashHost.innerHTML = reportData.efectivo_pendiente.length
-    ? reportData.efectivo_pendiente.map((o) => `<article class="cash-item"><div><h3>${o.descripcion.startsWith("Reserva manual · ") ? "Reserva manual" : esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><strong>${esc(money(o.monto))} · Efectivo pendiente</strong></div><button class="btn" type="button" data-collect-cash="${esc(o.id)}">Registrar efectivo recibido</button></article>`).join("")
+    ? reportData.efectivo_pendiente.map((o) => `<article class="cash-item"><div><h3>${o.descripcion.startsWith("Reserva manual · ") ? `Reserva manual · ${esc(o.titular)}` : esc(o.titular)}</h3><p>${esc(o.descripcion)}</p><strong>${esc(money(o.monto))} · Efectivo pendiente</strong></div><button class="btn" type="button" data-collect-cash="${esc(o.id)}">Registrar efectivo recibido</button></article>`).join("")
     : '<p class="muted">No hay pagos en efectivo pendientes.</p>';
   $$('[data-collect-cash]', cashHost).forEach((button) => button.addEventListener('click', async () => {
     const order = reportData.efectivo_pendiente.find((o) => o.id === button.dataset.collectCash);
@@ -1503,7 +1504,7 @@ async function loadReports(filters = {}) {
       "Origen / contacto",
     ],
     reportData.reservas.map((r) => [
-      r.manual ? "Administración" : r.titular,
+      r.manual ? `Administración · ${r.registrado_por}` : r.titular,
       r.manual ? "—" : r.email,
       r.manual ? "—" : r.telefono,
       r.cancha,
@@ -1514,7 +1515,7 @@ async function loadReports(filters = {}) {
       r.estado_pago === "PAGADA" ? "Registrado" : r.estado_pago,
       methods[r.metodo_pagado || r.metodo_previsto] || "—",
       money(r.monto),
-      r.manual ? r.detalle : "Web",
+      r.manual ? `${r.detalle}${r.cobrado_por ? ` · Cobró: ${r.cobrado_por}` : ""}` : "Web",
     ]),
     "Todas las reservas de la cancha, confirmadas o pendientes.",
   );
@@ -1544,7 +1545,7 @@ async function loadReports(filters = {}) {
     ["Fecha", "Titular", "Correo", "Servicio", "Detalle", "Estado", "Valor"],
     reportData.operaciones.map((o) => [
       dates(o.creado_en),
-      o.titular,
+      o.descripcion.startsWith("Reserva manual · ") ? `Administración · ${o.titular}` : o.titular,
       o.email,
       kinds[o.tipo],
       o.descripcion,
@@ -1563,14 +1564,25 @@ async function loadReports(filters = {}) {
         `<div class="stat"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`,
     )
     .join("");
+  $("#admin-activity-report").innerHTML = table(
+    ["Fecha y hora", "Administrador", "Acción", "Referencia"],
+    (reportData.actividad_admin || []).map((item) => [
+      `${dates(item.creado_en)} · ${times(item.creado_en)}`,
+      `${item.administrador_nombre} · ${item.administrador_email}`,
+      item.accion,
+      item.referencia || "—",
+    ]),
+    "Últimas 40 acciones administrativas. No se incluyen datos del formulario ni contraseñas.",
+  );
   $("#payments-report").innerHTML = table(
-    ["Fecha", "Titular", "Servicio", "Método", "Monto", "Estado"],
+    ["Fecha", "Titular", "Servicio", "Método", "Monto", "Registrado por", "Estado"],
     reportData.pagos.map((p) => [
       dates(p.pagado_en),
       p.nombre,
       p.descripcion,
       methods[p.metodo],
       money(p.monto),
+      p.registrado_por || "—",
       p.simulado ? "Simulado" : "Confirmado",
     ]),
     "Pagos registrados en el rango seleccionado.",
@@ -1598,6 +1610,7 @@ $("#export-report")?.addEventListener("click", () => {
       "Método",
       "Monto USD",
       "Referencia",
+      "Registrado por",
     ],
     ...reportData.pagos.map((p) => [
       p.pagado_en,
@@ -1607,6 +1620,7 @@ $("#export-report")?.addEventListener("click", () => {
       methods[p.metodo],
       p.monto,
       p.referencia,
+      p.registrado_por || "",
     ]),
   ];
   // Evita fórmulas en CSV

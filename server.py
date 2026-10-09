@@ -20,7 +20,7 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_escuela_manual, ROOT
+from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_escuela_manual, preparar_actividad_administrativa, ROOT
 from models import ErrorValidacion
 import services as s
 import copa
@@ -260,6 +260,8 @@ class Handler(SimpleHTTPRequestHandler):
                     else:
                         uid = s.exigir_usuario(session)
                         result = self.private_route(conn, uid, path, data, params)
+                        if self.command == "POST" and path.startswith("/api/admin/"):
+                            s.registrar_actividad_admin(conn, uid, path, result)
             self.send_json(200, result, cookie_out)
         except (ErrorValidacion, json.JSONDecodeError, UnicodeDecodeError) as error:
             self.send_json(
@@ -411,6 +413,7 @@ def main():
     preparar_resultados_copa()
     preparar_movimientos_copa()
     preparar_escuela_manual()
+    preparar_actividad_administrativa()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
     print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)
