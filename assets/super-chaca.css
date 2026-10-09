@@ -134,6 +134,9 @@ body[data-page="escuela-form"] button:focus-visible {
 .school-page .school-schedules .panel { border-color: #524044; background: linear-gradient(145deg, #252125, #191d1f); }
 .school-page .event-facts dd { color: #fff; font-size: 16px; }
 .school-page .check-list li::marker { color: #ff596a; }
+.school-social-link { display: flex; align-items: center; gap: 8px; width: fit-content; margin-top: 18px; color: #ffabb4; font-weight: 700; text-decoration: none; }
+.school-social-link:hover { color: #fff; text-decoration: underline; }
+.school-social-link:focus-visible { outline: 2px solid #ffabb4; outline-offset: 4px; }
 .school-flyers { margin: 0 0 62px; padding-top: 28px; border-top: 1px solid #3e3538; }
 .school-flyers h2 { margin-bottom: 8px; font-size: clamp(28px, 3vw, 42px); text-transform: uppercase; }
 .school-flyers-details { margin-top: 24px; }
