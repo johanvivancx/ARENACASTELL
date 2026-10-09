@@ -769,7 +769,7 @@ window.CopaCastellData = {
     },
     {
       "country": "Brasil",
-      "club": "Los de Siempre",
+      "club": "La Última y nos vamos",
       "players": [
         {
           "name": "KEVIN PACHACAMA",
@@ -827,7 +827,7 @@ window.CopaCastellData = {
     },
     {
       "country": "Francia",
-      "club": "Francia F.C.",
+      "club": "Fnatik",
       "players": [
         {
           "name": "ADRIAN RAMIREZ",
