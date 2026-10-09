@@ -279,7 +279,16 @@ def enviar_resend(row, config):
     except HTTPError as error:
         if error.code == 429 or error.code >= 500:
             raise ProveedorCorreoError("API_TEMPORAL") from None
-        raise ProveedorCorreoError("API_RECHAZADA") from None
+        # Conserva solo el código HTTP y el tipo de error. La respuesta puede
+        # incluir direcciones, contenido del correo o datos de autenticación.
+        try:
+            detail = json.loads(error.read(4096))
+            name = detail.get("name", "") if isinstance(detail, dict) else ""
+        except (OSError, ValueError, TypeError):
+            name = ""
+        name = re.sub(r"[^a-z0-9_]", "", str(name).lower())[:25]
+        code = f"API_{error.code}_{name}" if name else f"API_{error.code}"
+        raise ProveedorCorreoError(code) from None
     except (URLError, TimeoutError):
         raise ProveedorCorreoError("CONEXION_API") from None
     except (json.JSONDecodeError, UnicodeDecodeError, TypeError):
