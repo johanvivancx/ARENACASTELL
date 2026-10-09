@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261007-1" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261008-vocalias-deudas" defer></script>
-    <script src="../assets/app.js?v=20261007-chaca" defer></script>
+    <script src="../assets/app.js?v=20261008-admins" defer></script>
   </head>
 
   <body data-page="admin">
@@ -132,6 +132,7 @@
           <details class="admin-more-tools">
             <summary>Más herramientas administrativas</summary>
             <div class="admin-more-tools-links">
+              <button type="button" data-admin-target="admin-administradores">Agregar administrador</button>
               <button type="button" data-admin-target="admin-correos">Envío de correos</button>
               <button type="button" data-admin-target="admin-limpieza" class="admin-nav-danger">Vaciar datos de prueba</button>
             </div>
@@ -493,6 +494,23 @@
           <h2 id="admin-ocupacion-title">Ocupación de cancha</h2>
 
           <div id="occupancy-report"></div>
+          </section>
+
+          <section class="admin-workspace-section" id="admin-administradores" aria-labelledby="admin-administradores-title" hidden>
+            <h2 id="admin-administradores-title">Agregar administrador</h2>
+            <p class="small-text muted">Esta cuenta tendrá acceso completo al panel. Créala solo para una persona de confianza. No compartas contraseñas por mensajes públicos.</p>
+            <form id="admin-create-form" method="post" class="panel">
+              <div class="form-grid">
+                <div class="field"><label for="new-admin-name">Nombre completo</label><input id="new-admin-name" name="nombre" type="text" autocomplete="name" required /></div>
+                <div class="field"><label for="new-admin-email">Correo electrónico</label><input id="new-admin-email" name="email" type="email" autocomplete="off" required /></div>
+                <div class="field"><label for="new-admin-id">Cédula</label><input id="new-admin-id" name="cedula" type="text" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required /></div>
+                <div class="field"><label for="new-admin-phone">Celular</label><input id="new-admin-phone" name="telefono" type="tel" inputmode="tel" pattern="09[0-9]{8}" maxlength="10" required /></div>
+                <div class="field"><label for="new-admin-password">Contraseña para la nueva cuenta</label><input id="new-admin-password" name="nueva_password" type="password" autocomplete="new-password" minlength="10" required /></div>
+                <div class="field"><label for="new-admin-confirmation">Repite la contraseña nueva</label><input id="new-admin-confirmation" name="confirmacion" type="password" autocomplete="new-password" minlength="10" required /></div>
+                <div class="field"><label for="admin-current-password">Tu contraseña de administrador actual</label><input id="admin-current-password" name="password_actual" type="password" autocomplete="current-password" required /></div>
+              </div>
+              <div class="form-actions"><button class="btn" type="submit">Crear administrador</button></div>
+            </form>
           </section>
 
           <!-- Estado de correos -->

@@ -10,6 +10,35 @@ import services as s
 from conftest import confirmar_transferencia
 
 
+def test_crear_administrador_exige_rol_y_password_actual(conn, user):
+    admin = Administrador('Admin Actual', 'actual@arena.test', cedula_demo(912), '0990000000')
+    admin.set_password('ActualSegura!2026')
+    insert_user(conn, admin)
+    aid = conn.execute("SELECT id FROM usuarios WHERE email='actual@arena.test'").fetchone()['id']
+    datos = {
+        'nombre': 'Nueva Administradora', 'email': 'nueva@arena.test',
+        'cedula': cedula_demo(913), 'telefono': '0991234567',
+        'nueva_password': 'NuevaSegura!2026', 'confirmacion': 'NuevaSegura!2026',
+        'password_actual': 'ActualSegura!2026',
+    }
+    with pytest.raises(s.HTTPError) as forbidden:
+        s.crear_administrador(conn, user['id'], datos)
+    assert forbidden.value.status == 403
+    with pytest.raises(s.HTTPError) as wrong_password:
+        s.crear_administrador(conn, aid, {**datos, 'password_actual': 'equivocada'})
+    assert wrong_password.value.status == 403
+    assert conn.execute("SELECT count(*) AS n FROM usuarios WHERE email=%s", (datos['email'],)).fetchone()['n'] == 0
+    with pytest.raises(s.ErrorValidacion):
+        s.crear_administrador(conn, aid, {**datos, 'confirmacion': 'DistintaSegura!2026'})
+    result = s.crear_administrador(conn, aid, datos)
+    assert 'Administrador creado' in result['message']
+    creado = conn.execute("SELECT * FROM usuarios WHERE email=%s", (datos['email'],)).fetchone()
+    assert creado['rol'] == 'ADMIN'
+    assert Administrador.desde_fila(creado).verificar_password(datos['nueva_password'])
+    with pytest.raises(s.ErrorValidacion):
+        s.crear_administrador(conn, aid, datos)
+
+
 def test_admin_ve_pendientes_y_pagadas_cliente_solo_lo_suyo(conn,user,pay_data):
     other=s.registrar(conn,{'nombre':'Otra Persona','email':'otra@arena.test','cedula':cedula_demo(910),
         'telefono':'0990000000','password':'OtraClaveSegura!','confirmacion':'OtraClaveSegura!', 'consentimiento':True})

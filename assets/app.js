@@ -1116,6 +1116,7 @@ function initAdminWorkspace() {
     "admin-reservas": {title: "Reservas", tabs: [["admin-reservas", "Reservas realizadas"], ["admin-cobros", "Pendientes por cobrar"], ["admin-ocupacion", "Ocupación"]]},
     "admin-finanzas": {title: "Ingresos y gastos", tabs: [["admin-finanzas", "Saldos y gastos"], ["admin-reportes", "Operaciones"], ["admin-pagos", "Auditoría de pagos"]]},
     "admin-escuela": {title: "Súper Chaca", tabs: [["admin-escuela", "Mensualidades"]]},
+    "admin-administradores": {title: "Agregar administrador", tabs: [["admin-administradores", "Nueva cuenta"]]},
     "admin-correos": {title: "Envío de correos", tabs: [["admin-correos", "Correos"]]},
     "admin-limpieza": {title: "Vaciar datos de prueba", tabs: [["admin-limpieza", "Limpieza"]]},
   };
@@ -1162,6 +1163,24 @@ function initAdminWorkspace() {
 }
 
 // Permite revisar cantidades antes de reiniciar los datos operativos de prueba.
+function initAdminAccounts() {
+  const form = $("#admin-create-form");
+  if (!form) return;
+  bindForm("#admin-create-form", async (data) => {
+    if (data.nueva_password !== data.confirmacion)
+      throw new Error("Las contraseñas de la nueva cuenta no coinciden.");
+    if (!confirm(`¿Dar acceso completo de administrador a ${data.email}?`)) return;
+    try {
+      const result = await api("/admin/admins", data);
+      form.reset();
+      showMessage(result.message, "success");
+    } finally {
+      ["#new-admin-password", "#new-admin-confirmation", "#admin-current-password"]
+        .forEach((selector) => { $(selector).value = ""; });
+    }
+  });
+}
+
 function initAdminReset() {
   const form = $("#admin-reset-form");
   if (!form) return;
@@ -1533,6 +1552,7 @@ async function initialize() {
     if (page === "admin") {
       await loadReports();
       initAdminWorkspace();
+      initAdminAccounts();
       initAdminReset();
       initManualReservation();
       initExpenses();

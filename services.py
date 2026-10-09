@@ -11,6 +11,7 @@ import secrets
 import uuid
 
 from models import (
+    Administrador,
     Cliente,
     Usuario,
     ReservaCancha,
@@ -567,6 +568,34 @@ def exigir_administrador(conn, uid):
     row = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
     if not row or not Usuario.desde_fila(row).puede_administrar():
         raise HTTPError(403, "Esta sección está disponible solo para administradores.")
+
+
+def crear_administrador(conn, uid, data, ip_address=""):
+    """Crea otra cuenta administradora tras verificar al administrador actual."""
+    exigir_administrador(conn, uid)
+    # Limita también los intentos con contraseña correcta para frenar automatizaciones.
+    limitar_acceso(conn, f"admin-create:{uid}:{ip_address}", max_attempts=10)
+    actual = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
+    if not Usuario.desde_fila(actual).verificar_password(data.get("password_actual", "")):
+        raise HTTPError(403, "Tu contraseña de administrador no coincide.")
+    if data.get("nueva_password") != data.get("confirmacion"):
+        raise ErrorValidacion("Las contraseñas de la nueva cuenta no coinciden.")
+    nuevo = Administrador(
+        data.get("nombre"), data.get("email"),
+        str(data.get("cedula", "")), str(data.get("telefono", "")),
+    )
+    nuevo.set_password(data.get("nueva_password"))
+    if conn.execute(
+        "SELECT 1 FROM usuarios WHERE email=%s OR cedula=%s",
+        (nuevo.email, nuevo.cedula),
+    ).fetchone():
+        raise ErrorValidacion("Ese correo o cédula ya pertenece a una cuenta.")
+    conn.execute(
+        """INSERT INTO usuarios(nombre,email,cedula,telefono,password_hash,rol)
+           VALUES(%s,%s,%s,%s,%s,'ADMIN')""",
+        (nuevo.nombre, nuevo.email, nuevo.cedula, nuevo.telefono, nuevo.get_password_hash()),
+    )
+    return {"message": "Administrador creado. Ya puede iniciar sesión."}
 
 
 def reencolar_comprobante(conn, uid, correo_id):

@@ -324,6 +324,8 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if path == "/api/admin/admins" and method == "POST":
+            return s.crear_administrador(conn, uid, data, self.client_ip())
         if match := re.fullmatch(r"/api/admin/emails/(\d+)/queue-receipt", path):
             if method == "POST":
                 return s.reencolar_comprobante(conn, uid, match[1])
