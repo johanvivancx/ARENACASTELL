@@ -17,9 +17,7 @@ import re
 import smtplib
 import ssl
 import base64
-import json
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+import resend
 
 from db import conectar
 from comprobantes import (
@@ -261,47 +259,19 @@ def enviar_resend(row, config):
         "html": html,
         "attachments": attachments,
     }
-    request = Request(
-        "https://api.resend.com/emails",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {config.api_key}",
-            "Content-Type": "application/json",
-            "Idempotency-Key": f"arena-correo-{row['id']}",
-        },
-        method="POST",
-    )
     try:
-        with urlopen(request, timeout=15) as response:
-            result = json.load(response)
-        if not isinstance(result, dict) or not result.get("id"):
+        resend.api_key = config.api_key
+        result = resend.Emails.send(payload, {"idempotency_key": f"arena-correo-{row['id']}"})
+        message_id = result.get("id") if isinstance(result, dict) else getattr(result, "id", None)
+        if not message_id:
             raise ProveedorCorreoError("RESPUESTA_API")
-    except HTTPError as error:
-        if error.code == 429 or error.code >= 500:
-            raise ProveedorCorreoError("API_TEMPORAL") from None
-        # Conserva solo el código HTTP y el tipo de error. La respuesta puede
-        # incluir direcciones, contenido del correo o datos de autenticación.
-        body = ""
-        try:
-            body = error.read(4096).decode("utf-8", "replace")
-            detail = json.loads(body)
-            name = detail.get("name", "") if isinstance(detail, dict) else ""
-            summary = detail.get("message", "") if isinstance(detail, dict) else ""
-        except (OSError, ValueError, TypeError):
-            name = ""
-            summary = re.search(r"<title[^>]*>(.*?)</title>", body, re.I | re.S)
-            summary = summary.group(1) if summary else body
-        summary = re.sub(r"https?://\S+|re_[A-Za-z0-9_-]+|[\w.+-]+@[\w.-]+", "[oculto]", str(summary))
-        summary = re.sub(r"[^\w\s.,:;()/-]", " ", summary).strip()[:120]
-        content_type = re.sub(r"[^\w./+;-]", "", str(error.headers.get("Content-Type", "")))[:60]
-        logging.warning("Resend rechazó HTTP %s (%s): %s", error.code, content_type, summary)
-        name = re.sub(r"[^a-z0-9_]", "", str(name).lower())[:25]
-        code = f"API_{error.code}_{name}" if name else f"API_{error.code}"
+    except ProveedorCorreoError:
+        raise
+    except Exception as error:
+        status = getattr(error, "status_code", None) or getattr(error, "status", None)
+        code = f"API_{status}" if isinstance(status, int) else "API_RECHAZADA"
+        logging.warning("Resend SDK rechazó correo %s: %s", row["id"], code)
         raise ProveedorCorreoError(code) from None
-    except (URLError, TimeoutError):
-        raise ProveedorCorreoError("CONEXION_API") from None
-    except (json.JSONDecodeError, UnicodeDecodeError, TypeError):
-        raise ProveedorCorreoError("RESPUESTA_API") from None
 
 
 def enviar_correo(row, config):

@@ -111,19 +111,13 @@ def test_resend_usa_https_con_pdf_y_clave_de_idempotencia(conn,user,pay_data,mon
     confirmar_transferencia(conn,user['id'],order['id'],pay_data)
     conn.commit()
     sent=[]
-    class Response:
-        def __enter__(self): return self
-        def __exit__(self,*args): pass
-        def read(self,*args): return b'{"id":"email-prueba"}'
-    def capture(request,timeout):
-        sent.append((request,timeout))
-        return Response()
-    monkeypatch.setattr(mail,'urlopen',capture)
+    def capture(payload, options):
+        sent.append((payload,options))
+        return {'id':'email-prueba'}
+    monkeypatch.setattr(mail.resend.Emails,'send',capture)
     assert mail.procesar_pendientes()['enviados']==1
-    request,timeout=sent[0]
-    payload=mail.json.loads(request.data)
-    assert request.full_url=='https://api.resend.com/emails' and timeout==15
-    assert request.get_header('Idempotency-key').startswith('arena-correo-')
+    payload,options=sent[0]
+    assert options['idempotency_key'].startswith('arena-correo-')
     assert payload['to']==[user['email']]
     assert payload['from'].endswith('<comprobantes@arenacastell.com>')
     assert any(item['filename'].endswith('.pdf') for item in payload['attachments'])
