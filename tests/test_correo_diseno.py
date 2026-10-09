@@ -123,6 +123,7 @@ def test_recuperacion_tiene_boton_valido_sin_pdf_y_no_acepta_otro_dominio(monkey
 
 def test_correo_de_prueba_muestra_ejemplo_y_pdf_solo_para_el_remitente(monkeypatch):
     config=configuracion()
+    monkeypatch.setenv('SMTP_ENABLED','true')
     monkeypatch.setattr(mail.ConfiguracionSMTP,'desde_entorno',lambda:config)
     enviados=[]
     monkeypatch.setattr(mail,'enviar_smtp',lambda row,config:enviados.append(row))

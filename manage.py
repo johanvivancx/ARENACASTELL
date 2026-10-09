@@ -24,23 +24,23 @@ def main():
     sub.add_parser(
         "create-admin", help="Crear un administrador; la contraseña se solicita sin mostrarla"
     )
-    sub.add_parser("check-email", help="Validar la configuración SMTP sin enviar ni mostrar claves")
-    sub.add_parser("test-email", help="Enviar un correo de prueba a tu propia cuenta SMTP_USER")
-    sub.add_parser("send-emails", help="Procesar hasta diez correos pendientes con SMTP")
+    sub.add_parser("check-email", help="Validar la configuración de correo sin enviar ni mostrar claves")
+    sub.add_parser("test-email", help="Enviar un correo de prueba a SMTP_USER o MAIL_TEST_TO")
+    sub.add_parser("send-emails", help="Procesar hasta diez correos pendientes")
     mailbox = sub.add_parser("outbox", help="Consultar mensajes como operador local")
     mailbox.add_argument("--email", required=True)
     args = parser.parse_args()
     try:
         if args.command == "check-email":
-            correos.ConfiguracionSMTP.desde_entorno()
+            correos.configuracion_envio()
             print(
-                "Configuración SMTP válida. No se inició sesión ni se envió correo. Ejecuta test-email para comprobar Gmail."
+                "Configuración de correo válida. No se inició sesión ni se envió correo. Ejecuta test-email para comprobar la entrega."
             )
             return
         if args.command == "test-email":
             correos.enviar_prueba()
             print(
-                "El servidor SMTP aceptó el correo de prueba dirigido a tu propia cuenta. Revisa entrada y spam."
+                "El proveedor aceptó el correo de prueba. Revisa la entrada, spam y posibles rebotes."
             )
             return
         if args.command == "send-emails":

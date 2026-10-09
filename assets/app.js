@@ -1312,6 +1312,30 @@ async function loadReports(filters = {}) {
       mail.ultimo_error || "—",
     ]),
   );
+  const savedReceipts = reportData.correos.filter(
+    (mail) => mail.estado_envio === "LOCAL" && mail.asunto === "Confirmación Arena Castell",
+  );
+  const receiptControls = $("#saved-receipt-controls");
+  receiptControls.hidden = !savedReceipts.length;
+  if (savedReceipts.length) {
+    $("#saved-receipt-select").innerHTML = savedReceipts.map((mail) =>
+      `<option value="${esc(mail.id)}">${esc(mail.destinatario || "Sin destinatario")} · ${esc(dates(mail.creado_en))} · #${esc(mail.id)}</option>`,
+    ).join("");
+    $("#queue-saved-receipt").onclick = async () => {
+      const selected = $("#saved-receipt-select").value;
+      if (!selected || !confirm("¿Poner este comprobante en cola de envío? Comprueba que el destinatario es correcto.")) return;
+      const button = $("#queue-saved-receipt");
+      button.disabled = true;
+      try {
+        const result = await api(`/admin/emails/${encodeURIComponent(selected)}/queue-receipt`, {});
+        await loadReports(filters);
+        showMessage(result.message, "success");
+      } catch (error) {
+        showMessage(error.message);
+        button.disabled = false;
+      }
+    };
+  }
   $("#reservations-report").innerHTML = table(
     [
       "Titular",

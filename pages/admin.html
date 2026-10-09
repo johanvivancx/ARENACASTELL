@@ -490,6 +490,13 @@
             </p>
 
             <div id="email-report"></div>
+            <div id="saved-receipt-controls" class="panel" hidden>
+              <h3>Comprobantes anteriores sin enviar</h3>
+              <p class="muted small-text">Activa primero el proveedor de correo. Selecciona un pago confirmado y pon su comprobante en cola de forma individual; no se reenviarán avisos de recuperación de contraseña.</p>
+              <label for="saved-receipt-select">Comprobante guardado</label>
+              <select id="saved-receipt-select"></select>
+              <div class="form-actions"><button type="button" class="btn secondary" id="queue-saved-receipt">Poner comprobante en cola</button></div>
+            </div>
           </section>
 
           <section class="admin-workspace-section" id="admin-limpieza" aria-labelledby="admin-limpieza-title" hidden>

@@ -1,4 +1,4 @@
-"""Correo transaccional por SMTP con TLS y una cola persistente en PostgreSQL.
+"""Correo transaccional por SMTP o API HTTPS con cola persistente en PostgreSQL.
 
 Utiliza SMTP con Jinja2 para HTML y ReportLab para PDF; no requiere Flask.
 Un mensaje se envía solamente después de confirmar la transacción que lo creó.
@@ -16,6 +16,10 @@ import os
 import re
 import smtplib
 import ssl
+import base64
+import json
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from db import conectar
 from comprobantes import (
@@ -40,9 +44,21 @@ class ContenidoCorreoError(ValueError):
     pass
 
 
+class ProveedorCorreoError(ValueError):
+    """Error resumido sin datos privados devueltos por el proveedor."""
+    pass
+
+
 # Revisa si envia correos
 def habilitado():
-    return os.environ.get("SMTP_ENABLED", "false").strip().lower() == "true"
+    return proveedor() != "none"
+
+
+def proveedor():
+    selected = os.environ.get("MAIL_PROVIDER", "").strip().lower()
+    if selected:
+        return selected
+    return "smtp" if os.environ.get("SMTP_ENABLED", "false").strip().lower() == "true" else "none"
 
 
 # Valida una dirección web
@@ -88,7 +104,7 @@ class ConfiguracionSMTP:
     # Lee opciones del entorno
     @classmethod
     def desde_entorno(cls):
-        if not habilitado():
+        if proveedor() != "smtp":
             raise ConfiguracionCorreoError(
                 "Activa SMTP_ENABLED=true después de configurar tu cuenta."
             )
@@ -117,6 +133,34 @@ class ConfiguracionSMTP:
             )
         url_publica()
         return cls(host, port, user, password, security, name)
+
+
+@dataclass(frozen=True)
+class ConfiguracionResend:
+    usuario: str
+    api_key: str = field(repr=False)
+    nombre: str = "ARENA CASTELL"
+
+    @classmethod
+    def desde_entorno(cls):
+        if proveedor() != "resend":
+            raise ConfiguracionCorreoError("Configura MAIL_PROVIDER=resend para usar la API HTTPS.")
+        user = direccion(os.environ.get("MAIL_FROM_EMAIL", ""))
+        key = os.environ.get("RESEND_API_KEY", "").strip()
+        name = os.environ.get("MAIL_FROM_NAME", "ARENA CASTELL").strip()
+        if not key or not name or "\n" in name or "\r" in name:
+            raise ConfiguracionCorreoError("Revisa RESEND_API_KEY, MAIL_FROM_EMAIL y MAIL_FROM_NAME.")
+        url_publica()
+        return cls(user, key, name)
+
+
+def configuracion_envio():
+    selected = proveedor()
+    if selected == "resend":
+        return ConfiguracionResend.desde_entorno()
+    if selected == "smtp":
+        return ConfiguracionSMTP.desde_entorno()
+    raise ConfiguracionCorreoError("Configura MAIL_PROVIDER=resend para activar el envío.")
 
 
 # Guarda un correo pendiente
@@ -194,8 +238,64 @@ def enviar_smtp(row, config):
             smtp.close()
 
 
+def enviar_resend(row, config):
+    """Envia el mismo diseño y PDF por HTTPS; nunca registra la clave ni la respuesta."""
+    message = crear_mensaje(row, config)
+    html = message.get_body(preferencelist=("html",)).get_content()
+    plain = message.get_body(preferencelist=("plain",)).get_content()
+    attachments = [{
+        "filename": LOGO.name,
+        "content": base64.b64encode(LOGO.read_bytes()).decode("ascii"),
+        "content_id": LOGO_CID,
+    }]
+    for item in message.iter_attachments():
+        attachments.append({
+            "filename": item.get_filename(),
+            "content": base64.b64encode(item.get_content()).decode("ascii"),
+        })
+    payload = {
+        "from": str(Address(display_name=config.nombre, addr_spec=config.usuario)),
+        "to": [row["destinatario"]],
+        "subject": row["asunto"],
+        "text": plain,
+        "html": html,
+        "attachments": attachments,
+    }
+    request = Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {config.api_key}",
+            "Content-Type": "application/json",
+            "Idempotency-Key": f"arena-correo-{row['id']}",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=15) as response:
+            result = json.load(response)
+        if not isinstance(result, dict) or not result.get("id"):
+            raise ProveedorCorreoError("RESPUESTA_API")
+    except HTTPError as error:
+        if error.code == 429 or error.code >= 500:
+            raise ProveedorCorreoError("API_TEMPORAL") from None
+        raise ProveedorCorreoError("API_RECHAZADA") from None
+    except (URLError, TimeoutError):
+        raise ProveedorCorreoError("CONEXION_API") from None
+    except (json.JSONDecodeError, UnicodeDecodeError, TypeError):
+        raise ProveedorCorreoError("RESPUESTA_API") from None
+
+
+def enviar_correo(row, config):
+    if isinstance(config, ConfiguracionResend):
+        return enviar_resend(row, config)
+    return enviar_smtp(row, config)
+
+
 # Resume el error recibido
 def codigo_error(error):
+    if isinstance(error, ProveedorCorreoError):
+        return str(error)
     # Oculta respuestas del servidor
     if isinstance(error, smtplib.SMTPAuthenticationError):
         return "AUTENTICACION_SMTP"
@@ -216,7 +316,7 @@ def procesar_pendientes(limite=10):
     totals = {"enviados": 0, "fallidos": 0, "cancelados": 0}
     if not habilitado():
         return totals
-    config = ConfiguracionSMTP.desde_entorno()
+    config = configuracion_envio()
     for _ in range(min(max(limite, 1), 50)):
         with conectar() as conn:
             row = conn.execute(
@@ -246,7 +346,7 @@ def procesar_pendientes(limite=10):
                         raise ContenidoCorreoError(
                             "No se encontró el pago del titular del mensaje."
                         ) from None
-                enviar_smtp(row, config)
+                enviar_correo(row, config)
             except (OSError, smtplib.SMTPException, ValueError) as error:
                 attempts = row["intentos"] + 1
                 code = codigo_error(error)
@@ -295,16 +395,20 @@ def iniciar_trabajador():
 
 # Envia un correo ficticio
 def enviar_prueba():
-    """Envío explícito desde la terminal, solo a la propia cuenta configurada."""
-    config = ConfiguracionSMTP.desde_entorno()
-    enviar_smtp(
+    """Envío explícito desde la terminal al buzón de prueba configurado."""
+    config = configuracion_envio()
+    recipient = (
+        direccion(os.environ.get("MAIL_TEST_TO", ""))
+        if isinstance(config, ConfiguracionResend) else config.usuario
+    )
+    enviar_correo(
         {
-            "id": "prueba",
+            "id": f"prueba-{int(datetime.now(timezone.utc).timestamp())}",
             "creado_en": datetime.now(timezone.utc),
-            "destinatario": config.usuario,
+            "destinatario": recipient,
             "asunto": "Prueba de correo · ARENA CASTELL",
             "prueba": True,
-            "cuerpo": "La conexión SMTP de ARENA CASTELL funciona.\nEste mensaje fue solicitado desde manage.py test-email.\nEl diseño y el PDF adjunto usan datos de ejemplo; no corresponden a una operación real.",
+            "cuerpo": "El envío de correo de ARENA CASTELL funciona.\nEste mensaje fue solicitado desde manage.py test-email.\nEl diseño y el PDF adjunto usan datos de ejemplo; no corresponden a una operación real.",
         },
         config,
     )

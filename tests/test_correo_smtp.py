@@ -102,6 +102,55 @@ def test_activar_smtp_no_envia_mensajes_locales_anteriores(conn,user,smtp,monkey
     assert conn.execute('SELECT estado_envio FROM correo_salida').fetchone()['estado_envio']=='LOCAL'
 
 
+def test_resend_usa_https_con_pdf_y_clave_de_idempotencia(conn,user,pay_data,monkeypatch):
+    monkeypatch.setenv('MAIL_PROVIDER','resend')
+    monkeypatch.setenv('MAIL_FROM_EMAIL','comprobantes@arenacastell.com')
+    monkeypatch.setenv('RESEND_API_KEY','re_prueba_no_real')
+    monkeypatch.setenv('PUBLIC_BASE_URL','https://arenacastell.com')
+    order=reservation(conn,user)
+    confirmar_transferencia(conn,user['id'],order['id'],pay_data)
+    conn.commit()
+    sent=[]
+    class Response:
+        def __enter__(self): return self
+        def __exit__(self,*args): pass
+        def read(self,*args): return b'{"id":"email-prueba"}'
+    def capture(request,timeout):
+        sent.append((request,timeout))
+        return Response()
+    monkeypatch.setattr(mail,'urlopen',capture)
+    assert mail.procesar_pendientes()['enviados']==1
+    request,timeout=sent[0]
+    payload=mail.json.loads(request.data)
+    assert request.full_url=='https://api.resend.com/emails' and timeout==15
+    assert request.get_header('Idempotency-key').startswith('arena-correo-')
+    assert payload['to']==[user['email']]
+    assert payload['from'].endswith('<comprobantes@arenacastell.com>')
+    assert any(item['filename'].endswith('.pdf') for item in payload['attachments'])
+    assert any(item.get('content_id')==mail.LOGO_CID for item in payload['attachments'])
+    assert mail.procesar_pendientes()['enviados']==0 and len(sent)==1
+
+
+def test_comprobante_local_se_reencola_solo_por_admin(conn,user,pay_data,monkeypatch):
+    order=reservation(conn,user)
+    confirmar_transferencia(conn,user['id'],order['id'],pay_data)
+    conn.commit()
+    row=conn.execute('SELECT * FROM correo_salida WHERE orden_id=%s',(order['id'],)).fetchone()
+    assert row['estado_envio']=='LOCAL'
+    monkeypatch.setenv('MAIL_PROVIDER','resend')
+    monkeypatch.setenv('MAIL_FROM_EMAIL','comprobantes@arenacastell.com')
+    monkeypatch.setenv('RESEND_API_KEY','re_prueba_no_real')
+    monkeypatch.setenv('PUBLIC_BASE_URL','https://arenacastell.com')
+    with pytest.raises(s.HTTPError) as error:
+        s.reencolar_comprobante(conn,user['id'],row['id'])
+    assert error.value.status==403
+    admin=conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()['id']
+    s.reencolar_comprobante(conn,admin,row['id'])
+    assert conn.execute('SELECT estado_envio FROM correo_salida WHERE id=%s',(row['id'],)).fetchone()['estado_envio']=='PENDIENTE'
+    with pytest.raises(s.HTTPError):
+        s.reencolar_comprobante(conn,admin,row['id'])
+
+
 def test_recuperacion_reemplazada_y_vencida_no_se_envia(conn,user,smtp):
     result=s.solicitar_restablecimiento(conn,{'email':user['email']})
     assert result==s.solicitar_restablecimiento(conn,{'email':'no-existe@arena.test'})

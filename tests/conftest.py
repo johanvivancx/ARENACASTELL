@@ -82,7 +82,9 @@ def confirmar_transferencia(conn, uid, oid, data):
 def impedir_envios_reales(monkeypatch):
     import correos
     monkeypatch.setenv("SMTP_ENABLED","false")
+    monkeypatch.delenv("MAIL_PROVIDER", raising=False)
     def blocked(*args,**kwargs):
-        raise AssertionError("Las pruebas no pueden conectar a un servidor SMTP real.")
+        raise AssertionError("Las pruebas no pueden enviar correos reales.")
     monkeypatch.setattr(correos.smtplib,"SMTP",blocked)
     monkeypatch.setattr(correos.smtplib,"SMTP_SSL",blocked)
+    monkeypatch.setattr(correos,"urlopen",blocked)

@@ -324,6 +324,9 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if match := re.fullmatch(r"/api/admin/emails/(\d+)/queue-receipt", path):
+            if method == "POST":
+                return s.reencolar_comprobante(conn, uid, match[1])
         if path == "/api/admin/test-data-preview" and method == "GET":
             return {"resumen": s.resumen_datos_prueba(conn, uid)}
         if path == "/api/admin/test-data-reset" and method == "POST":

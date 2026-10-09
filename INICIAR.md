@@ -81,6 +81,8 @@ El formulario público siempre crea clientes. El rol de administrador se crea de
 
 ## 5. Configurar Gmail, si lo vas a usar
 
+Si el Web Service está en **Render Free**, no uses esta opción: Render bloquea los puertos SMTP 25, 465 y 587. Configura la API HTTPS indicada abajo.
+
 Primero activa la verificación en dos pasos de Google y crea una contraseña de aplicación para Arena Castell. No uses la contraseña normal de Gmail.
 
 Completa estas variables en `.env`:
@@ -109,6 +111,16 @@ Envía una prueba a la misma cuenta de `SMTP_USER`:
 ```
 
 Revisa también la carpeta de spam. Si `SMTP_ENABLED=false`, las operaciones siguen funcionando, pero los mensajes quedan como locales y no se envían.
+
+### Correo en Render Free mediante Resend
+
+1. Crea una cuenta en Resend y verifica `arenacastell.com` o un subdominio de envío mediante los registros DNS que Resend indique. No reemplaces los registros web existentes.
+2. Crea una API key con permiso de envío. Guárdala **solo** en las variables de entorno del Web Service de Render; nunca en Git ni en el navegador.
+3. En Render configura `MAIL_PROVIDER=resend`, `RESEND_API_KEY=...`, `MAIL_FROM_EMAIL=comprobantes@arenacastell.com`, `MAIL_FROM_NAME=ARENA CASTELL` y `PUBLIC_BASE_URL=https://arenacastell.com`. La dirección remitente debe pertenecer al dominio verificado. `SMTP_ENABLED` puede permanecer en `false`. Para `manage.py test-email`, configura además `MAIL_TEST_TO` con tu propia dirección de prueba.
+4. Despliega el código y comprueba un correo propio. El panel de administración muestra si el envío fue aceptado o si hubo error. La aceptación por la API no garantiza entrega final; consulta posibles rebotes en Resend.
+5. Los comprobantes creados cuando el correo estaba desactivado permanecen en **Aviso guardado**. Una vez verificado el remitente, en **Administración → Envío de correos** puedes poner en cola cada comprobante antiguo por separado, revisando antes el destinatario. Nunca se reactivan automáticamente enlaces de recuperación de contraseña.
+
+La API usa HTTPS, conserva el diseño y PDF adjunto e identifica cada mensaje para reducir duplicados en los reintentos. Consulta los límites vigentes del plan de Resend antes de usarlo en producción.
 
 ## 6. Abrir la página
 

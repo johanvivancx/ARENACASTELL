@@ -3,7 +3,7 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from zoneinfo import ZoneInfo
-from correos import encolar_correo, habilitado, url_publica
+from correos import encolar_correo, habilitado, url_publica, configuracion_envio, ConfiguracionCorreoError
 import hashlib
 import os
 import re
@@ -567,6 +567,34 @@ def exigir_administrador(conn, uid):
     row = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
     if not row or not Usuario.desde_fila(row).puede_administrar():
         raise HTTPError(403, "Esta sección está disponible solo para administradores.")
+
+
+def reencolar_comprobante(conn, uid, correo_id):
+    """Reactivar solo un comprobante local de un pago confirmado, bajo acción del admin."""
+    exigir_administrador(conn, uid)
+    try:
+        configuracion_envio()
+    except ConfiguracionCorreoError:
+        raise HTTPError(503, "Configura y verifica primero el proveedor de correo.") from None
+    correo = conn.execute(
+        """SELECT c.id,c.destinatario,u.email AS email_actual FROM correo_salida c
+        JOIN usuarios u ON u.id=c.usuario_id
+        JOIN ordenes o ON o.id=c.orden_id AND o.usuario_id=c.usuario_id
+        JOIN pagos p ON p.orden_id=o.id
+        WHERE c.id=%s AND c.estado_envio='LOCAL' AND c.asunto='Confirmación Arena Castell'
+        AND o.estado='PAGADA' FOR UPDATE OF c""",
+        (numero(correo_id, "Correo"),),
+    ).fetchone()
+    if not correo:
+        raise HTTPError(404, "No encontramos un comprobante guardado de un pago confirmado.")
+    if correo["destinatario"] != correo["email_actual"]:
+        raise HTTPError(409, "El correo del titular cambió. Revisa el destinatario antes de enviarlo.")
+    conn.execute(
+        """UPDATE correo_salida SET estado_envio='PENDIENTE',intentos=0,
+        proximo_intento=current_timestamp,ultimo_error=NULL WHERE id=%s""",
+        (correo["id"],),
+    )
+    return {"message": "Comprobante puesto en cola. Comprueba su estado en esta sección."}
 
 
 # Registra efectivo recibido

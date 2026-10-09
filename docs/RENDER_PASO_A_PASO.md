@@ -40,7 +40,7 @@ python manage.py create-admin
 
 Estos comandos de inicialización son **solo para una base nueva y vacía**. `create-admin` pide los datos y la contraseña por consola; no los pongas en GitHub ni en mensajes. Si la base se migró desde tu computadora, usa únicamente `python manage.py check-db` y verifica que estén los usuarios y las operaciones esperadas.
 
-Abre la URL `*.onrender.com` y comprueba inicio, catálogo, registro, inicio de sesión, reservas, inscripciones, pagos pendientes y panel administrativo. Verifica también que no se pueda acceder a `/server.py`, `/.env` ni a `/sql/schema.sql`. No cambies el dominio hasta que los flujos estén comprobados. Para los correos, configura y prueba SMTP por separado antes de poner `SMTP_ENABLED=true`.
+Abre la URL `*.onrender.com` y comprueba inicio, catálogo, registro, inicio de sesión, reservas, inscripciones, pagos pendientes y panel administrativo. Verifica también que no se pueda acceder a `/server.py`, `/.env` ni a `/sql/schema.sql`. No cambies el dominio hasta que los flujos estén comprobados. En Render Free los puertos SMTP 25, 465 y 587 están bloqueados: usa la API HTTPS de Resend descrita en `INICIAR.md` y mantén `SMTP_ENABLED=false`. Solo configura SMTP si cambias el Web Service a una instancia que permita esos puertos.
 
 ## 4. Cambiar el dominio cuando todo esté listo
 
