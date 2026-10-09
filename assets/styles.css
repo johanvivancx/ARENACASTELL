@@ -703,45 +703,108 @@ svg.icon {
 }
 .admin-section-nav {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
   margin-bottom: 28px;
 }
 .admin-section-nav button {
+  --nav-accent: #aebeca;
+  position: relative;
+  grid-column: span 2;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  min-height: 135px;
-  padding: 20px;
+  gap: 9px;
+  min-height: 170px;
+  padding: 22px 24px 42px;
+  overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #202529 0%, #171a1c 52%, #151719 100%);
   color: var(--text);
   text-align: left;
   cursor: pointer;
-  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.admin-section-nav button:nth-child(2) { --nav-accent: #c2b49a; }
+.admin-section-nav button:nth-child(3) { --nav-accent: #9cbdc2; }
+.admin-section-nav button:nth-child(4) { --nav-accent: #b2b6ca; grid-column: span 3; }
+.admin-section-nav button:nth-child(5) { --nav-accent: #d599a0; grid-column: span 3; }
+.admin-section-nav button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: 46px;
+  height: 2px;
+  background: var(--nav-accent);
 }
 .admin-section-nav button:hover,
 .admin-section-nav button:focus-visible {
-  border-color: #9aadb5;
-  background: var(--surface2);
-  transform: translateY(-2px);
+  border-color: var(--nav-accent);
+  background: linear-gradient(145deg, #282e31 0%, #1b1f21 60%, #181b1d 100%);
+  box-shadow: 0 12px 28px #0005;
+  transform: translateY(-3px);
 }
-.admin-section-nav button > span {
-  color: #a6bdc6;
+.admin-section-nav button:focus-visible {
+  outline: 2px solid var(--nav-accent);
+  outline-offset: 3px;
+}
+.admin-nav-top {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--nav-accent);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: .11em;
+}
+.admin-nav-top svg {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .admin-section-nav button > strong {
-  font-size: 19px;
-  line-height: 1.2;
+  font-size: clamp(18px, 1.5vw, 21px);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.025em;
 }
 .admin-section-nav button > small {
-  color: var(--muted);
+  max-width: 34ch;
+  color: #bcc3c5;
   font-size: 13px;
   line-height: 1.45;
+}
+.admin-nav-arrow {
+  position: absolute;
+  right: 23px;
+  bottom: 15px;
+  color: var(--nav-accent);
+  font-size: 20px;
+  line-height: 1;
+  transition: transform .18s ease;
+}
+.admin-section-nav button:hover .admin-nav-arrow,
+.admin-section-nav button:focus-visible .admin-nav-arrow { transform: translate(2px, -2px); }
+@media (max-width: 900px) {
+  .admin-section-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-section-nav button,
+  .admin-section-nav button:nth-child(4) { grid-column: span 1; }
+  .admin-section-nav button:nth-child(5) { grid-column: span 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-section-nav button,
+  .admin-nav-arrow { transition: none; }
+  .admin-section-nav button:hover,
+  .admin-section-nav button:focus-visible { transform: none; }
 }
 .admin-more-tools {
   margin: -6px 0 28px;
@@ -843,7 +906,9 @@ svg.icon {
 .admin-reset-preview dd { margin: 0; font-weight: 700; }
 @media (max-width: 560px) {
   .admin-section-nav { grid-template-columns: 1fr; }
-  .admin-section-nav button { min-height: 0; }
+  .admin-section-nav button,
+  .admin-section-nav button:nth-child(4),
+  .admin-section-nav button:nth-child(5) { grid-column: span 1; min-height: 150px; }
   .admin-panel-toolbar { flex-wrap: wrap; }
   .admin-group-nav button { flex: 1 1 auto; }
 }
