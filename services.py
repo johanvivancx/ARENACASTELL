@@ -5,6 +5,7 @@ from decimal import Decimal, InvalidOperation
 from zoneinfo import ZoneInfo
 from correos import encolar_correo, habilitado, url_publica, configuracion_envio, ConfiguracionCorreoError
 import hashlib
+import hmac
 import os
 import re
 import secrets
@@ -68,8 +69,20 @@ def identificador(value):
 
 # Oculta datos privados
 def usuario_publico(row):
-    return (
-        {k: row[k] for k in ("id", "nombre", "email", "cedula", "telefono", "rol")} if row else None
+    if not row:
+        return None
+    public = {k: row[k] for k in ("id", "nombre", "email", "cedula", "telefono", "rol")}
+    public["puede_crear_admins"] = es_propietario_administracion(row)
+    return public
+
+
+def es_propietario_administracion(row):
+    """La clave privada solo habilita a la cuenta propietaria configurada."""
+    owner_email = os.environ.get("ADMIN_OWNER_EMAIL", "").strip().lower()
+    secret = os.environ.get("ADMIN_CREATION_SECRET", "")
+    return bool(
+        row and row["rol"] == "ADMIN" and owner_email
+        and len(secret) >= 20 and row["email"].lower() == owner_email
     )
 
 
@@ -594,13 +607,22 @@ def exigir_administrador(conn, uid):
 
 
 def crear_administrador(conn, uid, data, ip_address=""):
-    """Crea otra cuenta administradora tras verificar al administrador actual."""
+    """Solo el propietario puede crear admins con su contraseña y clave privada."""
     exigir_administrador(conn, uid)
-    # Limita también los intentos con contraseña correcta para frenar automatizaciones.
-    limitar_acceso(conn, f"admin-create:{uid}:{ip_address}", max_attempts=10)
     actual = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
-    if not Usuario.desde_fila(actual).verificar_password(data.get("password_actual", "")):
-        raise HTTPError(403, "Tu contraseña de administrador no coincide.")
+    if not os.environ.get("ADMIN_OWNER_EMAIL", "").strip() or len(os.environ.get("ADMIN_CREATION_SECRET", "")) < 20:
+        raise HTTPError(503, "La creación de administradores está desactivada hasta configurar el propietario y su clave privada en Render.")
+    if not es_propietario_administracion(actual):
+        raise HTTPError(403, "Solo la cuenta propietaria puede crear administradores.")
+    limitar_acceso(conn, f"admin-create:{uid}:{ip_address}", max_attempts=5)
+    current_password_valid = Usuario.desde_fila(actual).verificar_password(data.get("password_actual", ""))
+    candidate = str(data.get("clave_creacion", ""))
+    secret = os.environ["ADMIN_CREATION_SECRET"]
+    secret_valid = hmac.compare_digest(
+        hashlib.sha256(candidate.encode()).digest(), hashlib.sha256(secret.encode()).digest()
+    )
+    if not (current_password_valid and secret_valid):
+        raise HTTPError(403, "La contraseña actual o la clave privada no coinciden.")
     if data.get("nueva_password") != data.get("confirmacion"):
         raise ErrorValidacion("Las contraseñas de la nueva cuenta no coinciden.")
     nuevo = Administrador(

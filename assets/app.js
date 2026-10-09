@@ -1124,6 +1124,7 @@ function initAdminWorkspace() {
     "admin-limpieza": {title: "Vaciar datos de prueba", tabs: [["admin-limpieza", "Limpieza"]]},
   };
   const openPanel = (id) => {
+    if (id === "admin-administradores" && !session.usuario?.puede_crear_admins) return;
     const panel = panels.find((section) => section.id === id);
     if (!panel) return;
     const group = Object.values(groups).find(({tabs}) => tabs.some(([tabId]) => tabId === id));
@@ -1169,6 +1170,9 @@ function initAdminWorkspace() {
 function initAdminAccounts() {
   const form = $("#admin-create-form");
   if (!form) return;
+  const link = $('[data-admin-target="admin-administradores"]');
+  link.hidden = !session.usuario?.puede_crear_admins;
+  if (!session.usuario?.puede_crear_admins) return;
   bindForm("#admin-create-form", async (data) => {
     if (data.nueva_password !== data.confirmacion)
       throw new Error("Las contraseñas de la nueva cuenta no coinciden.");
@@ -1178,7 +1182,7 @@ function initAdminAccounts() {
       form.reset();
       showMessage(result.message, "success");
     } finally {
-      ["#new-admin-password", "#new-admin-confirmation", "#admin-current-password"]
+      ["#new-admin-password", "#new-admin-confirmation", "#admin-current-password", "#admin-creation-secret"]
         .forEach((selector) => { $(selector).value = ""; });
     }
   });

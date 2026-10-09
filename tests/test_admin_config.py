@@ -10,7 +10,7 @@ import services as s
 from conftest import confirmar_transferencia
 
 
-def test_crear_administrador_exige_rol_y_password_actual(conn, user):
+def test_crear_administrador_exige_propietario_y_clave_privada(conn, user, monkeypatch):
     admin = Administrador('Admin Actual', 'actual@arena.test', cedula_demo(912), '0990000000')
     admin.set_password('ActualSegura!2026')
     insert_user(conn, admin)
@@ -20,13 +20,33 @@ def test_crear_administrador_exige_rol_y_password_actual(conn, user):
         'cedula': cedula_demo(913), 'telefono': '0991234567',
         'nueva_password': 'NuevaSegura!2026', 'confirmacion': 'NuevaSegura!2026',
         'password_actual': 'ActualSegura!2026',
+        'clave_creacion': 'ClavePrivadaUnicaParaPruebas2026!',
     }
     with pytest.raises(s.HTTPError) as forbidden:
         s.crear_administrador(conn, user['id'], datos)
     assert forbidden.value.status == 403
+    monkeypatch.delenv('ADMIN_OWNER_EMAIL', raising=False)
+    monkeypatch.delenv('ADMIN_CREATION_SECRET', raising=False)
+    with pytest.raises(s.HTTPError) as disabled:
+        s.crear_administrador(conn, aid, datos)
+    assert disabled.value.status == 503
+    monkeypatch.setenv('ADMIN_OWNER_EMAIL', 'actual@arena.test')
+    monkeypatch.setenv('ADMIN_CREATION_SECRET', datos['clave_creacion'])
+    assert s.usuario_publico(conn.execute("SELECT * FROM usuarios WHERE id=%s", (aid,)).fetchone())['puede_crear_admins']
+    other_admin = Administrador('Otro Admin', 'otro-admin@arena.test', cedula_demo(915), '0990000000')
+    other_admin.set_password('OtraSegura!2026')
+    insert_user(conn, other_admin)
+    other_id = conn.execute("SELECT id FROM usuarios WHERE email='otro-admin@arena.test'").fetchone()['id']
+    assert not s.usuario_publico(conn.execute("SELECT * FROM usuarios WHERE id=%s", (other_id,)).fetchone())['puede_crear_admins']
+    with pytest.raises(s.HTTPError) as other_forbidden:
+        s.crear_administrador(conn, other_id, {**datos, 'password_actual': 'OtraSegura!2026'})
+    assert other_forbidden.value.status == 403
     with pytest.raises(s.HTTPError) as wrong_password:
         s.crear_administrador(conn, aid, {**datos, 'password_actual': 'equivocada'})
     assert wrong_password.value.status == 403
+    with pytest.raises(s.HTTPError) as wrong_secret:
+        s.crear_administrador(conn, aid, {**datos, 'clave_creacion': 'ClaveEquivocadaPeroLarga2026!'})
+    assert wrong_secret.value.status == 403
     assert conn.execute("SELECT count(*) AS n FROM usuarios WHERE email=%s", (datos['email'],)).fetchone()['n'] == 0
     with pytest.raises(s.ErrorValidacion):
         s.crear_administrador(conn, aid, {**datos, 'confirmacion': 'DistintaSegura!2026'})

@@ -80,6 +80,15 @@ Antes de introducir los datos, el comando muestra el servidor y la base de desti
 
 El formulario público siempre crea clientes. El rol de administrador se crea desde este comando para evitar que cualquier persona se dé permisos.
 
+### Autorizar nuevos administradores desde el panel publicado
+
+En Render → Web Service → **Environment**, configura estas dos variables y guarda los cambios:
+
+- `ADMIN_OWNER_EMAIL`: el correo de **tu propia cuenta administradora**, exactamente como lo usas para iniciar sesión.
+- `ADMIN_CREATION_SECRET`: una clave privada **distinta de la contraseña de inicio de sesión**, generada por ti con al menos 20 caracteres. Guárdala en un gestor de contraseñas; no la pongas en Git, `.env` compartido, capturas ni mensajes.
+
+Si falta cualquiera de las dos variables, la creación de administradores queda desactivada. Cuando Render termine de desplegar, inicia sesión con la cuenta propietaria y abre **Administración → Más herramientas administrativas → Agregar administrador**. Para crear una cuenta nueva tendrás que introducir tu contraseña actual y esa clave privada. Los demás administradores no verán esta opción y el servidor rechazará cualquier intento suyo, aunque conozcan la clave privada. Tras cambiar estas variables en Render, recarga la página para renovar la sesión.
+
 ## 5. Configurar Gmail, si lo vas a usar
 
 Si el Web Service está en **Render Free**, no uses esta opción: Render bloquea los puertos SMTP 25, 465 y 587. Configura la API HTTPS indicada abajo.
