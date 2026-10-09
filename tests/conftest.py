@@ -36,6 +36,7 @@ def database_url():
         conn.execute((ROOT/'sql/migrations/008_control_financiero.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/009_resultados_copa.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/010_movimientos_copa.sql').read_text(encoding='utf8'))
+        conn.execute((ROOT/'sql/migrations/011_vocalias_bar_deudas.sql').read_text(encoding='utf8'))
     yield url
     # Borra solo la base temporal
     assert name.startswith("test_arena_") and len(name)==23

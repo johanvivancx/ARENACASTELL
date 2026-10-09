@@ -337,6 +337,11 @@ class Handler(SimpleHTTPRequestHandler):
             return copa_caja.resumen(conn, uid, params.get("semana"))
         if path == "/api/admin/copa-caja" and method == "POST":
             return copa_caja.registrar(conn, uid, data)
+        if path == "/api/admin/copa-bar-deudas" and method == "POST":
+            return copa_caja.registrar_deuda_bar(conn, uid, data)
+        if match := re.fullmatch(r"/api/admin/copa-bar-deudas/(\d+)/collect", path):
+            if method == "POST":
+                return copa_caja.cobrar_deuda_bar(conn, uid, match[1], data)
         if match := re.fullmatch(r"/api/admin/copa-caja/(\d+)/void", path):
             if method == "POST":
                 return copa_caja.anular(conn, uid, match[1], data)

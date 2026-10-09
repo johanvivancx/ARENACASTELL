@@ -77,6 +77,7 @@ def main():
                         "La base ya tiene tablas del proyecto. No se sobrescribió ningún dato."
                     )
                 conn.execute((ROOT / "sql/schema.sql").read_text(encoding="utf8"))
+                conn.execute((ROOT / "sql/migrations/011_vocalias_bar_deudas.sql").read_text(encoding="utf8"))
                 print("Esquema inicializado.")
             elif args.command == "seed":
                 conn.execute((ROOT / "sql/seed.sql").read_text(encoding="utf8"))

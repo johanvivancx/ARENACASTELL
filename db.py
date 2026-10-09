@@ -37,3 +37,4 @@ def preparar_movimientos_copa():
     """Crea el libro de caja operativo, separado del control financiero web."""
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/010_movimientos_copa.sql").read_text(encoding="utf8"))
+        conn.execute((ROOT / "sql/migrations/011_vocalias_bar_deudas.sql").read_text(encoding="utf8"))

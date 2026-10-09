@@ -61,6 +61,13 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
         : "Este partido no está en la semana seleccionada. El servidor comprobará lo ya pagado antes de guardar.";
   };
 
+  const syncVocaliaTotal = () => {
+    const form = $("#caja-vocalia-ingreso-form", root);
+    const cash = Number($('[name="monto_efectivo"]', form).value || 0);
+    const transfer = Number($('[name="monto_transferencia"]', form).value || 0);
+    $('[name="monto"]', form).value = ((Math.round(cash * 100) + Math.round(transfer * 100)) / 100).toFixed(2);
+  };
+
   const activeRows = () => state.movimientos.filter((item) =>
     active === "DISPONIBLE" ? item.cuenta === active
       : item.cuenta === active || item.destino === active || item.area === active);
@@ -75,9 +82,13 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       facts = [["Saldo actual", state.saldos.DISPONIBLE], ["Saldo inicial esta semana", sum("APERTURA")],
         ["Caja entregada esta semana", sum("TRASPASO")], ["Gastos pagados esta semana", sum("GASTO")]];
     } else {
-      facts = [["Saldo actual en esta caja", state.saldos[active]],
+      facts = [[active === "VOCALIAS" ? "Saldo registrado (efectivo y transferencias)" : "Saldo actual en esta caja", state.saldos[active]],
         ...(active === "VOCALIAS" ? [["Esperado esta semana", state.vocalias_esperadas],
-          ["Pendiente de cobrar", state.vocalias_pendientes]] : [["Caja entregada esta semana", state.caja_entregada[active]]]),
+          ["Pendiente de cobrar", state.vocalias_pendientes],
+          ["Cobrado en efectivo", state.vocalias_efectivo],
+          ["Cobrado por transferencia", state.vocalias_transferencia],
+          ...(Number(state.vocalias_sin_desglose) ? [["Cobros anteriores sin desglose", state.vocalias_sin_desglose]] : [])]
+          : [["Caja entregada esta semana", state.caja_entregada[active]]]),
         ["Cobrado esta semana", state.ingresos[active]], ["Gastos atribuidos esta semana", state.gastos[active]]];
     }
     summary.innerHTML = facts.map(([label, value]) =>
@@ -88,7 +99,7 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
     const rows = activeRows();
     $("#copa-caja-history", root).innerHTML = rows.length
       ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Sale de / entra a</th><th>Concepto</th><th>Monto</th><th></th></tr></thead><tbody>${rows.map((item) =>
-          `<tr class="${item.anulado_en ? "copa-void" : ""}"><td>${esc(dates(item.fecha))}</td><td>${esc(descriptions[item.tipo])}${item.anulado_en ? " · Anulado" : ""}</td><td>${esc(names[item.cuenta])}${item.destino ? ` → ${esc(names[item.destino])}` : ""}${item.area && item.area !== item.cuenta ? ` · gasto de ${esc(names[item.area] || "la Copa")}` : ""}</td><td>${esc(item.concepto)}${item.equipo ? ` · ${esc(item.equipo)}` : ""}</td><td>${esc(money(item.monto))}</td><td>${item.anulado_en ? esc(item.motivo_anulacion) : `<button class="btn secondary" type="button" data-caja-void="${esc(item.id)}">Anular</button>`}</td></tr>`).join("")}</tbody></table>`
+          `<tr class="${item.anulado_en ? "copa-void" : ""}"><td>${esc(dates(item.fecha))}</td><td>${esc(descriptions[item.tipo])}${item.anulado_en ? " · Anulado" : ""}</td><td>${esc(names[item.cuenta])}${item.destino ? ` → ${esc(names[item.destino])}` : ""}${item.area && item.area !== item.cuenta ? ` · gasto de ${esc(names[item.area] || "la Copa")}` : ""}</td><td>${esc(item.concepto)}${item.equipo ? ` · ${esc(item.equipo)}` : ""}${item.cuenta === "VOCALIAS" && item.tipo === "INGRESO" && item.monto_efectivo !== null ? ` · efectivo ${esc(money(item.monto_efectivo))}, transferencia ${esc(money(item.monto_transferencia))}` : ""}</td><td>${esc(money(item.monto))}</td><td>${item.anulado_en ? esc(item.motivo_anulacion) : `<button class="btn secondary" type="button" data-caja-void="${esc(item.id)}">Anular</button>`}</td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">Aún no hay movimientos de esta área en la semana seleccionada.</p>';
   };
 
@@ -122,6 +133,11 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       ? `<table class="copa-ledger-table"><thead><tr><th>Partido</th><th>Equipo</th><th>Esperado</th><th>Pagado</th><th>Pendiente</th></tr></thead><tbody>${state.vocalias.map((item) =>
           `<tr><td>${esc(item.fixture_id)}</td><td>${esc(item.equipo)}</td><td>${esc(money(item.esperado))}</td><td>${esc(money(item.pagado))}</td><td>${esc(money(item.pendiente))}</td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">No hay partidos programados en esta semana.</p>';
+    $("#copa-bar-deuda-total", root).textContent = `Total pendiente por cobrar: ${money(state.bar_deuda_pendiente)}. Las deudas no están incluidas en el saldo del bar.`;
+    $("#copa-bar-deudas", root).innerHTML = state.bar_deudas.length
+      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Qué debe</th><th>Monto</th><th>Estado</th></tr></thead><tbody>${state.bar_deudas.map((item) =>
+          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${item.cobrada_en ? "Cobrada" : `<button class="btn secondary" type="button" data-bar-debt-collect="${esc(item.id)}">Registrar cobro</button>`}</td></tr>`).join("")}</tbody></table>`
+      : '<p class="small-text muted">No hay deudas del bar registradas.</p>';
     renderArea();
   }
 
@@ -130,6 +146,17 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
   $('[data-vocalia-fixture]', $("#caja-vocalia-ingreso-form", root))
     .addEventListener("change", fillTeams);
   $("#caja-vocalia-equipo", root).addEventListener("change", updateVocaliaDue);
+  $$('[name="monto_efectivo"], [name="monto_transferencia"]', $("#caja-vocalia-ingreso-form", root))
+    .forEach((input) => input.addEventListener("input", syncVocaliaTotal));
+  $("#copa-bar-deudas", root).addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-bar-debt-collect]");
+    if (!button || !confirm("¿Ya recibiste el importe completo? Se sumará una sola vez al bar.")) return;
+    try {
+      const result = await api(`/admin/copa-bar-deudas/${button.dataset.barDebtCollect}/collect`, {fecha: today});
+      await refresh();
+      showMessage(result.message, "success");
+    } catch (error) { showMessage(error.message); }
+  });
   week.addEventListener("change", async () => {
     try { await refresh(); } catch (error) { showMessage(error.message); }
   });
@@ -156,14 +183,32 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       if (kind === "GASTO" && account !== "DISPONIBLE") payload.area = account;
       if (account === "VOCALIAS" && kind === "INGRESO" && (!data.fixture_id || !data.equipo))
         throw new Error("Selecciona el partido y el equipo que pagó.");
+      if (account === "VOCALIAS" && kind === "INGRESO") {
+        syncVocaliaTotal();
+        payload.monto = $('[name="monto"]', form).value;
+        if (Number(payload.monto) <= 0 || Number(payload.monto) > Number($('[name="monto"]', form).max))
+          throw new Error("El efectivo y la transferencia deben sumar más de $0 y no superar lo pendiente.");
+      }
       const title = form.querySelector("h4").textContent;
-      if (!confirm(`${title}: ¿guardar ${money(data.monto)}? Revisa fecha y concepto antes de continuar.`)) return;
+      if (!confirm(`${title}: ¿guardar ${money(payload.monto)}? Revisa fecha y concepto antes de continuar.`)) return;
       const result = await api("/admin/copa-caja", payload);
       form.reset();
       dateInput.value = today;
+      if (account === "VOCALIAS" && kind === "INGRESO") syncVocaliaTotal();
       await refresh();
       showMessage(result.message, "success");
     });
+  });
+  const debtForm = $("#caja-bar-deuda-form", root);
+  $('[name="fecha"]', debtForm).value = today;
+  $('[name="fecha"]', debtForm).max = today;
+  bindForm("#caja-bar-deuda-form", async (data) => {
+    if (!confirm(`¿Anotar deuda de ${data.nombre} por ${money(data.monto)}? No se sumará como venta cobrada.`)) return;
+    const result = await api("/admin/copa-bar-deudas", data);
+    debtForm.reset();
+    $('[name="fecha"]', debtForm).value = today;
+    await refresh();
+    showMessage(result.message, "success");
   });
   showArea(active);
   await refresh();

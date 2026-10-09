@@ -25,6 +25,12 @@ def _monto(value):
     return amount
 
 
+def _monto_opcional(value):
+    if value in (None, "", "0", "0.0", "0.00", 0):
+        return CERO
+    return _monto(value)
+
+
 def _fecha(value):
     day = fecha(value)
     if not date(2026, 1, 1) <= day <= datetime.now(TZ).date():
@@ -34,7 +40,8 @@ def _fecha(value):
 
 def _movimientos(conn):
     return conn.execute("""SELECT id,fecha,tipo,cuenta,destino,area,monto,concepto,
-        fixture_id,equipo,registrado_por,creado_en,anulado_en,anulado_por,motivo_anulacion
+        fixture_id,equipo,monto_efectivo,monto_transferencia,
+        registrado_por,creado_en,anulado_en,anulado_por,motivo_anulacion
         FROM copa_movimientos ORDER BY fecha,id""").fetchall()
 
 
@@ -87,10 +94,22 @@ def resumen(conn, admin_uid, semana=None):
             day[row["destino"]]["caja"] += row["monto"]
     fixtures, _ = catalogo()
     payments = {}
+    vocalia_efectivo = CERO
+    vocalia_transferencia = CERO
+    vocalia_sin_desglose = CERO
     for row in rows:
         if not row["anulado_en"] and row["tipo"] == "INGRESO" and row["cuenta"] == "VOCALIAS":
             key = (row["fixture_id"], row["equipo"])
             payments[key] = payments.get(key, CERO) + row["monto"]
+            if start <= row["fecha"] < end:
+                if row["monto_efectivo"] is None:
+                    vocalia_sin_desglose += row["monto"]
+                else:
+                    vocalia_efectivo += row["monto_efectivo"]
+                    vocalia_transferencia += row["monto_transferencia"]
+    debts = conn.execute("""SELECT id,fecha,nombre,monto,concepto,creado_en,cobrada_en
+        FROM copa_bar_deudas ORDER BY fecha DESC,id DESC""").fetchall()
+    pending_debts = [row for row in debts if row["cobrada_en"] is None]
     # Solo partidos programados para la semana seleccionada; el reprogramado usa la fecha nueva.
     due = []
     for fixture in fixtures.values():
@@ -108,6 +127,11 @@ def resumen(conn, admin_uid, semana=None):
             "ingresos": income, "gastos": expenses, "caja_entregada": transfers,
             "dias": [{"fecha": day, **daily[day]} for day in sorted(daily, reverse=True)],
             "movimientos": list(reversed(weekly)), "vocalias": due,
+            "vocalias_efectivo": vocalia_efectivo,
+            "vocalias_transferencia": vocalia_transferencia,
+            "vocalias_sin_desglose": vocalia_sin_desglose,
+            "bar_deudas": debts,
+            "bar_deuda_pendiente": sum((row["monto"] for row in pending_debts), CERO),
             "vocalias_esperadas": sum((r["esperado"] for r in due), CERO),
             "vocalias_pendientes": sum((r["pendiente"] for r in due), CERO),
             "partidos": [{"id": f["id"], "date": f["date"], "home": f["home"],
@@ -125,6 +149,7 @@ def registrar(conn, admin_uid, data):
     if kind not in {"APERTURA", "TRASPASO", "INGRESO", "GASTO"} or account not in CUENTAS:
         raise ErrorValidacion("Selecciona un movimiento y una cuenta válidos.")
     amount = _monto(data.get("monto"))
+    cash = transfer = None
     day = _fecha(data.get("fecha"))
     concept = texto(data.get("concepto"), "Concepto", 3, 180)
     fixture_id = str(data.get("fixture_id", "")) or None
@@ -141,6 +166,11 @@ def registrar(conn, admin_uid, data):
         if account == "DISPONIBLE" or target or area:
             raise ErrorValidacion("Registra ventas en bar o entradas; la vocalía se registra por equipo.")
         if account == "VOCALIAS":
+            if "monto_efectivo" in data or "monto_transferencia" in data:
+                cash = _monto_opcional(data.get("monto_efectivo"))
+                transfer = _monto_opcional(data.get("monto_transferencia"))
+                if cash + transfer != amount:
+                    raise ErrorValidacion("Efectivo y transferencia deben sumar el monto recibido.")
             fixture = catalogo()[0].get(fixture_id)
             if not fixture or team not in (fixture["home"], fixture["away"]):
                 raise ErrorValidacion("Selecciona un equipo de un partido programado.")
@@ -163,10 +193,45 @@ def registrar(conn, admin_uid, data):
     if kind in {"TRASPASO", "GASTO"} and _saldos(_movimientos(conn))[account] < amount:
         raise ErrorValidacion("No hay saldo suficiente en la cuenta que paga. Revisa la caja disponible.")
     row = conn.execute("""INSERT INTO copa_movimientos
-        (fecha,tipo,cuenta,destino,area,monto,concepto,fixture_id,equipo,registrado_por)
-        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
-        (day,kind,account,target,area,amount,concept,fixture_id,team,admin_uid)).fetchone()
+        (fecha,tipo,cuenta,destino,area,monto,concepto,fixture_id,equipo,
+         monto_efectivo,monto_transferencia,registrado_por)
+        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+        (day,kind,account,target,area,amount,concept,fixture_id,team,cash,transfer,admin_uid)).fetchone()
     return {"id": row["id"], "message": "Movimiento de Copa Castell registrado."}
+
+
+def registrar_deuda_bar(conn, admin_uid, data):
+    """Una venta fiada no entra en caja hasta que realmente se cobre."""
+    exigir_administrador(conn, admin_uid)
+    day = _fecha(data.get("fecha"))
+    name = texto(data.get("nombre"), "Nombre", 2, 120)
+    amount = _monto(data.get("monto"))
+    concept = texto(data.get("concepto"), "Productos que debe", 3, 180)
+    row = conn.execute("""INSERT INTO copa_bar_deudas
+        (fecha,nombre,monto,concepto,registrado_por) VALUES(%s,%s,%s,%s,%s)
+        RETURNING id""", (day,name,amount,concept,admin_uid)).fetchone()
+    return {"id": row["id"], "message": "Deuda del bar registrada; aún no cuenta como ingreso."}
+
+
+def cobrar_deuda_bar(conn, admin_uid, debt_id, data):
+    """Al saldarla se anota exactamente un ingreso del bar."""
+    exigir_administrador(conn, admin_uid)
+    conn.execute("SELECT pg_advisory_xact_lock(20491007)")
+    did = numero(debt_id, "Deuda")
+    debt = conn.execute("SELECT * FROM copa_bar_deudas WHERE id=%s FOR UPDATE", (did,)).fetchone()
+    if not debt:
+        raise HTTPError(404, "No encontramos esa deuda del bar.")
+    if debt["cobrada_en"]:
+        raise ErrorValidacion("Esta deuda ya se cobró.")
+    day = _fecha(data.get("fecha"))
+    movement = conn.execute("""INSERT INTO copa_movimientos
+        (fecha,tipo,cuenta,monto,concepto,registrado_por)
+        VALUES(%s,'INGRESO','BAR',%s,%s,%s) RETURNING id""",
+        (day,debt["monto"],f"Cobro de deuda #{did}: {debt['nombre']}"[:180],admin_uid)).fetchone()
+    conn.execute("""UPDATE copa_bar_deudas SET cobrada_en=current_timestamp,
+        cobrada_por=%s,movimiento_cobro_id=%s WHERE id=%s""",
+        (admin_uid,movement["id"],did))
+    return {"id": did, "message": "Deuda cobrada e ingreso del bar registrado."}
 
 
 def anular(conn, admin_uid, movement_id, data):
@@ -179,6 +244,8 @@ def anular(conn, admin_uid, movement_id, data):
         raise HTTPError(404, "No encontramos ese movimiento.")
     if row["anulado_en"]:
         raise ErrorValidacion("Este movimiento ya está anulado.")
+    if conn.execute("SELECT 1 FROM copa_bar_deudas WHERE movimiento_cobro_id=%s", (mid,)).fetchone():
+        raise ErrorValidacion("Este movimiento saldó una deuda del bar y no puede anularse por separado.")
     conn.execute("""UPDATE copa_movimientos SET anulado_en=current_timestamp,
         anulado_por=%s,motivo_anulacion=%s WHERE id=%s""", (admin_uid,reason,mid))
     if any(amount < 0 for amount in _saldos(_movimientos(conn)).values()):

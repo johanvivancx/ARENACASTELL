@@ -16,11 +16,11 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261007-copa-areas" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261008-vocalias-deudas" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261007-1" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/copa-caja-admin.js?v=20261007-copa-areas" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261008-vocalias-deudas" defer></script>
     <script src="../assets/app.js?v=20261007-chaca" defer></script>
   </head>
 
@@ -236,6 +236,18 @@
                   <div class="form-actions"><button class="btn" type="submit">Guardar gasto del bar</button></div>
                 </form>
               </div>
+              <form id="caja-bar-deuda-form" class="panel" method="post">
+                <h4>Anotar deuda del bar</h4>
+                <p class="small-text muted">Un fiado no se suma a las ventas cobradas. Quedará pendiente hasta que registres su cobro.</p>
+                <div class="field"><label for="caja-bar-deuda-fecha">Fecha</label><input id="caja-bar-deuda-fecha" name="fecha" type="date" required /></div>
+                <div class="field"><label for="caja-bar-deuda-nombre">Nombre de la persona</label><input id="caja-bar-deuda-nombre" name="nombre" type="text" minlength="2" maxlength="120" required /></div>
+                <div class="field"><label for="caja-bar-deuda-monto">Cuánto debe (USD)</label><input id="caja-bar-deuda-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                <div class="field"><label for="caja-bar-deuda-concepto">Qué debe</label><input id="caja-bar-deuda-concepto" name="concepto" type="text" placeholder="Ej.: cervezas y comida" minlength="3" maxlength="180" required /></div>
+                <div class="form-actions"><button class="btn" type="submit">Guardar deuda</button></div>
+              </form>
+              <h4>Deudas del bar</h4>
+              <p id="copa-bar-deuda-total" class="small-text muted" role="status"></p>
+              <div id="copa-bar-deudas" class="copa-ledger-scroll"></div>
             </div>
 
             <div class="copa-area-panel" data-copa-panel="ENTRADAS" hidden>
@@ -269,7 +281,9 @@
                   <div class="field"><label for="caja-vocalia-ingreso-form-fixture_id">Partido</label><select id="caja-vocalia-ingreso-form-fixture_id" name="fixture_id" data-vocalia-fixture required></select></div>
                   <div class="field"><label for="caja-vocalia-equipo">Equipo que pagó</label><select name="equipo" id="caja-vocalia-equipo" required></select></div>
                   <p id="caja-vocalia-pendiente" class="small-text muted" role="status">Selecciona un partido y equipo para consultar lo pendiente.</p>
-                  <div class="field"><label for="caja-vocalia-ingreso-form-monto">Monto recibido en USD</label><input id="caja-vocalia-ingreso-form-monto" name="monto" type="number" min="0.01" max="10" step="0.01" value="10" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-vocalia-ingreso-form-efectivo">Recibido en efectivo (USD)</label><input id="caja-vocalia-ingreso-form-efectivo" name="monto_efectivo" type="number" min="0" max="10" step="0.01" value="10" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-vocalia-ingreso-form-transferencia">Recibido por transferencia (USD)</label><input id="caja-vocalia-ingreso-form-transferencia" name="monto_transferencia" type="number" min="0" max="10" step="0.01" value="0" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-vocalia-ingreso-form-monto">Total recibido (USD)</label><input id="caja-vocalia-ingreso-form-monto" name="monto" type="number" min="0.01" max="10" step="0.01" value="10" readonly required /></div>
                   <div class="field"><label for="caja-vocalia-ingreso-form-concepto">Referencia</label><input id="caja-vocalia-ingreso-form-concepto" name="concepto" type="text" value="Vocalía de equipo" minlength="3" maxlength="180" required /></div>
                   <div class="form-actions"><button class="btn" type="submit">Guardar vocalía cobrada</button></div>
                 </form>

@@ -64,3 +64,36 @@ def test_solo_administrador_puede_ver_o_guardar_caja(conn, user):
     with pytest.raises(HTTPError) as write_error:
         _save(conn, uid, "APERTURA", "DISPONIBLE", "10")
     assert read_error.value.status == write_error.value.status == 403
+
+
+def test_vocalia_dividida_cuenta_un_solo_cobro(conn):
+    admin = _admin(conn)
+    fixture = next(iter(copa.catalogo()[0].values()))
+    team = fixture["home"]
+    _save(conn, admin, "INGRESO", "VOCALIAS", "10", fixture_id=fixture["id"],
+          equipo=team, monto_efectivo="4", monto_transferencia="6")
+    result = caja.resumen(conn, admin)
+    assert result["saldos"]["VOCALIAS"] == Decimal("10")
+    assert result["vocalias_efectivo"] == Decimal("4")
+    assert result["vocalias_transferencia"] == Decimal("6")
+    fixture_week = caja.resumen(conn, admin, fixture["date"])
+    assert next(x for x in fixture_week["vocalias"] if x["equipo"] == team)["pendiente"] == 0
+    with pytest.raises(ErrorValidacion):
+        _save(conn, admin, "INGRESO", "VOCALIAS", "10", fixture_id=fixture["id"],
+              equipo=fixture["away"], monto_efectivo="4", monto_transferencia="5")
+
+
+def test_deuda_bar_no_es_ingreso_hasta_cobrar_y_no_se_cobra_dos_veces(conn):
+    admin = _admin(conn)
+    debt = caja.registrar_deuda_bar(conn, admin, {
+        "fecha": datetime.now(TZ).date().isoformat(), "nombre": "Cliente del bar",
+        "monto": "8.50", "concepto": "Comida y cervezas"})
+    before = caja.resumen(conn, admin)
+    assert before["saldos"]["BAR"] == 0
+    assert before["bar_deuda_pendiente"] == Decimal("8.50")
+    caja.cobrar_deuda_bar(conn, admin, debt["id"], {"fecha": datetime.now(TZ).date().isoformat()})
+    after = caja.resumen(conn, admin)
+    assert after["saldos"]["BAR"] == Decimal("8.50")
+    assert after["bar_deuda_pendiente"] == 0
+    with pytest.raises(ErrorValidacion):
+        caja.cobrar_deuda_bar(conn, admin, debt["id"], {"fecha": datetime.now(TZ).date().isoformat()})
