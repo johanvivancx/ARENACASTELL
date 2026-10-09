@@ -38,6 +38,7 @@ def database_url():
         conn.execute((ROOT/'sql/migrations/010_movimientos_copa.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/011_vocalias_bar_deudas.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/012_reservas_manuales_hoy.sql').read_text(encoding='utf8'))
+        conn.execute((ROOT/'sql/migrations/013_escuela_manual.sql').read_text(encoding='utf8'))
     yield url
     # Borra solo la base temporal
     assert name.startswith("test_arena_") and len(name)==23
@@ -89,4 +90,4 @@ def impedir_envios_reales(monkeypatch):
         raise AssertionError("Las pruebas no pueden enviar correos reales.")
     monkeypatch.setattr(correos.smtplib,"SMTP",blocked)
     monkeypatch.setattr(correos.smtplib,"SMTP_SSL",blocked)
-    monkeypatch.setattr(correos,"urlopen",blocked)
+    monkeypatch.setattr(correos.resend.Emails,"send",blocked)

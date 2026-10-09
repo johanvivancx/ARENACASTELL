@@ -17,6 +17,7 @@ let catalog = null;
 let currentOrder = null;
 let historyData = null;
 let reportData = null;
+let schoolData = null;
 const mailStates = {
   LOCAL: "Aviso guardado",
   PENDIENTE: "Pendiente de envío",
@@ -1195,7 +1196,9 @@ function initAdminReset() {
   const labels = {
     clientes: "Cuentas de clientes", ordenes: "Órdenes", reservas: "Reservas",
     pagos: "Pagos", gastos: "Gastos", equipos: "Equipos", jugadores: "Jugadores",
-    inscripciones: "Inscripciones", mensualidades: "Mensualidades", correos: "Correos guardados",
+    inscripciones: "Inscripciones", mensualidades: "Mensualidades",
+    alumnos_manuales: "Alumnos manuales", pagos_escuela_manuales: "Pagos manuales de escuela",
+    correos: "Correos guardados",
   };
   let expected = null;
   const loadPreview = async () => {
@@ -1222,6 +1225,123 @@ function initAdminReset() {
       $("#reset-password").value = "";
     }
   });
+}
+
+// Consulta el mes elegido y separa el registro de alumnos de los cobros.
+async function loadSchoolAdmin() {
+  const period = $("#school-filter-month").value;
+  schoolData = await api(`/admin/school?${new URLSearchParams({periodo: period})}`);
+  const selector = $("#school-payment-student");
+  const selected = selector.value;
+  selector.innerHTML = '<option value="">Selecciona un alumno</option>' + schoolData.alumnos
+    .filter((student) => student.origen === "MANUAL")
+    .sort((a, b) => a.alumno.localeCompare(b.alumno, "es"))
+    .map((student) => `<option value="${esc(student.id.split(":")[1])}">${esc(student.alumno)} · ${esc(student.categoria)}</option>`).join("");
+  if ([...selector.options].some((option) => option.value === selected)) selector.value = selected;
+  renderSchoolAdmin();
+}
+
+function renderSchoolAdmin() {
+  if (!schoolData) return;
+  const status = $("#school-filter-status").value;
+  const category = $("#school-filter-category").value;
+  const search = $("#school-filter-name").value.trim().toLocaleLowerCase("es");
+  const rows = schoolData.alumnos.filter((student) =>
+    (status === "TODOS" || student.mes_pagado === (status === "PAGADO")) &&
+    (category === "TODAS" || student.categoria === category) &&
+    student.alumno.toLocaleLowerCase("es").includes(search));
+  rows.sort((a, b) => Number(a.mes_pagado) - Number(b.mes_pagado) ||
+    a.alumno.localeCompare(b.alumno, "es"));
+  const paid = rows.filter((row) => row.mes_pagado).length;
+  $("#school-admin-stats").innerHTML = [
+    ["Alumnos visibles", rows.length],
+    ["Pagaron el mes", paid],
+    ["Pendientes del mes", rows.length - paid],
+    ["Cobrado para este mes", money(rows.reduce((sum, row) => sum + Number(row.mes_monto || 0), 0))],
+  ].map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("");
+  $("#school-report").innerHTML = table(
+    ["Alumno", "Categoría", "Contacto", "Inscripción", "Mes seleccionado", "Origen"],
+    rows.map((student) => [
+      student.alumno,
+      student.categoria,
+      student.telefono_representante || "—",
+      student.inscripcion_pagada
+        ? `Pagada · ${money(student.inscripcion_monto)} · ${methods[student.inscripcion_metodo] || student.inscripcion_metodo}`
+        : "Pendiente",
+      student.mes_pagado
+        ? `Pagado · ${money(student.mes_monto)} · ${methods[student.mes_metodo] || student.mes_metodo}`
+        : "Pendiente",
+      student.origen === "MANUAL" ? "Administración" : "Página web",
+    ]),
+    `Estado de Súper Chaca para ${schoolData.periodo}. El cobro web inicial incluye inscripción y primer mes.`,
+  );
+}
+
+async function initSchoolAdmin() {
+  const form = $("#school-student-form");
+  if (!form || !catalog) return;
+  $("#school-student-date").value = catalog.hoy;
+  $("#school-student-date").max = catalog.hoy;
+  $("#school-filter-month").value = catalog.hoy.slice(0, 7);
+  $("#school-payment-month").value = catalog.hoy.slice(0, 7);
+  const enrollment = $("#school-student-enrollment");
+  const toggleEnrollment = () => {
+    const paid = enrollment.value === "SI";
+    $$('[data-school-enrollment-payment]').forEach((field) => { field.hidden = !paid; });
+    [$("#school-student-amount"), $("#school-student-method")].forEach((input) => {
+      input.disabled = !paid;
+      input.required = paid;
+    });
+  };
+  enrollment.addEventListener("change", toggleEnrollment);
+  toggleEnrollment();
+  const kind = $("#school-payment-kind");
+  const toggleMonth = () => {
+    const monthly = kind.value === "MENSUALIDAD";
+    $("#school-payment-month-field").hidden = !monthly;
+    $("#school-payment-month").disabled = !monthly;
+    $("#school-payment-month").required = monthly;
+  };
+  kind.addEventListener("change", toggleMonth);
+  toggleMonth();
+  [["school-student-toggle", "school-student-form", "school-payment-form"],
+   ["school-payment-toggle", "school-payment-form", "school-student-form"]].forEach(([buttonId, formId, otherId]) => {
+    $("#" + buttonId).addEventListener("click", () => {
+      const target = $("#" + formId);
+      target.hidden = !target.hidden;
+      $("#" + otherId).hidden = true;
+      $("#school-student-toggle").setAttribute("aria-expanded", String(!$("#school-student-form").hidden));
+      $("#school-payment-toggle").setAttribute("aria-expanded", String(!$("#school-payment-form").hidden));
+      if (!target.hidden) $("input,select", target).focus();
+    });
+  });
+  $("#school-filter-month").addEventListener("change", async () => {
+    try { await loadSchoolAdmin(); } catch (error) { showMessage(error.message); }
+  });
+  ["#school-filter-status", "#school-filter-category", "#school-filter-name"].forEach((selector) =>
+    $(selector).addEventListener(selector.endsWith("name") ? "input" : "change", renderSchoolAdmin));
+  bindForm("#school-student-form", async (data) => {
+    data.inscripcion_pagada = data.inscripcion_pagada === "SI";
+    if (!confirm(`¿Registrar a ${data.alumno} en ${data.categoria}${data.inscripcion_pagada ? ` y confirmar ${money(data.monto_inscripcion)} recibidos` : " con la inscripción pendiente"}?`)) return;
+    const result = await api("/admin/school/students", data);
+    form.reset();
+    $("#school-student-date").value = catalog.hoy;
+    toggleEnrollment();
+    await Promise.all([loadSchoolAdmin(), loadReports()]);
+    showMessage(result.message, "success");
+  });
+  bindForm("#school-payment-form", async (data, paymentForm) => {
+    const student = schoolData.alumnos.find((row) => row.id === `manual:${data.alumno_id}`);
+    if (!student) throw new Error("Selecciona un alumno manual.");
+    if (!confirm(`¿Registrar ${money(data.monto)} de ${student.alumno} por ${data.tipo === "INSCRIPCION" ? "inscripción" : `mensualidad de ${data.periodo}`} en ${methods[data.metodo]}?`)) return;
+    const result = await api("/admin/school/payments", data);
+    paymentForm.reset();
+    $("#school-payment-month").value = $("#school-filter-month").value;
+    toggleMonth();
+    await Promise.all([loadSchoolAdmin(), loadReports()]);
+    showMessage(result.message, "success");
+  });
+  await loadSchoolAdmin();
 }
 
 // Carga reportes administrativos
@@ -1455,35 +1575,6 @@ async function loadReports(filters = {}) {
     ]),
     "Pagos registrados en el rango seleccionado.",
   );
-  const schoolRows = [...reportData.escuela].sort((a, b) =>
-    Number(a.mes_actual_pagado) - Number(b.mes_actual_pagado) ||
-    a.alumno.localeCompare(b.alumno, "es"));
-  const schoolPaid = schoolRows.filter((row) => row.mes_actual_pagado).length;
-  $("#school-admin-stats").innerHTML = [
-    ["Alumnos registrados", schoolRows.length],
-    ["Al día este mes", schoolPaid],
-    ["Pendientes este mes", schoolRows.length - schoolPaid],
-    ["Total pagado", money(schoolRows.reduce((sum, row) => sum + Number(row.total_pagado || 0), 0))],
-  ].map(([label, value]) => `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("");
-  $("#school-report").innerHTML = table(
-    [
-      "Alumno",
-      "Categoría",
-      "Representante",
-      "Cuotas pagadas",
-      "Total",
-      "Mes actual",
-    ],
-    schoolRows.map((s) => [
-      s.alumno,
-      s.categoria,
-      s.representante,
-      s.cuotas_pagadas,
-      money(s.total_pagado),
-      s.mes_actual_pagado ? "Pagado" : "Pendiente",
-    ]),
-    "Control completo de mensualidades de Súper Chaca.",
-  );
   $("#occupancy-report").innerHTML = table(
     ["Cancha", "Mes", "Reservas", "Horas", "Importe registrado"],
     reportData.ocupacion.map((r) => [
@@ -1568,6 +1659,7 @@ async function initialize() {
       initAdminWorkspace();
       initAdminAccounts();
       initAdminReset();
+      await initSchoolAdmin();
       initManualReservation();
       initExpenses();
       await initCopaResults();

@@ -39,3 +39,9 @@ def preparar_movimientos_copa():
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/010_movimientos_copa.sql").read_text(encoding="utf8"))
         conn.execute((ROOT / "sql/migrations/011_vocalias_bar_deudas.sql").read_text(encoding="utf8"))
+
+
+def preparar_escuela_manual():
+    """Crea el registro privado de alumnos y pagos manuales sin tocar cobros web."""
+    with conectar() as conn:
+        conn.execute((ROOT / "sql/migrations/013_escuela_manual.sql").read_text(encoding="utf8"))

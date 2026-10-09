@@ -20,11 +20,12 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, ROOT
+from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_escuela_manual, ROOT
 from models import ErrorValidacion
 import services as s
 import copa
 import copa_caja
+import escuela_admin
 import correos
 
 STATIC = ROOT
@@ -324,6 +325,12 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if path == "/api/admin/school" and method == "GET":
+            return escuela_admin.resumen(conn, uid, params.get("periodo"))
+        if path == "/api/admin/school/students" and method == "POST":
+            return escuela_admin.registrar_alumno(conn, uid, data)
+        if path == "/api/admin/school/payments" and method == "POST":
+            return escuela_admin.registrar_pago(conn, uid, data)
         if path == "/api/admin/admins" and method == "POST":
             return s.crear_administrador(conn, uid, data, self.client_ip())
         if match := re.fullmatch(r"/api/admin/emails/(\d+)/queue-receipt", path):
@@ -403,6 +410,7 @@ def main():
     preparar_control_financiero()
     preparar_resultados_copa()
     preparar_movimientos_copa()
+    preparar_escuela_manual()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
     print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)

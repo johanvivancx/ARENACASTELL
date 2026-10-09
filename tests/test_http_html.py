@@ -250,7 +250,40 @@ def test_http_admin_publica_resultado_copa_y_publico_lo_ve(conn):
         status,public,_=request('/api/copa-castell')
         assert status==200 and public['goleadoresPendientes']==3
         played=next(m for m in public['matches'] if m.get('id')==fixture['id'])
-        assert played['homeGoals']==1 and played['awayGoals']==2
+    assert played['homeGoals']==1 and played['awayGoals']==2
+
+
+def test_http_admin_registra_alumno_y_cobro_manual_escuela(conn):
+    admin=s.registrar(conn,{'nombre':'Operador Escuela','cedula':cedula_demo(755),
+        'telefono':'0990000000','email':'escuela-http@arena.test',
+        'password':'ClaveOperador!2026','confirmacion':'ClaveOperador!2026','consentimiento':True})
+    conn.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s",(admin['id'],))
+    conn.commit()
+    month=datetime.now(s.TZ).strftime('%Y-%m')
+    with client() as request:
+        _,session,_=request('/api/session')
+        status,session,_=request('/api/auth/login',
+            {'email':'escuela-http@arena.test','password':'ClaveOperador!2026'},session['csrf'])
+        assert status==200
+        student={'alumno':'Alumno de prueba','categoria':'Sub-10','cedula':'',
+                 'telefono_representante':'0991234567',
+                 'fecha_ingreso':str(datetime.now(s.TZ).date()),'inscripcion_pagada':False}
+        assert request('/api/admin/school/students',student)[0]==403
+        status,created,_=request('/api/admin/school/students',student,session['csrf'])
+        assert status==200
+        status,school,_=request('/api/admin/school?periodo='+month)
+        assert status==200
+        row=next(row for row in school['alumnos'] if row['id']==f"manual:{created['id']}")
+        assert not row['mes_pagado'] and not row['inscripcion_pagada']
+        payment={'alumno_id':created['id'],'tipo':'MENSUALIDAD','periodo':month,
+                 'monto':'24','metodo':'EFECTIVO'}
+        status,_,_=request('/api/admin/school/payments',payment,session['csrf'])
+        assert status==200
+        _,school,_=request('/api/admin/school?periodo='+month)
+        row=next(row for row in school['alumnos'] if row['id']==f"manual:{created['id']}")
+        assert row['mes_pagado'] and row['mes_monto']=='24.00' and row['mes_metodo']=='EFECTIVO'
+        _,report,_=request('/api/admin/reports')
+        assert report['finanzas']['SUPER_CHACA']['mensualidades']=='24.00'
 
 
 class InspectHTML(HTMLParser):

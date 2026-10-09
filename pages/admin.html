@@ -18,10 +18,10 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261008-admin-menu" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
-    <link rel="stylesheet" href="../assets/super-chaca.css?v=20261007-1" />
+    <link rel="stylesheet" href="../assets/super-chaca.css?v=20261009-escuela-manual" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261008-vocalias-deudas" defer></script>
-    <script src="../assets/app.js?v=20261008-admin-owner" defer></script>
+    <script src="../assets/app.js?v=20261009-escuela-manual" defer></script>
   </head>
 
   <body data-page="admin">
@@ -525,9 +525,46 @@
                 <a href="super_chaca.html" class="school-admin-link">Ver página de la escuela <span aria-hidden="true">→</span></a>
               </div>
             </div>
+            <div class="school-admin-actions">
+              <button class="btn secondary" id="school-student-toggle" type="button" aria-controls="school-student-form" aria-expanded="false">Registrar alumno</button>
+              <button class="btn secondary" id="school-payment-toggle" type="button" aria-controls="school-payment-form" aria-expanded="false">Registrar pago</button>
+            </div>
+            <form id="school-student-form" class="panel school-admin-form" method="post" hidden>
+              <h3>Registrar alumno fuera de la web</h3>
+              <p class="small-text muted">La cédula es opcional. Puedes dejar la inscripción pendiente y registrar el cobro después.</p>
+              <div class="form-grid">
+                <div class="field"><label for="school-student-name">Nombres completos</label><input id="school-student-name" name="alumno" type="text" maxlength="100" required /></div>
+                <div class="field"><label for="school-student-category">Categoría</label><select id="school-student-category" name="categoria" required><option value="">Selecciona una categoría</option><option>Sub-6</option><option>Sub-8</option><option>Sub-10</option><option>Sub-12</option><option>Sub-14</option><option>Sub-16</option><option>Sub-18</option></select></div>
+                <div class="field"><label for="school-student-id">Cédula del alumno (opcional)</label><input id="school-student-id" name="cedula" type="text" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" data-cedula /></div>
+                <div class="field"><label for="school-student-phone">Teléfono del representante</label><input id="school-student-phone" name="telefono_representante" type="tel" inputmode="tel" pattern="\+?[0-9]{7,16}" maxlength="17" required /></div>
+                <div class="field"><label for="school-student-date">Fecha de ingreso</label><input id="school-student-date" name="fecha_ingreso" type="date" required /></div>
+                <div class="field"><label for="school-student-enrollment">¿Inscripción pagada?</label><select id="school-student-enrollment" name="inscripcion_pagada" required><option value="NO">Pendiente</option><option value="SI">Sí, pagó</option></select></div>
+                <div class="field" data-school-enrollment-payment hidden><label for="school-student-amount">Valor recibido por inscripción (USD)</label><input id="school-student-amount" name="monto_inscripcion" type="number" min="0.01" max="9999.99" step="0.01" inputmode="decimal" disabled /></div>
+                <div class="field" data-school-enrollment-payment hidden><label for="school-student-method">Forma de pago</label><select id="school-student-method" name="metodo_inscripcion" disabled><option value="">Selecciona una forma</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option></select></div>
+              </div>
+              <div class="form-actions"><button class="btn" type="submit">Guardar alumno</button></div>
+            </form>
+            <form id="school-payment-form" class="panel school-admin-form" method="post" hidden>
+              <h3>Registrar cobro de un alumno manual</h3>
+              <p class="small-text muted">Anota el valor realmente recibido. Los precios de inscripción y mensualidad en la web no cambian.</p>
+              <div class="form-grid">
+                <div class="field full"><label for="school-payment-student">Alumno</label><select id="school-payment-student" name="alumno_id" required><option value="">Selecciona un alumno</option></select></div>
+                <div class="field"><label for="school-payment-kind">Cobro de</label><select id="school-payment-kind" name="tipo" required><option value="INSCRIPCION">Inscripción</option><option value="MENSUALIDAD">Mensualidad</option></select></div>
+                <div class="field" id="school-payment-month-field" hidden><label for="school-payment-month">Mes de la mensualidad</label><input id="school-payment-month" name="periodo" type="month" disabled /></div>
+                <div class="field"><label for="school-payment-amount">Valor recibido (USD)</label><input id="school-payment-amount" name="monto" type="number" min="0.01" max="9999.99" step="0.01" inputmode="decimal" required /></div>
+                <div class="field"><label for="school-payment-method">Forma de pago</label><select id="school-payment-method" name="metodo" required><option value="">Selecciona una forma</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option></select></div>
+              </div>
+              <div class="form-actions"><button class="btn" type="submit">Guardar pago</button></div>
+            </form>
+            <div class="school-admin-filters" aria-label="Filtros de alumnos">
+              <div class="field"><label for="school-filter-month">Mes a consultar</label><input id="school-filter-month" type="month" /></div>
+              <div class="field"><label for="school-filter-status">Estado de mensualidad</label><select id="school-filter-status"><option value="TODOS">Todos</option><option value="PAGADO">Pagó</option><option value="PENDIENTE">Pendiente</option></select></div>
+              <div class="field"><label for="school-filter-category">Categoría</label><select id="school-filter-category"><option value="TODAS">Todas</option><option>Sub-6</option><option>Sub-8</option><option>Sub-10</option><option>Sub-12</option><option>Sub-14</option><option>Sub-16</option><option>Sub-18</option></select></div>
+              <div class="field"><label for="school-filter-name">Buscar alumno</label><input id="school-filter-name" type="search" placeholder="Nombre del alumno" /></div>
+            </div>
             <div id="school-admin-stats" class="school-admin-stats" aria-label="Resumen de Súper Chaca"></div>
             <div class="school-admin-list-heading">
-              <div><h3>Alumnos y mensualidades</h3><p class="small-text muted">Los pendientes aparecen primero para facilitar el seguimiento.</p></div>
+              <div><h3>Alumnos y mensualidades</h3><p class="small-text muted">Estado del mes seleccionado. Los pendientes aparecen primero.</p></div>
             </div>
             <div id="school-report"></div>
           </section>

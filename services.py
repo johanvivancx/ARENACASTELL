@@ -904,6 +904,8 @@ RESET_TABLES = {
     "jugadores": "jugadores",
     "inscripciones": "inscripciones_chaca",
     "mensualidades": "mensualidades",
+    "alumnos_manuales": "alumnos_chaca_manuales",
+    "pagos_escuela_manuales": "pagos_chaca_manuales",
     "correos": "correo_salida",
 }
 
@@ -933,14 +935,16 @@ def limpiar_datos_prueba(conn, admin_uid, data, ip_address=""):
     conn.execute("SET LOCAL lock_timeout = '5s'")
     conn.execute(
         "LOCK TABLE usuarios,ordenes,reservas,pagos,gastos,equipos,jugadores,"
-        "inscripciones_chaca,mensualidades,correo_salida,restablecimientos,"
+        "inscripciones_chaca,mensualidades,alumnos_chaca_manuales,"
+        "pagos_chaca_manuales,correo_salida,restablecimientos,"
         "sesiones,intentos_acceso IN ACCESS EXCLUSIVE MODE"
     )
     current = resumen_datos_prueba(conn, admin_uid)
     if current != expected:
         raise HTTPError(409, "Los registros cambiaron. Actualiza la vista previa antes de continuar.")
     for table in (
-        "correo_salida", "jugadores", "mensualidades", "pagos", "gastos",
+        "correo_salida", "jugadores", "mensualidades", "pagos_chaca_manuales",
+        "alumnos_chaca_manuales", "pagos", "gastos",
         "reservas", "equipos", "inscripciones_chaca", "ordenes", "restablecimientos",
     ):
         conn.execute(f"DELETE FROM {table}")
@@ -968,11 +972,27 @@ def reportes(conn, uid, data):
        WHERE (pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s ORDER BY pagado_en DESC""",
         (start, end),
     ).fetchall()
+    school_manual = conn.execute(
+        """SELECT p.id,p.tipo,p.periodo,p.monto,p.metodo,p.pagado_en,a.alumno
+           FROM pagos_chaca_manuales p JOIN alumnos_chaca_manuales a ON a.id=p.alumno_id
+           WHERE (p.pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s
+           ORDER BY p.pagado_en DESC""", (start, end)
+    ).fetchall()
+    payments.extend({"pago_id": f"chaca-{p['id']}", "pagado_en": p["pagado_en"],
+                     "nombre": p["alumno"], "email": "", "tipo": "ESCUELA" if p["tipo"] == "INSCRIPCION" else "MENSUALIDAD",
+                     "descripcion": f"Súper Chaca · {p['alumno']} · " +
+                     ("inscripción manual" if p["tipo"] == "INSCRIPCION" else f"mensualidad {p['periodo']:%m/%Y}"),
+                     "monto": p["monto"], "metodo": p["metodo"],
+                     "referencia": f"CHACA-MANUAL-{p['id']}", "simulado": False} for p in school_manual)
+    payments.sort(key=lambda p: p["pagado_en"], reverse=True)
     received = conn.execute(
         """SELECT o.tipo,coalesce(sum(p.monto),0) AS total
            FROM pagos p JOIN ordenes o ON o.id=p.orden_id
            WHERE p.simulado=false AND o.estado='PAGADA'
            GROUP BY o.tipo"""
+    ).fetchall()
+    school_manual_totals = conn.execute(
+        """SELECT tipo,coalesce(sum(monto),0) AS total FROM pagos_chaca_manuales GROUP BY tipo"""
     ).fetchall()
     manual_payments = conn.execute(
         """SELECT p.metodo,coalesce(sum(p.monto),0) AS total
@@ -995,6 +1015,9 @@ def reportes(conn, uid, data):
     incomes = {kind: Decimal("0") for kind in ("RESERVA", "TORNEO", "ESCUELA", "MENSUALIDAD")}
     for row in received:
         incomes[row["tipo"]] = row["total"]
+    for row in school_manual_totals:
+        kind = "ESCUELA" if row["tipo"] == "INSCRIPCION" else "MENSUALIDAD"
+        incomes[kind] += row["total"]
     spent = {category: Decimal("0") for category in EXPENSE_CATEGORIES}
     for row in expenses:
         if row["anulado_en"] is None:
