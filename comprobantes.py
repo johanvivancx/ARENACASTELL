@@ -215,6 +215,13 @@ def contexto_correo(row, base_url):
             ),
             texto_accion="Ir a Mi actividad" if dato["prueba"] else "Ver mi comprobante",
         )
+    elif row["asunto"] == "Nueva reserva pendiente · Arena Castell":
+        contexto.update(
+            titulo="Nueva solicitud de reserva",
+            preencabezado="Hay una reserva pendiente de revisión en Arena Castell.",
+            url_accion=base_url + "/pages/admin.html",
+            texto_accion="Revisar reserva",
+        )
     elif row.get("vence_en"):
         # Valida enlaces de recuperación
         for link in re.findall(r"https?://[^\s<>]+", row["cuerpo"]):

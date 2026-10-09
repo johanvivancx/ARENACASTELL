@@ -511,17 +511,53 @@ def pagar(conn, uid, oid, data):
     if order["estado"] != "PENDIENTE":
         raise ErrorValidacion("La operación ya no está pendiente.")
     reference = texto(data.get("referencia_transferencia"), "Referencia de transferencia", 3, 100) if method == "TRANSFERENCIA" else None
+    primera_solicitud_reserva = order["tipo"] == "RESERVA" and order["metodo_previsto"] is None
     if order["metodo_previsto"] != method or order.get("referencia_transferencia") != reference:
         conn.execute(
             """UPDATE ordenes SET metodo_previsto=%s,referencia_transferencia=%s,
             motivo_rechazo_transferencia=NULL,revision_pago=revision_pago+1 WHERE id=%s""",
             (method, reference, order["id"]),
         )
+    if primera_solicitud_reserva:
+        notificar_nueva_reserva(conn, order, method)
     return {
         "id": order["id"], "pendiente": True,
         "message": "Transferencia pendiente de revisión por la administración." if method == "TRANSFERENCIA"
         else "Pago en cancha pendiente. La administración confirmará cuando reciba el dinero.",
     }
+
+
+def notificar_nueva_reserva(conn, order, method):
+    """Avisar a cada administrador de una solicitud web; aún no confirma el pago."""
+    if not habilitado():
+        return
+    reservation = conn.execute(
+        """SELECT r.inicio,r.fin,c.nombre AS cancha,u.nombre AS cliente,
+        u.email AS correo_cliente,u.telefono AS telefono_cliente
+        FROM reservas r JOIN canchas c ON c.id=r.cancha_id
+        JOIN usuarios u ON u.id=%s WHERE r.orden_id=%s""",
+        (order["usuario_id"], order["id"]),
+    ).fetchone()
+    if not reservation:
+        raise ErrorValidacion("No encontramos la reserva de esta operación.")
+    start = reservation["inicio"].astimezone(TZ)
+    end = reservation["fin"].astimezone(TZ)
+    body = (
+        "Se registró una nueva solicitud de reserva en la web. El pago aún está pendiente de revisión.\n\n"
+        f"Cliente: {reservation['cliente']}\n"
+        f"Correo: {reservation['correo_cliente']}\n"
+        f"Celular: {reservation['telefono_cliente']}\n"
+        f"Cancha: {reservation['cancha']}\n"
+        f"Fecha: {start:%d/%m/%Y}\n"
+        f"Horario: {start:%H:%M} a {end:%H:%M} (Ecuador)\n"
+        f"Importe: ${order['monto']:.2f}\n"
+        f"Método elegido: {'Transferencia' if method == 'TRANSFERENCIA' else 'Efectivo en cancha'}\n"
+        f"Referencia de operación: {order['id']}\n\n"
+        f"Revisa la reserva y el cobro en {url_publica()}/pages/admin.html\n"
+    )
+    for admin in conn.execute("SELECT id,email FROM usuarios WHERE rol='ADMIN'").fetchall():
+        # El aviso no es un comprobante: no lleva orden_id ni adjunto de pago.
+        encolar_correo(conn, admin["id"], admin["email"], "Nueva reserva pendiente · Arena Castell", body)
 
 
 def _confirmar_pago(conn, admin_uid, order, method):

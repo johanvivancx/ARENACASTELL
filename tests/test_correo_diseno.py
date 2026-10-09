@@ -142,6 +142,7 @@ def test_fallo_del_diseno_no_envia_correo_incompleto_y_permite_reintento(conn,us
     orden=s.reservar(conn,user['id'],{'cancha_id':1,'tipo_evento':'HORA',
         'fecha':str(datetime.now(s.TZ).date()+timedelta(days=2)),'hora':'12:00','horas':1})
     confirmar_transferencia(conn,user['id'],orden['id'],pay_data)
+    conn.execute("UPDATE correo_salida SET estado_envio='CANCELADO' WHERE orden_id IS NULL")
     conn.commit()
     renderizar=mail.renderizar_html
     def fallar(contexto):

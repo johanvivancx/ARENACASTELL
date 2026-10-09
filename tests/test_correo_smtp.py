@@ -11,6 +11,7 @@ import correos as mail
 import services as s
 from conftest import confirmar_transferencia
 from db import ROOT
+from manage import cedula_demo
 from io import BytesIO
 from pypdf import PdfReader
 
@@ -40,10 +41,11 @@ def test_pago_solo_envia_despues_de_commit_y_no_duplica(conn,user,pay_data,smtp)
     assert mail.procesar_pendientes()['enviados']==0
     assert not smtp
     conn.commit()
-    assert mail.procesar_pendientes()['enviados']==1
-    assert smtp[0]['destinatario']==user['email']
-    assert 'Reserva:' in smtp[0]['cuerpo'] and str(order['id']) in smtp[0]['cuerpo']
-    message=mail.crear_mensaje(smtp[0],mail.ConfiguracionSMTP.desde_entorno())
+    assert mail.procesar_pendientes()['enviados']==2
+    receipt=next(row for row in smtp if row['orden_id']==order['id'])
+    assert receipt['destinatario']==user['email']
+    assert 'Reserva:' in receipt['cuerpo'] and str(order['id']) in receipt['cuerpo']
+    message=mail.crear_mensaje(receipt,mail.ConfiguracionSMTP.desde_entorno())
     attachment=list(message.iter_attachments())[0]
     assert attachment.get_filename().endswith('.pdf')
     assert attachment.get_content_type()=='application/pdf'
@@ -52,8 +54,30 @@ def test_pago_solo_envia_despues_de_commit_y_no_duplica(conn,user,pay_data,smtp)
     assert '$27.00' in message.get_body(preferencelist=('html',)).get_content()
     confirmar_transferencia(conn,user['id'],order['id'],pay_data);conn.commit()
     assert mail.procesar_pendientes()['enviados']==0
-    assert len(smtp)==1
+    assert len(smtp)==2
     assert s.detalle_orden(conn,user['id'],order['id'])['correo']['estado_envio']=='ENVIADO'
+
+
+def test_nueva_reserva_notifica_una_vez_a_cada_admin_y_no_al_cliente(conn,user,smtp):
+    second=s.registrar(conn,{'nombre':'Segundo administrador','email':'segundo@arena.test',
+        'cedula':cedula_demo(99002),'telefono':'0990000000','password':'PruebaSegura!2026',
+        'confirmacion':'PruebaSegura!2026','consentimiento':True})
+    conn.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s",(second['id'],))
+    order=reservation(conn,user)
+    assert conn.execute('SELECT count(*) AS n FROM correo_salida').fetchone()['n']==0
+    payment={'metodo':'EFECTIVO','acepta_simulacion':True}
+    s.pagar(conn,user['id'],order['id'],payment)
+    s.pagar(conn,user['id'],order['id'],payment)
+    rows=conn.execute('SELECT * FROM correo_salida ORDER BY id').fetchall()
+    assert len(rows)==2
+    assert {row['destinatario'] for row in rows}=={'revision@arena.test','segundo@arena.test'}
+    assert all(row['orden_id'] is None and 'pago aún está pendiente' in row['cuerpo'] for row in rows)
+    assert all(str(order['id']) in row['cuerpo'] and '/pages/admin.html' in row['cuerpo'] for row in rows)
+    assert mail.procesar_pendientes()['enviados']==0 and not smtp
+    conn.commit()
+    assert mail.procesar_pendientes()['enviados']==2
+    assert all(list(mail.crear_mensaje(row,mail.ConfiguracionSMTP.desde_entorno()).iter_attachments())==[] for row in smtp)
+    assert all('/pages/admin.html' in mail.crear_mensaje(row,mail.ConfiguracionSMTP.desde_entorno()).get_body(preferencelist=('html',)).get_content() for row in smtp)
 
 
 def test_rollback_no_deja_correo_para_enviar(conn,user,pay_data,smtp):
@@ -67,11 +91,12 @@ def test_rollback_no_deja_correo_para_enviar(conn,user,pay_data,smtp):
 
 def test_fallo_gmail_no_revierte_pago_y_reintento_conserva_message_id(conn,user,pay_data,smtp,monkeypatch,caplog):
     order=reservation(conn,user);confirmar_transferencia(conn,user['id'],order['id'],pay_data);conn.commit()
+    conn.execute("UPDATE correo_salida SET estado_envio='CANCELADO' WHERE orden_id IS NULL");conn.commit()
     def fail(row, config):
         raise smtplib.SMTPAuthenticationError(535,b'SECRETO_NO_PUBLICAR')
     monkeypatch.setattr(mail,'enviar_smtp',fail)
     assert mail.procesar_pendientes()['fallidos']==1
-    row=conn.execute('SELECT * FROM correo_salida').fetchone()
+    row=conn.execute('SELECT * FROM correo_salida WHERE orden_id=%s',(order['id'],)).fetchone()
     identifier=mail.crear_mensaje(row,mail.ConfiguracionSMTP.desde_entorno())['Message-ID']
     assert row['intentos']==1 and row['ultimo_error']=='AUTENTICACION_SMTP'
     assert 'SECRETO_NO_PUBLICAR' not in caplog.text
@@ -109,6 +134,7 @@ def test_resend_usa_https_con_pdf_y_clave_de_idempotencia(conn,user,pay_data,mon
     monkeypatch.setenv('PUBLIC_BASE_URL','https://arenacastell.com')
     order=reservation(conn,user)
     confirmar_transferencia(conn,user['id'],order['id'],pay_data)
+    conn.execute("UPDATE correo_salida SET estado_envio='CANCELADO' WHERE orden_id IS NULL")
     conn.commit()
     sent=[]
     def capture(payload, options):
