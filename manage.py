@@ -2,8 +2,10 @@
 
 import argparse
 import getpass
+import os
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 from db import conectar, ROOT
 from models import Administrador, ErrorValidacion
 import correos
@@ -21,8 +23,12 @@ def main():
     sub.add_parser(
         "check-db", help="Verificar conexión, tablas y registros sin mostrar credenciales"
     )
-    sub.add_parser(
+    create_admin = sub.add_parser(
         "create-admin", help="Crear un administrador; la contraseña se solicita sin mostrarla"
+    )
+    create_admin.add_argument(
+        "--render", action="store_true",
+        help="Pedir la URL externa de Render en privado, sin cambiar el archivo .env"
     )
     sub.add_parser("check-email", help="Validar la configuración de correo sin enviar ni mostrar claves")
     sub.add_parser("test-email", help="Enviar un correo de prueba a SMTP_USER o MAIL_TEST_TO")
@@ -30,7 +36,15 @@ def main():
     mailbox = sub.add_parser("outbox", help="Consultar mensajes como operador local")
     mailbox.add_argument("--email", required=True)
     args = parser.parse_args()
+    previous_database_url = os.environ.get("DATABASE_URL")
     try:
+        if args.command == "create-admin" and args.render:
+            remote_url = getpass.getpass("External Database URL de Render (no se mostrará): ").strip()
+            parsed = urlsplit(remote_url)
+            if (parsed.scheme not in {"postgres", "postgresql"} or not parsed.hostname
+                    or not parsed.hostname.endswith(".render.com") or not parsed.path.strip("/")):
+                parser.error("La URL debe ser la External Database URL de PostgreSQL en Render.")
+            os.environ["DATABASE_URL"] = remote_url
         if args.command == "check-email":
             correos.configuracion_envio()
             print(
@@ -89,9 +103,17 @@ def main():
                     "Catálogo actualizado. Se conservaron las órdenes, pagos y listas existentes."
                 )
             elif args.command == "create-admin":
+                current = conn.execute("SELECT current_database() AS base").fetchone()
+                database_host = urlsplit(os.environ.get("DATABASE_URL", "")).hostname or "desconocido"
+                print(f"Base de destino: {current['base']} · servidor: {database_host}")
+                if input("Escribe CREAR para confirmar este destino: ").strip() != "CREAR":
+                    print("Operación cancelada. No se creó ninguna cuenta.")
+                    return
                 user = Administrador(
                     input("Nombre: "), input("Correo: "), input("Cédula: "), input("Celular: ")
                 )
+                if conn.execute("SELECT 1 FROM usuarios WHERE email=%s", (user.email,)).fetchone():
+                    raise ErrorValidacion("Ya existe una cuenta con ese correo en esta base.")
                 password = getpass.getpass("Contraseña (mínimo 10 caracteres): ")
                 if password != getpass.getpass("Confirmar contraseña: "):
                     parser.error("Las contraseñas no coinciden.")
@@ -119,6 +141,12 @@ def main():
             file=sys.stderr,
         )
         raise SystemExit(1) from None
+    finally:
+        if args.command == "create-admin" and args.render:
+            if previous_database_url is None:
+                os.environ.pop("DATABASE_URL", None)
+            else:
+                os.environ["DATABASE_URL"] = previous_database_url
 
 
 # Crea una cédula ficticia

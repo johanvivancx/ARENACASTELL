@@ -76,6 +76,7 @@ Ejecuta:
 ```
 
 La terminal pedirá nombre, correo, cédula, celular y contraseña. La contraseña debe tener al menos 10 caracteres. Después podrás iniciar sesión desde la página.
+Antes de introducir los datos, el comando muestra el servidor y la base de destino; escribe `CREAR` solo si son los correctos. Para agregar un administrador a la página publicada en Render desde VS Code, usa `manage.py create-admin --render`: solicitará la **External Database URL** de Render sin mostrarla ni modificar `.env`.
 
 El formulario público siempre crea clientes. El rol de administrador se crea desde este comando para evitar que cualquier persona se dé permisos.
 

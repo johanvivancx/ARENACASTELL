@@ -49,6 +49,8 @@ Desde la carpeta del proyecto:
 .\.venv\Scripts\python.exe manage.py create-admin
 ```
 
+Para crear un administrador en la base publicada de Render desde tu equipo, usa `manage.py create-admin --render`. El comando pedirá la **External Database URL** de Render de forma oculta y confirmará el destino. `create-admin` sin esa opción utiliza la base de tu `.env` local.
+
 Completa los datos y guarda la contraseña de forma privada. Para cargar el código actualizado, detén el servidor con Ctrl+C y vuelve a ejecutar:
 
 ```powershell
