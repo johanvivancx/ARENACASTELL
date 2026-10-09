@@ -290,7 +290,7 @@ def enviar_resend(row, config):
         except (OSError, ValueError, TypeError):
             name = ""
             summary = re.search(r"<title[^>]*>(.*?)</title>", body, re.I | re.S)
-            summary = summary.group(1) if summary else ""
+            summary = summary.group(1) if summary else body
         summary = re.sub(r"https?://\S+|re_[A-Za-z0-9_-]+|[\w.+-]+@[\w.-]+", "[oculto]", str(summary))
         summary = re.sub(r"[^\w\s.,:;()/-]", " ", summary).strip()[:120]
         content_type = re.sub(r"[^\w./+;-]", "", str(error.headers.get("Content-Type", "")))[:60]
