@@ -281,11 +281,20 @@ def enviar_resend(row, config):
             raise ProveedorCorreoError("API_TEMPORAL") from None
         # Conserva solo el código HTTP y el tipo de error. La respuesta puede
         # incluir direcciones, contenido del correo o datos de autenticación.
+        body = ""
         try:
-            detail = json.loads(error.read(4096))
+            body = error.read(4096).decode("utf-8", "replace")
+            detail = json.loads(body)
             name = detail.get("name", "") if isinstance(detail, dict) else ""
+            summary = detail.get("message", "") if isinstance(detail, dict) else ""
         except (OSError, ValueError, TypeError):
             name = ""
+            summary = re.search(r"<title[^>]*>(.*?)</title>", body, re.I | re.S)
+            summary = summary.group(1) if summary else ""
+        summary = re.sub(r"https?://\S+|re_[A-Za-z0-9_-]+|[\w.+-]+@[\w.-]+", "[oculto]", str(summary))
+        summary = re.sub(r"[^\w\s.,:;()/-]", " ", summary).strip()[:120]
+        content_type = re.sub(r"[^\w./+;-]", "", str(error.headers.get("Content-Type", "")))[:60]
+        logging.warning("Resend rechazó HTTP %s (%s): %s", error.code, content_type, summary)
         name = re.sub(r"[^a-z0-9_]", "", str(name).lower())[:25]
         code = f"API_{error.code}_{name}" if name else f"API_{error.code}"
         raise ProveedorCorreoError(code) from None
