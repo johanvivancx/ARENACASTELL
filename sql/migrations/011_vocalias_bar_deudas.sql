@@ -8,7 +8,7 @@ ALTER TABLE copa_movimientos
 ALTER TABLE copa_movimientos
   ADD CONSTRAINT copa_vocalia_desglose CHECK (
     (monto_efectivo IS NULL AND monto_transferencia IS NULL)
-    OR (tipo='INGRESO' AND cuenta='VOCALIAS'
+    OR (tipo IN ('INGRESO','GASTO') AND cuenta='VOCALIAS'
         AND monto_efectivo >= 0 AND monto_transferencia >= 0
         AND monto_efectivo + monto_transferencia = monto)
   );

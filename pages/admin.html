@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261009-escuela-manual" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/copa-caja-admin.js?v=20261009-autores" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261010-saldos-vocalias" defer></script>
     <script src="../assets/app.js?v=20261009-autores" defer></script>
   </head>
 
@@ -305,6 +305,7 @@
             <div class="copa-area-panel" data-copa-panel="VOCALIAS" hidden>
               <h3>Vocalías</h3><p class="small-text muted">Registra lo que pagó cada equipo por su partido. La referencia es $10 por equipo. Los pagos al árbitro o al vocal se registran como gastos cuando se entreguen.</p>
               <div class="copa-area-summary" data-area-summary="VOCALIAS"></div>
+              <p id="copa-vocalia-desglose-aviso" class="small-text muted" role="status" hidden></p>
               <div class="copa-form-grid">
                 <form id="caja-vocalia-ingreso-form" class="panel copa-caja-form" data-caja-kind="INGRESO" data-caja-account="VOCALIAS" method="post">
                   <h4>Cobro de vocalía</h4>
@@ -322,7 +323,9 @@
                   <h4>Gasto de vocalías</h4><p class="small-text muted">Árbitro: referencia de $12 por partido. También puedes registrar pago al vocal, trofeos u otros gastos de esta caja.</p>
                   <div class="field"><label for="caja-vocalia-gasto-form-fecha">Fecha de pago</label><input id="caja-vocalia-gasto-form-fecha" name="fecha" type="date" required /></div>
                   <div class="field"><label for="caja-vocalia-gasto-form-fixture_id">Partido (opcional)</label><select id="caja-vocalia-gasto-form-fixture_id" name="fixture_id" data-vocalia-fixture></select></div>
-                  <div class="field"><label for="caja-vocalia-gasto-form-monto">Monto pagado en USD</label><input id="caja-vocalia-gasto-form-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-vocalia-gasto-form-efectivo">Pagado en efectivo (USD)</label><input id="caja-vocalia-gasto-form-efectivo" name="monto_efectivo" type="number" min="0" step="0.01" value="0" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-vocalia-gasto-form-transferencia">Pagado por transferencia (USD)</label><input id="caja-vocalia-gasto-form-transferencia" name="monto_transferencia" type="number" min="0" step="0.01" value="0" inputmode="decimal" required /></div>
+                  <div class="field"><label for="caja-vocalia-gasto-form-monto">Total pagado (USD)</label><input id="caja-vocalia-gasto-form-monto" name="monto" type="number" min="0.01" step="0.01" readonly required /></div>
                   <div class="field"><label for="caja-vocalia-gasto-form-concepto">¿A quién o por qué se pagó?</label><input id="caja-vocalia-gasto-form-concepto" name="concepto" type="text" placeholder="Ej.: pago al árbitro, pago al vocal o trofeos" minlength="3" maxlength="180" required /></div>
                   <div class="form-actions"><button class="btn" type="submit">Guardar gasto de vocalías</button></div>
                 </form>

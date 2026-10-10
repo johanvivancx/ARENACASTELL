@@ -66,6 +66,25 @@ def _saldos(rows):
     return balances
 
 
+def _saldos_vocalia(rows):
+    """Separa el saldo conocido del importe histórico sin medio de pago."""
+    cash = transfer = unknown = CERO
+    unknown_count = 0
+    for row in rows:
+        if row["anulado_en"] or row["cuenta"] != "VOCALIAS" or row["tipo"] not in ("INGRESO", "GASTO"):
+            continue
+        sign = 1 if row["tipo"] == "INGRESO" else -1
+        if row["monto_efectivo"] is None:
+            unknown += sign * row["monto"]
+            unknown_count += 1
+        else:
+            cash += sign * row["monto_efectivo"]
+            transfer += sign * row["monto_transferencia"]
+    return {"efectivo": cash, "transferencia": transfer, "sin_desglose": unknown,
+            "movimientos_sin_desglose": unknown_count,
+            "total": cash + transfer + unknown}
+
+
 def resumen(conn, admin_uid, semana=None):
     exigir_administrador(conn, admin_uid)
     start = fecha(semana) if semana else datetime.now(TZ).date()
@@ -73,6 +92,7 @@ def resumen(conn, admin_uid, semana=None):
     end = start + timedelta(days=7)
     rows = _movimientos(conn)
     balances = _saldos(rows)
+    vocalia_balances = _saldos_vocalia(rows)
     weekly = [r for r in rows if start <= r["fecha"] < end]
     income = {area: CERO for area in ("BAR", "ENTRADAS", "VOCALIAS")}
     expenses = {area: CERO for area in ("BAR", "ENTRADAS", "VOCALIAS", "GENERAL")}
@@ -136,6 +156,7 @@ def resumen(conn, admin_uid, semana=None):
             "vocalias_efectivo": vocalia_efectivo,
             "vocalias_transferencia": vocalia_transferencia,
             "vocalias_sin_desglose": vocalia_sin_desglose,
+            "vocalias_saldos": vocalia_balances,
             "bar_deudas": debts,
             "bar_deuda_pendiente": sum((row["monto"] for row in pending_debts), CERO),
             "vocalias_esperadas": sum((r["esperado"] for r in due), CERO),
@@ -196,6 +217,16 @@ def registrar(conn, admin_uid, data):
             raise ErrorValidacion("Selecciona la misma actividad que paga el gasto.")
         if fixture_id and (account != "VOCALIAS" or fixture_id not in catalogo()[0]):
             raise ErrorValidacion("Ese partido no corresponde al gasto de vocalías.")
+        if account == "VOCALIAS":
+            if "monto_efectivo" not in data or "monto_transferencia" not in data:
+                raise ErrorValidacion("Indica cuánto se pagó en efectivo y por transferencia.")
+            cash = _monto_opcional(data.get("monto_efectivo"))
+            transfer = _monto_opcional(data.get("monto_transferencia"))
+            if cash + transfer != amount:
+                raise ErrorValidacion("Efectivo y transferencia deben sumar el gasto.")
+            available = _saldos_vocalia(_movimientos(conn))
+            if cash > available["efectivo"] or transfer > available["transferencia"]:
+                raise ErrorValidacion("No hay saldo suficiente en el medio de pago elegido. Clasifica los movimientos anteriores si corresponde.")
     if kind in {"TRASPASO", "GASTO"} and _saldos(_movimientos(conn))[account] < amount:
         raise ErrorValidacion("No hay saldo suficiente en la cuenta que paga. Revisa la caja disponible.")
     row = conn.execute("""INSERT INTO copa_movimientos
@@ -256,4 +287,30 @@ def anular(conn, admin_uid, movement_id, data):
         anulado_por=%s,motivo_anulacion=%s WHERE id=%s""", (admin_uid,reason,mid))
     if any(amount < 0 for amount in _saldos(_movimientos(conn)).values()):
         raise ErrorValidacion("No se puede anular: dejaría una caja con saldo negativo. Corrige primero los movimientos posteriores.")
+    split = _saldos_vocalia(_movimientos(conn))
+    if split["efectivo"] < 0 or split["transferencia"] < 0:
+        raise ErrorValidacion("No se puede anular: dejaría negativo el efectivo o las transferencias de vocalías.")
     return {"id": mid, "message": "Movimiento anulado; el historial se conserva."}
+
+
+def desglosar_vocalia(conn, admin_uid, movement_id, data):
+    """Clasifica el medio de pago de un movimiento antiguo sin cambiar su total."""
+    exigir_administrador(conn, admin_uid)
+    conn.execute("SELECT pg_advisory_xact_lock(20491007)")
+    mid = numero(movement_id, "Movimiento")
+    row = conn.execute("SELECT * FROM copa_movimientos WHERE id=%s FOR UPDATE", (mid,)).fetchone()
+    if not row or row["cuenta"] != "VOCALIAS" or row["tipo"] not in ("INGRESO", "GASTO"):
+        raise HTTPError(404, "No encontramos ese movimiento de vocalías.")
+    if row["anulado_en"] or row["monto_efectivo"] is not None:
+        raise ErrorValidacion("Solo se puede desglosar un movimiento activo que aún no tenga desglose.")
+    cash = _monto_opcional(data.get("monto_efectivo"))
+    transfer = _monto_opcional(data.get("monto_transferencia"))
+    if cash + transfer != row["monto"]:
+        raise ErrorValidacion("Efectivo y transferencia deben sumar el monto original.")
+    split = _saldos_vocalia(_movimientos(conn))
+    sign = 1 if row["tipo"] == "INGRESO" else -1
+    if split["efectivo"] + sign * cash < 0 or split["transferencia"] + sign * transfer < 0:
+        raise ErrorValidacion("Este desglose dejaría negativo el efectivo o las transferencias.")
+    conn.execute("UPDATE copa_movimientos SET monto_efectivo=%s,monto_transferencia=%s WHERE id=%s",
+                 (cash, transfer, mid))
+    return {"id": mid, "message": "Medio de pago clasificado; el total del movimiento no cambió."}

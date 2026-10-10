@@ -667,6 +667,8 @@ def registrar_actividad_admin(conn, uid, path, result):
             accion = "Anuló una reserva manual"
         elif re.fullmatch(r"/api/admin/copa-caja/\d+/void", path):
             accion = "Anuló un movimiento de Copa Castell"
+        elif re.fullmatch(r"/api/admin/copa-caja/\d+/split", path):
+            accion = "Clasificó el medio de pago de un movimiento de vocalías"
         elif re.fullmatch(r"/api/admin/copa-bar-deudas/\d+/collect", path):
             accion = "Cobró una deuda del bar"
         elif re.fullmatch(r"/api/admin/expenses/\d+/void", path):

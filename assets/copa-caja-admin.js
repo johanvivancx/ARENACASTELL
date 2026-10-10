@@ -61,8 +61,7 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
         : "Este partido no está en la semana seleccionada. El servidor comprobará lo ya pagado antes de guardar.";
   };
 
-  const syncVocaliaTotal = () => {
-    const form = $("#caja-vocalia-ingreso-form", root);
+  const syncVocaliaTotal = (form) => {
     const cash = Number($('[name="monto_efectivo"]', form).value || 0);
     const transfer = Number($('[name="monto_transferencia"]', form).value || 0);
     $('[name="monto"]', form).value = ((Math.round(cash * 100) + Math.round(transfer * 100)) / 100).toFixed(2);
@@ -82,24 +81,34 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       facts = [["Saldo actual", state.saldos.DISPONIBLE], ["Saldo inicial esta semana", sum("APERTURA")],
         ["Caja entregada esta semana", sum("TRASPASO")], ["Gastos pagados esta semana", sum("GASTO")]];
     } else {
-      facts = [[active === "VOCALIAS" ? "Saldo registrado (efectivo y transferencias)" : "Saldo actual en esta caja", state.saldos[active]],
-        ...(active === "VOCALIAS" ? [["Esperado esta semana", state.vocalias_esperadas],
+      facts = [...(active === "VOCALIAS" ? [
+          [state.vocalias_saldos.movimientos_sin_desglose ? "Efectivo identificado" : "Disponible en efectivo", state.vocalias_saldos.efectivo],
+          [state.vocalias_saldos.movimientos_sin_desglose ? "Transferencias identificadas" : "Disponible por transferencia", state.vocalias_saldos.transferencia],
+          ["Total disponible en vocalías", state.vocalias_saldos.total],
+          ...(state.vocalias_saldos.movimientos_sin_desglose ? [["Saldo histórico sin clasificar", state.vocalias_saldos.sin_desglose]] : []),
+          ["Esperado esta semana", state.vocalias_esperadas],
           ["Pendiente de cobrar", state.vocalias_pendientes],
           ["Cobrado en efectivo", state.vocalias_efectivo],
           ["Cobrado por transferencia", state.vocalias_transferencia],
           ...(Number(state.vocalias_sin_desglose) ? [["Cobros anteriores sin desglose", state.vocalias_sin_desglose]] : [])]
-          : [["Caja entregada esta semana", state.caja_entregada[active]]]),
+          : [["Saldo actual en esta caja", state.saldos[active]],
+            ["Caja entregada esta semana", state.caja_entregada[active]]]),
         ["Cobrado esta semana", state.ingresos[active]], ["Gastos atribuidos esta semana", state.gastos[active]]];
     }
     summary.innerHTML = facts.map(([label, value]) =>
       `<div><span>${esc(label)}</span><strong>${esc(money(value))}</strong></div>`).join("");
+    if (active === "VOCALIAS") {
+      const notice = $("#copa-vocalia-desglose-aviso", root);
+      notice.hidden = !state.vocalias_saldos.movimientos_sin_desglose;
+      notice.textContent = "Hay movimientos anteriores sin medio de pago. Los importes de efectivo y transferencia son solo los identificados; clasifica esos movimientos en el historial para conocer los saldos exactos. El total sí incluye todos los movimientos.";
+    }
 
     $("#copa-caja-days", root).innerHTML = active === "DISPONIBLE"
       ? renderDisponibleDays() : renderActivityDays();
     const rows = activeRows();
     $("#copa-caja-history", root).innerHTML = rows.length
       ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Sale de / entra a</th><th>Concepto</th><th>Monto</th><th>Registrado por</th><th>Estado</th></tr></thead><tbody>${rows.map((item) =>
-          `<tr class="${item.anulado_en ? "copa-void" : ""}"><td>${esc(dates(item.fecha))}</td><td>${esc(descriptions[item.tipo])}${item.anulado_en ? " · Anulado" : ""}</td><td>${esc(names[item.cuenta])}${item.destino ? ` → ${esc(names[item.destino])}` : ""}${item.area && item.area !== item.cuenta ? ` · gasto de ${esc(names[item.area] || "la Copa")}` : ""}</td><td>${esc(item.concepto)}${item.equipo ? ` · ${esc(item.equipo)}` : ""}${item.cuenta === "VOCALIAS" && item.tipo === "INGRESO" && item.monto_efectivo !== null ? ` · efectivo ${esc(money(item.monto_efectivo))}, transferencia ${esc(money(item.monto_transferencia))}` : ""}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td>${item.anulado_en ? `Anulado por ${esc(item.anulado_por_nombre)}: ${esc(item.motivo_anulacion)}` : `<button class="btn secondary" type="button" data-caja-void="${esc(item.id)}">Anular</button>`}</td></tr>`).join("")}</tbody></table>`
+          `<tr class="${item.anulado_en ? "copa-void" : ""}"><td>${esc(dates(item.fecha))}</td><td>${esc(descriptions[item.tipo])}${item.anulado_en ? " · Anulado" : ""}</td><td>${esc(names[item.cuenta])}${item.destino ? ` → ${esc(names[item.destino])}` : ""}${item.area && item.area !== item.cuenta ? ` · gasto de ${esc(names[item.area] || "la Copa")}` : ""}</td><td>${esc(item.concepto)}${item.equipo ? ` · ${esc(item.equipo)}` : ""}${item.cuenta === "VOCALIAS" && ["INGRESO", "GASTO"].includes(item.tipo) && item.monto_efectivo !== null ? ` · efectivo ${esc(money(item.monto_efectivo))}, transferencia ${esc(money(item.monto_transferencia))}` : ""}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td>${item.anulado_en ? `Anulado por ${esc(item.anulado_por_nombre)}: ${esc(item.motivo_anulacion)}` : `${item.cuenta === "VOCALIAS" && ["INGRESO", "GASTO"].includes(item.tipo) && item.monto_efectivo === null ? `<button class="btn secondary" type="button" data-caja-split="${esc(item.id)}">Clasificar medio</button> ` : ""}<button class="btn secondary" type="button" data-caja-void="${esc(item.id)}">Anular</button>`}</td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">Aún no hay movimientos de esta área en la semana seleccionada.</p>';
   };
 
@@ -146,8 +155,11 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
   $('[data-vocalia-fixture]', $("#caja-vocalia-ingreso-form", root))
     .addEventListener("change", fillTeams);
   $("#caja-vocalia-equipo", root).addEventListener("change", updateVocaliaDue);
-  $$('[name="monto_efectivo"], [name="monto_transferencia"]', $("#caja-vocalia-ingreso-form", root))
-    .forEach((input) => input.addEventListener("input", syncVocaliaTotal));
+  ["#caja-vocalia-ingreso-form", "#caja-vocalia-gasto-form"].forEach((selector) => {
+    const form = $(selector, root);
+    $$('[name="monto_efectivo"], [name="monto_transferencia"]', form)
+      .forEach((input) => input.addEventListener("input", () => syncVocaliaTotal(form)));
+  });
   $("#copa-bar-deudas", root).addEventListener("click", async (event) => {
     const button = event.target.closest("[data-bar-debt-collect]");
     if (!button || !confirm("¿Ya recibiste el importe completo? Se sumará una sola vez al bar.")) return;
@@ -161,6 +173,27 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
     try { await refresh(); } catch (error) { showMessage(error.message); }
   });
   $("#copa-caja-history", root).addEventListener("click", async (event) => {
+    const splitButton = event.target.closest("[data-caja-split]");
+    if (splitButton) {
+      const row = state.movimientos.find((item) => String(item.id) === splitButton.dataset.cajaSplit);
+      if (!row) return;
+      const entered = prompt(`¿Cuánto de ${money(row.monto)} fue en efectivo? El resto se asignará a transferencia.`, "0.00");
+      if (entered === null) return;
+      const cash = Number(entered.replace(",", "."));
+      const total = Number(row.monto);
+      if (!Number.isFinite(cash) || cash < 0 || Math.round(cash * 100) > Math.round(total * 100) || !/^\d+(?:[.,]\d{1,2})?$/.test(entered.trim())) {
+        showMessage("Escribe un importe en efectivo válido, entre $0 y el total del movimiento.");
+        return;
+      }
+      const transfer = (Math.round(total * 100) - Math.round(cash * 100)) / 100;
+      if (!confirm(`Clasificar ${money(cash)} en efectivo y ${money(transfer)} por transferencia. El total original no cambiará. ¿Continuar?`)) return;
+      try {
+        const result = await api(`/admin/copa-caja/${row.id}/split`, {monto_efectivo: cash.toFixed(2), monto_transferencia: transfer.toFixed(2)});
+        await refresh();
+        showMessage(result.message, "success");
+      } catch (error) { showMessage(error.message); }
+      return;
+    }
     const button = event.target.closest("[data-caja-void]");
     if (!button) return;
     const reason = prompt("Motivo de anulación (se conservará el historial):");
@@ -183,18 +216,18 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       if (kind === "GASTO" && account !== "DISPONIBLE") payload.area = account;
       if (account === "VOCALIAS" && kind === "INGRESO" && (!data.fixture_id || !data.equipo))
         throw new Error("Selecciona el partido y el equipo que pagó.");
-      if (account === "VOCALIAS" && kind === "INGRESO") {
-        syncVocaliaTotal();
+      if (account === "VOCALIAS" && ["INGRESO", "GASTO"].includes(kind)) {
+        syncVocaliaTotal(form);
         payload.monto = $('[name="monto"]', form).value;
-        if (Number(payload.monto) <= 0 || Number(payload.monto) > Number($('[name="monto"]', form).max))
-          throw new Error("El efectivo y la transferencia deben sumar más de $0 y no superar lo pendiente.");
+        if (Number(payload.monto) <= 0 || (kind === "INGRESO" && Number(payload.monto) > Number($('[name="monto"]', form).max)))
+          throw new Error("El efectivo y la transferencia deben sumar más de $0 y no superar lo pendiente del equipo.");
       }
       const title = form.querySelector("h4").textContent;
       if (!confirm(`${title}: ¿guardar ${money(payload.monto)}? Revisa fecha y concepto antes de continuar.`)) return;
       const result = await api("/admin/copa-caja", payload);
       form.reset();
       dateInput.value = today;
-      if (account === "VOCALIAS" && kind === "INGRESO") syncVocaliaTotal();
+      if (account === "VOCALIAS" && ["INGRESO", "GASTO"].includes(kind)) syncVocaliaTotal(form);
       await refresh();
       showMessage(result.message, "success");
     });

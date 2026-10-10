@@ -84,6 +84,34 @@ def test_vocalia_dividida_cuenta_un_solo_cobro(conn):
               equipo=fixture["away"], monto_efectivo="4", monto_transferencia="5")
 
 
+def test_vocalia_saldos_por_medio_y_clasificacion_de_gasto_anterior(conn):
+    admin = _admin(conn)
+    fixture = next(iter(copa.catalogo()[0].values()))
+    _save(conn, admin, "INGRESO", "VOCALIAS", "10", fixture_id=fixture["id"],
+          equipo=fixture["home"], monto_efectivo="4", monto_transferencia="6")
+    _save(conn, admin, "INGRESO", "VOCALIAS", "10", fixture_id=fixture["id"],
+          equipo=fixture["away"], monto_efectivo="8", monto_transferencia="2")
+    _save(conn, admin, "GASTO", "VOCALIAS", "12", area="VOCALIAS",
+          monto_efectivo="7", monto_transferencia="5")
+    split = caja.resumen(conn, admin)["vocalias_saldos"]
+    assert (split["efectivo"], split["transferencia"], split["total"]) == (5, 3, 8)
+    with pytest.raises(ErrorValidacion):
+        _save(conn, admin, "GASTO", "VOCALIAS", "4", area="VOCALIAS",
+              monto_efectivo="0", monto_transferencia="4")
+    old = conn.execute("""INSERT INTO copa_movimientos
+        (fecha,tipo,cuenta,area,monto,concepto,registrado_por)
+        VALUES(%s,'GASTO','VOCALIAS','VOCALIAS',3,'Gasto anterior',%s) RETURNING id""",
+        (datetime.now(TZ).date(), admin)).fetchone()["id"]
+    before = caja.resumen(conn, admin)["vocalias_saldos"]
+    assert before["total"] == 5 and before["movimientos_sin_desglose"] == 1
+    caja.desglosar_vocalia(conn, admin, old, {"monto_efectivo": "2", "monto_transferencia": "1"})
+    after = caja.resumen(conn, admin)["vocalias_saldos"]
+    assert (after["efectivo"], after["transferencia"], after["total"]) == (3, 2, 5)
+    assert after["movimientos_sin_desglose"] == 0
+    with pytest.raises(ErrorValidacion):
+        caja.desglosar_vocalia(conn, admin, old, {"monto_efectivo": "2", "monto_transferencia": "1"})
+
+
 def test_deuda_bar_no_es_ingreso_hasta_cobrar_y_no_se_cobra_dos_veces(conn):
     admin = _admin(conn)
     debt = caja.registrar_deuda_bar(conn, admin, {
