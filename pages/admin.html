@@ -16,11 +16,11 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261009-autores" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261010-deudas-bar" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261009-escuela-manual" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/copa-caja-admin.js?v=20261010-limpiar-vocalias" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261010-deudas-bar" defer></script>
     <script src="../assets/app.js?v=20261010-limpiar-vocalias" defer></script>
   </head>
 
@@ -271,13 +271,17 @@
                 <h4>Anotar deuda del bar</h4>
                 <p class="small-text muted">Un fiado no se suma a las ventas cobradas. Quedará pendiente hasta que registres su cobro.</p>
                 <div class="field"><label for="caja-bar-deuda-fecha">Fecha</label><input id="caja-bar-deuda-fecha" name="fecha" type="date" required /></div>
-                <div class="field"><label for="caja-bar-deuda-nombre">Nombre de la persona</label><input id="caja-bar-deuda-nombre" name="nombre" type="text" minlength="2" maxlength="120" required /></div>
+                <div class="field"><label for="caja-bar-deuda-nombre">Nombre de la persona</label><input id="caja-bar-deuda-nombre" name="nombre" type="text" list="copa-bar-nombres" minlength="2" maxlength="120" autocomplete="off" required /><datalist id="copa-bar-nombres"></datalist><p id="copa-bar-deuda-persona-aviso" class="small-text muted" role="status">Si ya debe, elige su nombre de la lista; la nueva compra se sumará a su total pendiente.</p></div>
                 <div class="field"><label for="caja-bar-deuda-monto">Cuánto debe (USD)</label><input id="caja-bar-deuda-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
                 <div class="field"><label for="caja-bar-deuda-concepto">Qué debe</label><input id="caja-bar-deuda-concepto" name="concepto" type="text" placeholder="Ej.: cervezas y comida" minlength="3" maxlength="180" required /></div>
                 <div class="form-actions"><button class="btn" type="submit">Guardar deuda</button></div>
               </form>
               <h4>Deudas del bar</h4>
               <p id="copa-bar-deuda-total" class="small-text muted" role="status"></p>
+              <div class="field copa-bar-deuda-filtro"><label for="copa-bar-deuda-buscar">Buscar por nombre</label><input id="copa-bar-deuda-buscar" type="search" placeholder="Filtrar personas y fiados" autocomplete="off" /></div>
+              <p id="copa-bar-deuda-filtrado" class="small-text muted" role="status"></p>
+              <div id="copa-bar-deudores" class="copa-ledger-scroll"></div>
+              <h5>Detalle de los fiados</h5>
               <div id="copa-bar-deudas" class="copa-ledger-scroll"></div>
             </div>
 

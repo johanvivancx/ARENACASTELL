@@ -128,6 +128,23 @@ def test_deuda_bar_no_es_ingreso_hasta_cobrar_y_no_se_cobra_dos_veces(conn):
         caja.cobrar_deuda_bar(conn, admin, debt["id"], {"fecha": datetime.now(TZ).date().isoformat()})
 
 
+def test_deudas_repetidas_se_agrupan_por_persona_y_cobros_reducen_su_total(conn):
+    admin = _admin(conn)
+    day = datetime.now(TZ).date().isoformat()
+    first = caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "Johan Vivanco", "monto": "2.80", "concepto": "Una cerveza"})
+    caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "  johan   vivanco  ", "monto": "3.20", "concepto": "Comida del bar"})
+    before = caja.resumen(conn, admin)
+    assert before["bar_deuda_pendiente"] == Decimal("6.00")
+    assert before["bar_deudores"] == [{"nombre": "Johan Vivanco", "pendiente": Decimal("6.00"), "deudas": 2}]
+    assert [row["nombre"] for row in before["bar_deudas"]] == ["Johan Vivanco", "Johan Vivanco"]
+    caja.cobrar_deuda_bar(conn, admin, first["id"], {"fecha": day})
+    after = caja.resumen(conn, admin)
+    assert after["bar_deudores"] == [{"nombre": "Johan Vivanco", "pendiente": Decimal("3.20"), "deudas": 1}]
+    assert after["saldos"]["BAR"] == Decimal("2.80")
+
+
 def test_limpieza_de_vocalias_incluye_anulados_y_conserva_las_otras_cajas(conn, monkeypatch):
     admin = _admin(conn)
     monkeypatch.setenv("ADMIN_OWNER_EMAIL", "revision@arena.test")

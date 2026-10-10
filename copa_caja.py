@@ -31,6 +31,10 @@ def _monto_opcional(value):
     return _monto(value)
 
 
+def _clave_deudor(name):
+    return " ".join(name.split()).casefold()
+
+
 def _fecha(value):
     day = fecha(value)
     if not date(2026, 1, 1) <= day <= datetime.now(TZ).date():
@@ -136,6 +140,12 @@ def resumen(conn, admin_uid, semana=None):
         LEFT JOIN usuarios cobrador ON cobrador.id=d.cobrada_por
         ORDER BY d.fecha DESC,d.id DESC""").fetchall()
     pending_debts = [row for row in debts if row["cobrada_en"] is None]
+    debtors = {}
+    for row in pending_debts:
+        key = _clave_deudor(row["nombre"])
+        person = debtors.setdefault(key, {"nombre": row["nombre"], "pendiente": CERO, "deudas": 0})
+        person["pendiente"] += row["monto"]
+        person["deudas"] += 1
     # Solo partidos programados para la semana seleccionada; el reprogramado usa la fecha nueva.
     due = []
     for fixture in fixtures.values():
@@ -158,6 +168,7 @@ def resumen(conn, admin_uid, semana=None):
             "vocalias_sin_desglose": vocalia_sin_desglose,
             "vocalias_saldos": vocalia_balances,
             "bar_deudas": debts,
+            "bar_deudores": sorted(debtors.values(), key=lambda item: item["nombre"].casefold()),
             "bar_deuda_pendiente": sum((row["monto"] for row in pending_debts), CERO),
             "vocalias_esperadas": sum((r["esperado"] for r in due), CERO),
             "vocalias_pendientes": sum((r["pendiente"] for r in due), CERO),
@@ -240,8 +251,15 @@ def registrar(conn, admin_uid, data):
 def registrar_deuda_bar(conn, admin_uid, data):
     """Una venta fiada no entra en caja hasta que realmente se cobre."""
     exigir_administrador(conn, admin_uid)
+    conn.execute("SELECT pg_advisory_xact_lock(20491007)")
     day = _fecha(data.get("fecha"))
-    name = texto(data.get("nombre"), "Nombre", 2, 120)
+    name = " ".join(texto(data.get("nombre"), "Nombre", 2, 120).split())
+    if len(name) < 2:
+        raise ErrorValidacion("Escribe el nombre de la persona que debe.")
+    for existing in conn.execute("SELECT DISTINCT nombre FROM copa_bar_deudas").fetchall():
+        if _clave_deudor(existing["nombre"]) == _clave_deudor(name):
+            name = existing["nombre"]
+            break
     amount = _monto(data.get("monto"))
     concept = texto(data.get("concepto"), "Productos que debe", 3, 180)
     row = conn.execute("""INSERT INTO copa_bar_deudas

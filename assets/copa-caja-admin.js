@@ -72,6 +72,39 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
     active === "DISPONIBLE" ? item.cuenta === active
       : item.cuenta === active || item.destino === active || item.area === active);
 
+  const debtKey = (name) => String(name || "").trim().replace(/\s+/g, " ").toLocaleLowerCase("es");
+  const debtSearch = (name) => debtKey(name).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const debtorName = $("#caja-bar-deuda-nombre", root);
+  const debtFilter = $("#copa-bar-deuda-buscar", root);
+  const updateDebtorHint = () => {
+    const person = state?.bar_deudores.find((item) => debtKey(item.nombre) === debtKey(debtorName.value));
+    $("#copa-bar-deuda-persona-aviso", root).textContent = person
+      ? `${person.nombre} ya tiene ${person.deudas} ${person.deudas === 1 ? "fiado pendiente" : "fiados pendientes"} por ${money(person.pendiente)}. La nueva deuda se sumará a ese total.`
+      : "Si ya debe, elige su nombre de la lista; la nueva compra se sumará a su total pendiente.";
+  };
+
+  const renderBarDebts = () => {
+    const query = debtSearch(debtFilter.value);
+    const people = state.bar_deudores.filter((item) => debtSearch(item.nombre).includes(query));
+    const rows = state.bar_deudas.filter((item) => debtSearch(item.nombre).includes(query));
+    const names = [...new Map(state.bar_deudas.map((item) => [debtKey(item.nombre), item.nombre])).values()];
+    $("#copa-bar-nombres", root).innerHTML = names.map((name) => `<option value="${esc(name)}"></option>`).join("");
+    $("#copa-bar-deuda-total", root).textContent = `Total pendiente por cobrar: ${money(state.bar_deuda_pendiente)}. Las deudas no están incluidas en el saldo del bar.`;
+    const filteredTotal = people.reduce((total, item) => total + Number(item.pendiente), 0);
+    $("#copa-bar-deuda-filtrado", root).textContent = query
+      ? `Coincidencias: ${people.length} ${people.length === 1 ? "persona" : "personas"} con ${money(filteredTotal)} pendiente. Los fiados ya cobrados aparecen abajo, pero no suman.`
+      : "Pendiente agrupado por persona. Cada compra conserva su detalle y se cobra por separado.";
+    $("#copa-bar-deudores", root).innerHTML = people.length
+      ? `<table class="copa-ledger-table"><thead><tr><th>Persona</th><th>Fiados pendientes</th><th>Total que debe</th><th>Acciones</th></tr></thead><tbody>${people.map((item) =>
+          `<tr><td>${esc(item.nombre)}</td><td>${esc(item.deudas)}</td><td><strong>${esc(money(item.pendiente))}</strong></td><td><button class="btn secondary" type="button" data-bar-debtor-view="${esc(item.nombre)}">Ver detalle</button> <button class="btn secondary" type="button" data-bar-debtor-use="${esc(item.nombre)}">Añadir deuda</button></td></tr>`).join("")}</tbody></table>`
+      : '<p class="small-text muted">No hay personas con deudas pendientes que coincidan con la búsqueda.</p>';
+    $("#copa-bar-deudas", root).innerHTML = rows.length
+      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Qué debe</th><th>Monto</th><th>Registrado por</th><th>Estado</th></tr></thead><tbody>${rows.map((item) =>
+          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td>${item.cobrada_en ? `Cobrada por ${esc(item.cobrada_por_nombre)}` : `<button class="btn secondary" type="button" data-bar-debt-collect="${esc(item.id)}">Registrar cobro</button>`}</td></tr>`).join("")}</tbody></table>`
+      : '<p class="small-text muted">No hay fiados que coincidan con la búsqueda.</p>';
+    updateDebtorHint();
+  };
+
   const renderArea = () => {
     const summary = $('[data-area-summary="' + active + '"]', root);
     let facts;
@@ -143,11 +176,7 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       ? `<table class="copa-ledger-table"><thead><tr><th>Partido</th><th>Equipo</th><th>Esperado</th><th>Pagado</th><th>Pendiente</th></tr></thead><tbody>${state.vocalias.map((item) =>
           `<tr><td>${esc(item.fixture_id)}</td><td>${esc(item.equipo)}</td><td>${esc(money(item.esperado))}</td><td>${esc(money(item.pagado))}</td><td>${esc(money(item.pendiente))}</td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">No hay partidos programados en esta semana.</p>';
-    $("#copa-bar-deuda-total", root).textContent = `Total pendiente por cobrar: ${money(state.bar_deuda_pendiente)}. Las deudas no están incluidas en el saldo del bar.`;
-    $("#copa-bar-deudas", root).innerHTML = state.bar_deudas.length
-      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Qué debe</th><th>Monto</th><th>Registrado por</th><th>Estado</th></tr></thead><tbody>${state.bar_deudas.map((item) =>
-          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td>${item.cobrada_en ? `Cobrada por ${esc(item.cobrada_por_nombre)}` : `<button class="btn secondary" type="button" data-bar-debt-collect="${esc(item.id)}">Registrar cobro</button>`}</td></tr>`).join("")}</tbody></table>`
-      : '<p class="small-text muted">No hay deudas del bar registradas.</p>';
+    renderBarDebts();
     renderArea();
   }
 
@@ -169,6 +198,14 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       await refresh();
       showMessage(result.message, "success");
     } catch (error) { showMessage(error.message); }
+  });
+  debtFilter.addEventListener("input", renderBarDebts);
+  debtorName.addEventListener("input", updateDebtorHint);
+  $("#copa-bar-deudores", root).addEventListener("click", (event) => {
+    const view = event.target.closest("[data-bar-debtor-view]");
+    const use = event.target.closest("[data-bar-debtor-use]");
+    if (view) { debtFilter.value = view.dataset.barDebtorView; renderBarDebts(); }
+    if (use) { debtorName.value = use.dataset.barDebtorUse; updateDebtorHint(); debtorName.focus(); }
   });
   week.addEventListener("change", async () => {
     try { await refresh(); } catch (error) { showMessage(error.message); }
