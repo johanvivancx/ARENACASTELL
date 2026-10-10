@@ -652,6 +652,7 @@ ACCIONES_ADMIN = {
     "/api/admin/school/payments": "Registró un pago de Súper Chaca",
     "/api/admin/admins": "Creó una cuenta administradora",
     "/api/admin/test-data-reset": "Vació los datos de prueba",
+    "/api/admin/copa-caja/vocalias/reset": "Vació únicamente el historial de vocalías",
 }
 
 

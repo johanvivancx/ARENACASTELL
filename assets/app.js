@@ -1100,7 +1100,8 @@ async function initCopaResults() {
 
 // Presenta formularios de caja separados por actividad.
 async function initCopaCaja() {
-  await window.CopaCajaAdmin({$, $$, api, bindForm, esc, money, dates, showMessage, today: catalog.hoy});
+  await window.CopaCajaAdmin({$, $$, api, bindForm, esc, money, dates, showMessage, today: catalog.hoy,
+    canResetVocalias: Boolean(session.usuario?.puede_crear_admins)});
 }
 
 // Agrupa las tareas relacionadas sin alterar sus formularios ni reportes.

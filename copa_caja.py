@@ -3,8 +3,8 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import re
 
-from models import ErrorValidacion, texto
-from services import HTTPError, TZ, exigir_administrador, fecha, numero
+from models import ErrorValidacion, Usuario, texto
+from services import HTTPError, TZ, es_propietario_administracion, exigir_administrador, fecha, limitar_acceso, numero
 from copa import catalogo
 
 CUENTAS = ("DISPONIBLE", "BAR", "ENTRADAS", "VOCALIAS")
@@ -314,3 +314,43 @@ def desglosar_vocalia(conn, admin_uid, movement_id, data):
     conn.execute("UPDATE copa_movimientos SET monto_efectivo=%s,monto_transferencia=%s WHERE id=%s",
                  (cash, transfer, mid))
     return {"id": mid, "message": "Medio de pago clasificado; el total del movimiento no cambió."}
+
+
+def vista_previa_limpieza_vocalias(conn, admin_uid):
+    exigir_administrador(conn, admin_uid)
+    owner = conn.execute("SELECT * FROM usuarios WHERE id=%s", (admin_uid,)).fetchone()
+    if not es_propietario_administracion(owner):
+        raise HTTPError(403, "Solo la cuenta propietaria puede vaciar el historial de vocalías.")
+    row = conn.execute("""SELECT count(*) AS total,
+        count(*) FILTER (WHERE anulado_en IS NULL) AS activos,
+        count(*) FILTER (WHERE anulado_en IS NOT NULL) AS anulados,
+        COALESCE(max(id),0) AS ultimo_id
+        FROM copa_movimientos WHERE cuenta='VOCALIAS'""").fetchone()
+    return dict(row)
+
+
+def limpiar_historial_vocalias(conn, admin_uid, data, ip_address=""):
+    """Elimina solo movimientos de VOCALIAS, incluidos los ya anulados."""
+    exigir_administrador(conn, admin_uid)
+    owner = conn.execute("SELECT * FROM usuarios WHERE id=%s", (admin_uid,)).fetchone()
+    if not es_propietario_administracion(owner):
+        raise HTTPError(403, "Solo la cuenta propietaria puede vaciar el historial de vocalías.")
+    limitar_acceso(conn, f"vocalias-reset:{admin_uid}:{ip_address}", max_attempts=5)
+    if data.get("confirmacion") != "BORRAR VOCALIAS":
+        raise ErrorValidacion("Escribe BORRAR VOCALIAS para confirmar.")
+    if not Usuario.desde_fila(owner).verificar_password(data.get("password", "")):
+        raise HTTPError(401, "La contraseña de administrador no coincide.")
+    expected = data.get("resumen")
+    if not isinstance(expected, dict) or set(expected) != {"total", "activos", "anulados", "ultimo_id"} or any(
+        type(value) is not int or value < 0 for value in expected.values()
+    ):
+        raise ErrorValidacion("Actualiza la vista previa antes de borrar vocalías.")
+    conn.execute("SET LOCAL lock_timeout = '5s'")
+    conn.execute("SELECT pg_advisory_xact_lock(20491007)")
+    conn.execute("LOCK TABLE copa_movimientos IN EXCLUSIVE MODE")
+    current = vista_previa_limpieza_vocalias(conn, admin_uid)
+    if current != expected:
+        raise HTTPError(409, "Los movimientos de vocalías cambiaron. Revisa la vista previa otra vez.")
+    deleted = conn.execute("DELETE FROM copa_movimientos WHERE cuenta='VOCALIAS'").rowcount
+    return {"id": f"VOCALIAS-{deleted}", "eliminados": deleted,
+            "message": f"Se eliminaron {deleted} movimientos de vocalías. Bar, entradas y disponible no se tocaron."}

@@ -6,7 +6,7 @@ import pytest
 
 import copa
 import copa_caja as caja
-from models import ErrorValidacion
+from models import ErrorValidacion, Usuario
 from services import HTTPError, TZ
 
 
@@ -126,3 +126,29 @@ def test_deuda_bar_no_es_ingreso_hasta_cobrar_y_no_se_cobra_dos_veces(conn):
     assert after["bar_deuda_pendiente"] == 0
     with pytest.raises(ErrorValidacion):
         caja.cobrar_deuda_bar(conn, admin, debt["id"], {"fecha": datetime.now(TZ).date().isoformat()})
+
+
+def test_limpieza_de_vocalias_incluye_anulados_y_conserva_las_otras_cajas(conn, monkeypatch):
+    admin = _admin(conn)
+    monkeypatch.setenv("ADMIN_OWNER_EMAIL", "revision@arena.test")
+    monkeypatch.setenv("ADMIN_CREATION_SECRET", "clave-de-pruebas-de-mas-de-veinte-caracteres")
+    owner = Usuario.desde_fila(conn.execute("SELECT * FROM usuarios WHERE id=%s", (admin,)).fetchone())
+    owner.set_password("PruebaSegura!2026")
+    conn.execute("UPDATE usuarios SET password_hash=%s WHERE id=%s", (owner.get_password_hash(), admin))
+    fixture = next(iter(copa.catalogo()[0].values()))
+    first = _save(conn, admin, "INGRESO", "VOCALIAS", "10", fixture_id=fixture["id"],
+                  equipo=fixture["home"])
+    _save(conn, admin, "INGRESO", "VOCALIAS", "10", fixture_id=fixture["id"],
+          equipo=fixture["away"])
+    caja.anular(conn, admin, first, {"motivo": "Recuento de prueba"})
+    _save(conn, admin, "INGRESO", "BAR", "5")
+    preview = caja.vista_previa_limpieza_vocalias(conn, admin)
+    assert (preview["total"], preview["activos"], preview["anulados"]) == (2, 1, 1)
+    with pytest.raises(HTTPError):
+        caja.limpiar_historial_vocalias(conn, admin,
+            {"confirmacion": "BORRAR VOCALIAS", "password": "incorrecta", "resumen": preview})
+    result = caja.limpiar_historial_vocalias(conn, admin,
+        {"confirmacion": "BORRAR VOCALIAS", "password": "PruebaSegura!2026", "resumen": preview})
+    assert result["eliminados"] == 2
+    assert caja.vista_previa_limpieza_vocalias(conn, admin)["total"] == 0
+    assert caja.resumen(conn, admin)["saldos"]["BAR"] == Decimal("5")

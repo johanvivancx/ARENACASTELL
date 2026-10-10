@@ -348,6 +348,10 @@ class Handler(SimpleHTTPRequestHandler):
             return copa_caja.resumen(conn, uid, params.get("semana"))
         if path == "/api/admin/copa-caja" and method == "POST":
             return copa_caja.registrar(conn, uid, data)
+        if path == "/api/admin/copa-caja/vocalias/reset-preview" and method == "GET":
+            return copa_caja.vista_previa_limpieza_vocalias(conn, uid)
+        if path == "/api/admin/copa-caja/vocalias/reset" and method == "POST":
+            return copa_caja.limpiar_historial_vocalias(conn, uid, data, self.client_ip())
         if path == "/api/admin/copa-bar-deudas" and method == "POST":
             return copa_caja.registrar_deuda_bar(conn, uid, data)
         if match := re.fullmatch(r"/api/admin/copa-bar-deudas/(\d+)/collect", path):

@@ -20,8 +20,8 @@
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261009-escuela-manual" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/copa-caja-admin.js?v=20261010-saldos-vocalias" defer></script>
-    <script src="../assets/app.js?v=20261009-autores" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261010-limpiar-vocalias" defer></script>
+    <script src="../assets/app.js?v=20261010-limpiar-vocalias" defer></script>
   </head>
 
   <body data-page="admin">
@@ -332,6 +332,17 @@
               </div>
               <h4>Pago de cada equipo · semana seleccionada</h4>
               <div id="copa-vocalias" class="copa-ledger-scroll"></div>
+              <details id="copa-vocalias-limpieza" class="panel" hidden>
+                <summary>Vaciar historial de vocalías</summary>
+                <p class="small-text muted">Borra únicamente los cobros y gastos de Vocalías de todas las fechas, incluidos los anulados. No afecta resultados, goleadores, bar, entradas, reservas ni las otras cajas. Esta acción no se puede deshacer.</p>
+                <button id="copa-vocalias-preview" class="btn secondary" type="button">Revisar registros que se borrarán</button>
+                <p id="copa-vocalias-preview-text" class="small-text" role="status"></p>
+                <form id="copa-vocalias-reset-form" method="post" hidden>
+                  <div class="field"><label for="copa-vocalias-reset-word">Escribe BORRAR VOCALIAS</label><input id="copa-vocalias-reset-word" name="confirmacion" type="text" autocomplete="off" required /></div>
+                  <div class="field"><label for="copa-vocalias-reset-password">Tu contraseña de administrador</label><input id="copa-vocalias-reset-password" name="password" type="password" autocomplete="current-password" required /></div>
+                  <div class="form-actions"><button class="btn secondary" type="submit">Borrar solo Vocalías</button></div>
+                </form>
+              </details>
             </div>
 
             <div class="copa-area-records">

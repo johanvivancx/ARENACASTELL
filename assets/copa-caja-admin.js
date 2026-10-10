@@ -1,6 +1,6 @@
 // Formularios separados por actividad para la caja operativa de Copa Castell.
 "use strict";
-window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates, showMessage, today}) {
+window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates, showMessage, today, canResetVocalias}) {
   const root = $("#admin-copa-caja");
   if (!root) return;
   const week = $("#copa-week", root);
@@ -9,6 +9,7 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
   const areas = Object.keys(names);
   let active = "DISPONIBLE";
   let state = null;
+  let resetPreview = null;
   week.value = today;
 
   const showArea = (area) => {
@@ -204,6 +205,45 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       showMessage(result.message, "success");
     } catch (error) { showMessage(error.message); }
   });
+
+  const resetSection = $("#copa-vocalias-limpieza", root);
+  resetSection.hidden = !canResetVocalias;
+  if (canResetVocalias) {
+    const resetForm = $("#copa-vocalias-reset-form", root);
+    const previewText = $("#copa-vocalias-preview-text", root);
+    $("#copa-vocalias-preview", root).addEventListener("click", async () => {
+      resetPreview = null;
+      resetForm.hidden = true;
+      try {
+        resetPreview = await api("/admin/copa-caja/vocalias/reset-preview");
+        previewText.textContent = `Se borrarían ${resetPreview.total} movimientos de Vocalías: ${resetPreview.activos} activos y ${resetPreview.anulados} anulados, de todas las fechas. Ninguna otra cuenta se borrará.`;
+        resetForm.hidden = resetPreview.total === 0;
+      } catch (error) { showMessage(error.message); }
+    });
+    resetForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!resetPreview) return;
+      const confirmation = $('[name="confirmacion"]', resetForm).value;
+      if (confirmation !== "BORRAR VOCALIAS") {
+        showMessage("Escribe BORRAR VOCALIAS exactamente.");
+        return;
+      }
+      if (!confirm(`Se eliminarán permanentemente ${resetPreview.total} movimientos de Vocalías, incluidos ${resetPreview.anulados} anulados. ¿Confirmas el borrado solo de Vocalías?`)) return;
+      try {
+        const result = await api("/admin/copa-caja/vocalias/reset", {
+          confirmacion: confirmation,
+          password: $('[name="password"]', resetForm).value,
+          resumen: resetPreview,
+        });
+        resetForm.reset();
+        resetForm.hidden = true;
+        resetPreview = null;
+        previewText.textContent = result.message;
+        await refresh();
+        showMessage(result.message, "success");
+      } catch (error) { showMessage(error.message); }
+    });
+  }
 
   $$('.copa-caja-form', root).forEach((form) => {
     const dateInput = $('[name="fecha"]', form);
