@@ -123,6 +123,18 @@ body[data-page="escuela-form"] button:focus-visible {
 .school-price-list span { color: #ded6d7; font-size: 12px; }
 .school-price-list strong { margin: 5px 0; color: #fff; font: 700 clamp(38px, 4vw, 58px)/1.1 var(--chaca-display); }
 .school-price-list small { color: #ff9ca6; font-size: 11px; }
+.school-uniforms { grid-column: 1 / -1; min-width: 0; padding-top: 25px; border-top: 1px solid #61454b; }
+.school-uniforms-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 20px; margin-bottom: 18px; }
+.school-uniforms-heading .school-kicker { margin-bottom: 6px; }
+.school-uniforms-heading h3 { margin: 0; font-size: clamp(25px, 2.6vw, 34px); text-transform: uppercase; }
+.school-uniforms-heading > span { color: #d3c8ca; font-size: 12px; }
+.school-uniform-grid { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 16px; }
+.school-uniform { min-width: 0; margin: 0; }
+.school-uniform a { display: flex; align-items: center; justify-content: center; height: clamp(250px, 29vw, 390px); overflow: hidden; border: 1px solid #66575a; border-radius: 10px; background: #e9e8e9; }
+.school-uniform a:hover { border-color: #ff9da5; }
+.school-uniform img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.school-uniform figcaption { display: flex; justify-content: space-between; gap: 10px; padding: 10px 2px 0; color: #f2eded; font-size: 13px; font-weight: 700; }
+.school-uniform figcaption span { color: #ff9da5; }
 .school-section-heading { align-items: end; }
 .school-section-heading h2 { text-transform: uppercase; }
 .school-page .category-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; margin: 24px 0 72px; }
@@ -204,6 +216,9 @@ body[data-page="escuela-form"] .field select:focus { border-color: #ff7685; }
   .school-hero-photo figcaption { right: 14px; bottom: 12px; }
   .school-crest { top: 16px; right: 16px; width: 92px; }
   .school-pricing { padding: 25px 20px; }
+  .school-uniform-grid { grid-template-columns: 1fr; gap: 22px; }
+  .school-uniform a { height: auto; max-height: none; }
+  .school-uniform img { width: 100%; height: auto; }
   .school-price-list { grid-template-columns: 1fr 1fr; }
   .school-price-list > div { padding: 15px; }
   .school-page .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-bottom: 50px; }
