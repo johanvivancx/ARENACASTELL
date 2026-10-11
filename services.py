@@ -532,11 +532,10 @@ def notificar_nueva_reserva(conn, order, method):
     if not habilitado():
         return
     reservation = conn.execute(
-        """SELECT r.inicio,r.fin,c.nombre AS cancha,u.nombre AS cliente,
-        u.email AS correo_cliente,u.telefono AS telefono_cliente
+        """SELECT r.inicio,r.fin,c.nombre AS cancha
         FROM reservas r JOIN canchas c ON c.id=r.cancha_id
-        JOIN usuarios u ON u.id=%s WHERE r.orden_id=%s""",
-        (order["usuario_id"], order["id"]),
+        WHERE r.orden_id=%s""",
+        (order["id"],),
     ).fetchone()
     if not reservation:
         raise ErrorValidacion("No encontramos la reserva de esta operación.")
@@ -544,9 +543,6 @@ def notificar_nueva_reserva(conn, order, method):
     end = reservation["fin"].astimezone(TZ)
     body = (
         "Se registró una nueva solicitud de reserva en la web. El pago aún está pendiente de revisión.\n\n"
-        f"Cliente: {reservation['cliente']}\n"
-        f"Correo: {reservation['correo_cliente']}\n"
-        f"Celular: {reservation['telefono_cliente']}\n"
         f"Cancha: {reservation['cancha']}\n"
         f"Fecha: {start:%d/%m/%Y}\n"
         f"Horario: {start:%H:%M} a {end:%H:%M} (Ecuador)\n"
@@ -915,7 +911,7 @@ def renovar_escuela(conn, uid, inscription_id, data):
 
 
 # Actualiza datos personales
-def actualizar_perfil(conn, uid, data):
+def actualizar_perfil(conn, uid, data, session_hash=None):
     row = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
     user = Cliente(
         data.get("nombre"),
@@ -923,7 +919,8 @@ def actualizar_perfil(conn, uid, data):
         str(data.get("cedula", row["cedula"])),
         str(data.get("telefono", "")),
     )
-    if (user.email != row["email"] or user.cedula != row["cedula"]) and not Usuario.desde_fila(
+    identity_changed = user.email != row["email"] or user.cedula != row["cedula"]
+    if identity_changed and not Usuario.desde_fila(
         row
     ).verificar_password(data.get("password_actual", "")):
         raise ErrorValidacion("Para cambiar tu correo o cédula, confirma tu contraseña actual.")
@@ -931,6 +928,22 @@ def actualizar_perfil(conn, uid, data):
         "UPDATE usuarios SET nombre=%s,telefono=%s,email=%s,cedula=%s WHERE id=%s",
         (user.nombre, user.telefono, user.email, user.cedula, uid),
     )
+    if user.email != row["email"]:
+        # Un enlace entregado al correo anterior ya no debe poder cambiar la
+        # contraseña de la cuenta después de actualizar su dirección.
+        conn.execute("UPDATE restablecimientos SET usado=true WHERE usuario_id=%s", (uid,))
+        conn.execute(
+            """UPDATE correo_salida SET estado_envio='CANCELADO',ultimo_error='CORREO_CAMBIADO'
+               WHERE usuario_id=%s AND orden_id IS NULL AND estado_envio='PENDIENTE'""",
+            (uid,),
+        )
+    if identity_changed:
+        # La sesión actual continúa, pero las demás sesiones dejan de acceder
+        # a los datos personales tras un cambio de identidad.
+        conn.execute(
+            "DELETE FROM sesiones WHERE usuario_id=%s AND token_hash IS DISTINCT FROM %s",
+            (uid, session_hash),
+        )
     return {"message": "Tu perfil se actualizó correctamente."}
 
 

@@ -100,10 +100,11 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def client_ip(self):
-        # En Render todo tráfico público pasa por su proxy; el primer X-Forwarded-For
-        # identifica al cliente. Fuera de ese entorno no se confía en ese encabezado.
+        # En los servicios web públicos de Render, Cloudflare sustituye este
+        # encabezado con la IP real. X-Forwarded-For conserva valores enviados
+        # por el cliente y no se puede usar para limitar intentos de acceso.
         if os.environ.get("PORT"):
-            forwarded = self.headers.get("X-Forwarded-For", "").split(",", 1)[0].strip()
+            forwarded = self.headers.get("CF-Connecting-IP", "").strip()
             try:
                 return str(ipaddress.ip_address(forwarded))
             except ValueError:
@@ -259,7 +260,7 @@ class Handler(SimpleHTTPRequestHandler):
                         result = copa.estado_publico(conn)
                     else:
                         uid = s.exigir_usuario(session)
-                        result = self.private_route(conn, uid, path, data, params)
+                        result = self.private_route(conn, uid, path, data, params, session["token_hash"])
                         if self.command == "POST" and path.startswith("/api/admin/"):
                             s.registrar_actividad_admin(conn, uid, path, result)
             self.send_json(200, result, cookie_out)
@@ -313,7 +314,7 @@ class Handler(SimpleHTTPRequestHandler):
             )
 
     # Protege rutas del cliente
-    def private_route(self, conn, uid, path, data, params):
+    def private_route(self, conn, uid, path, data, params, session_hash):
         method = self.command
         if path == "/api/reservations" and method == "POST":
             return s.reservar(conn, uid, data)
@@ -324,7 +325,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/history" and method == "GET":
             return s.historial(conn, uid)
         if path == "/api/profile" and method == "POST":
-            return s.actualizar_perfil(conn, uid, data)
+            return s.actualizar_perfil(conn, uid, data, session_hash)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
         if path == "/api/admin/school" and method == "GET":

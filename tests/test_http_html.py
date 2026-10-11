@@ -80,12 +80,15 @@ def test_https_cookie_y_cabeceras_de_seguridad(conn, monkeypatch):
 def test_ip_de_cliente_solo_usa_proxy_en_alojamiento(monkeypatch):
     handler = object.__new__(Handler)
     handler.client_address = ('127.0.0.1', 1234)
-    handler.headers = {'X-Forwarded-For': '203.0.113.8, 192.0.2.1'}
+    handler.headers = {'X-Forwarded-For': '203.0.113.8, 192.0.2.1',
+                       'CF-Connecting-IP': '198.51.100.7'}
     monkeypatch.delenv('PORT', raising=False)
     assert handler.client_ip() == '127.0.0.1'
     monkeypatch.setenv('PORT', '10000')
-    assert handler.client_ip() == '203.0.113.8'
-    handler.headers = {'X-Forwarded-For': 'invalid'}
+    assert handler.client_ip() == '198.51.100.7'
+    handler.headers = {'X-Forwarded-For': '203.0.113.8, 192.0.2.1'}
+    assert handler.client_ip() == '127.0.0.1'
+    handler.headers = {'CF-Connecting-IP': 'invalid'}
     assert handler.client_ip() == '127.0.0.1'
 
 

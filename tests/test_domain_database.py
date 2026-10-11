@@ -179,3 +179,41 @@ def test_datos_criticos_cambio_requiere_password(conn,user):
     with pytest.raises(ErrorValidacion):s.actualizar_perfil(conn,user["id"],{**user,"email":"otro@arena.test"})
     s.actualizar_perfil(conn,user["id"],{**user,"email":"otro@arena.test","password_actual":"PruebaSegura!2026"})
     assert conn.execute("SELECT email FROM usuarios WHERE id=%s",(user["id"],)).fetchone()["email"]=="otro@arena.test"
+
+
+def test_cambio_de_correo_revoca_recuperacion_y_otras_sesiones(conn,user):
+    actual, current = s.nueva_sesion(conn, user["id"])
+    anterior, _ = s.nueva_sesion(conn, user["id"])
+    s.solicitar_restablecimiento(conn, {"email": user["email"]})
+    message = conn.execute("SELECT id,cuerpo FROM correo_salida ORDER BY id DESC LIMIT 1").fetchone()
+    reset_token = message["cuerpo"].split("#token=")[1].split()[0]
+    conn.execute("UPDATE correo_salida SET estado_envio='PENDIENTE' WHERE id=%s", (message["id"],))
+
+    s.actualizar_perfil(conn, user["id"], {
+        **user, "email": "nuevo@arena.test", "password_actual": "PruebaSegura!2026"
+    }, current["token_hash"])
+
+    assert s.obtener_sesion(conn, actual) is not None
+    assert s.obtener_sesion(conn, anterior) is None
+    assert conn.execute("SELECT estado_envio FROM correo_salida WHERE id=%s",
+                        (message["id"],)).fetchone()["estado_envio"] == "CANCELADO"
+    with pytest.raises(ErrorValidacion):
+        s.restablecer_password(conn, {"token": reset_token,
+            "password": "ClaveNuevaSegura!", "confirmacion": "ClaveNuevaSegura!"})
+
+
+def test_aviso_admin_de_reserva_no_expone_contacto_del_cliente(conn,user,monkeypatch):
+    created = s.reservar(conn, user["id"], reservation())
+    order = conn.execute("SELECT * FROM ordenes WHERE id=%s", (created["id"],)).fetchone()
+    sent = []
+    monkeypatch.setattr(s, "habilitado", lambda: True)
+    monkeypatch.setattr(s, "encolar_correo", lambda *args: sent.append(args))
+
+    s.notificar_nueva_reserva(conn, order, "EFECTIVO")
+
+    assert sent
+    body = sent[0][4]
+    assert "Cancha:" in body and "Horario:" in body and "/pages/admin.html" in body
+    assert user["nombre"] not in body
+    assert user["email"] not in body
+    assert user["telefono"] not in body
