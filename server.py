@@ -378,6 +378,8 @@ class Handler(SimpleHTTPRequestHandler):
             return s.limpiar_datos_prueba(conn, uid, data, self.client_ip())
         if path == "/api/admin/copa-fixtures" and method == "GET":
             return copa.panel_admin(conn, uid)
+        if path == "/api/admin/copa-fixtures" and method == "POST":
+            return copa.programar_partido(conn, uid, data)
         if path == "/api/admin/copa-caja" and method == "GET":
             return copa_caja.resumen(conn, uid, params.get("semana"))
         if path == "/api/admin/copa-caja" and method == "POST":

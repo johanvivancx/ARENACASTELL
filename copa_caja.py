@@ -5,7 +5,7 @@ import re
 
 from models import ErrorValidacion, Usuario, texto
 from services import HTTPError, TZ, es_propietario_administracion, exigir_administrador, fecha, limitar_acceso, numero
-from copa import catalogo
+from copa import partidos
 
 CUENTAS = ("DISPONIBLE", "BAR", "ENTRADAS", "VOCALIAS")
 CERO = Decimal("0.00")
@@ -119,7 +119,7 @@ def resumen(conn, admin_uid, semana=None):
         elif row["tipo"] == "TRASPASO":
             transfers[row["destino"]] += row["monto"]
             day[row["destino"]]["caja"] += row["monto"]
-    fixtures, _ = catalogo()
+    fixtures = partidos(conn)
     payments = {}
     vocalia_efectivo = CERO
     vocalia_transferencia = CERO
@@ -209,7 +209,7 @@ def registrar(conn, admin_uid, data):
                 transfer = _monto_opcional(data.get("monto_transferencia"))
                 if cash + transfer != amount:
                     raise ErrorValidacion("Efectivo y transferencia deben sumar el monto recibido.")
-            fixture = catalogo()[0].get(fixture_id)
+            fixture = partidos(conn).get(fixture_id)
             if not fixture or team not in (fixture["home"], fixture["away"]):
                 raise ErrorValidacion("Selecciona un equipo de un partido programado.")
             paid = conn.execute("""SELECT COALESCE(sum(monto),0) AS total FROM copa_movimientos
@@ -226,7 +226,7 @@ def registrar(conn, admin_uid, data):
             raise ErrorValidacion("Disponible no financia vocalías directamente.")
         if account != "DISPONIBLE" and area != account:
             raise ErrorValidacion("Selecciona la misma actividad que paga el gasto.")
-        if fixture_id and (account != "VOCALIAS" or fixture_id not in catalogo()[0]):
+        if fixture_id and (account != "VOCALIAS" or fixture_id not in partidos(conn)):
             raise ErrorValidacion("Ese partido no corresponde al gasto de vocalías.")
         if account == "VOCALIAS":
             if "monto_efectivo" not in data or "monto_transferencia" not in data:

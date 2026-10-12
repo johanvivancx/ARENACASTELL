@@ -17,12 +17,12 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261011-partidos-vivo" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261010-deudas-bar" defer></script>
-    <script src="../assets/app.js?v=20261011-partidos-vivo" defer></script>
+    <script src="../assets/app.js?v=20261011-programacion" defer></script>
   </head>
 
   <body data-page="admin">
@@ -183,6 +183,20 @@
           <section class="admin-workspace-section" id="admin-copa" aria-labelledby="copa-admin-title" hidden>
             <h2 id="copa-admin-title">Resultados de Copa Castell</h2>
             <p class="small-text muted">Inicia un partido, actualiza su marcador en vivo y finalízalo cuando termine. La página pública consulta cambios aproximadamente cada 15 segundos. Solo los partidos finalizados suman en posiciones y goleadores.</p>
+            <details class="panel copa-schedule-panel" id="copa-schedule-details">
+              <summary>Programar partido de una nueva fecha</summary>
+              <p class="small-text muted">Añádelo una sola vez. Aparecerá en el calendario público y en la lista de partidos por jugar.</p>
+              <form id="copa-schedule-form" method="post">
+                <div class="form-grid">
+                  <div class="field"><label for="copa-schedule-round">Número de fecha</label><input id="copa-schedule-round" name="round" type="number" min="7" max="30" step="1" required /></div>
+                  <div class="field"><label for="copa-schedule-date">Día del partido</label><input id="copa-schedule-date" name="date" type="date" required /></div>
+                  <div class="field"><label for="copa-schedule-time">Hora de inicio</label><input id="copa-schedule-time" name="time" type="time" required /></div>
+                  <div class="field"><label for="copa-schedule-home">Selección local</label><select id="copa-schedule-home" name="home" required></select></div>
+                  <div class="field"><label for="copa-schedule-away">Selección visitante</label><select id="copa-schedule-away" name="away" required></select></div>
+                </div>
+                <div class="form-actions"><button class="btn" type="submit">Guardar partido programado</button></div>
+              </form>
+            </details>
             <p id="copa-active-count" class="small-text muted" role="status"></p>
             <label class="copa-finished-toggle"><input id="copa-show-finished" type="checkbox" /> Mostrar partidos finalizados para corregirlos</label>
             <button class="btn secondary" id="copa-refresh" type="button">Recargar partidos</button>

@@ -1029,6 +1029,14 @@ async function initCopaResults() {
   const form = $("#copa-result-form");
   if (!form) return;
   let schedule = await api("/admin/copa-fixtures");
+  const scheduleForm = $("#copa-schedule-form");
+  const countries = Object.keys(schedule.players).sort((a, b) => a.localeCompare(b, "es"));
+  const teamOptions = '<option value="">Selecciona una selección</option>' + countries
+    .map((country) => `<option value="${esc(country)}">${esc(country)}</option>`).join("");
+  $("#copa-schedule-home").innerHTML = teamOptions;
+  $("#copa-schedule-away").innerHTML = teamOptions;
+  $("#copa-schedule-round").value = String(Math.min(30, Math.max(7, ...schedule.fixtures.map((f) => f.round)) + 1));
+  $("#copa-schedule-date").value = catalog.hoy;
   const fixtureSelect = $("#copa-fixture");
   const showFinished = $("#copa-show-finished");
   const goalsHost = $("#copa-goal-rows");
@@ -1108,6 +1116,18 @@ async function initCopaResults() {
       showMessage("Partidos actualizados.", "success");
     } catch (error) { showMessage(error.message); }
     finally { button.disabled = false; }
+  });
+  bindForm("#copa-schedule-form", async (data) => {
+    if (data.home === data.away) throw new Error("Selecciona dos selecciones distintas.");
+    if (!confirm(`¿Programar ${data.home} vs. ${data.away} para la fecha ${data.round} el ${data.date} a las ${data.time}?`)) return;
+    const created = await api("/admin/copa-fixtures", data);
+    schedule = await api("/admin/copa-fixtures");
+    fillSchedule(created.fixture_id);
+    scheduleForm.reset();
+    $("#copa-schedule-round").value = data.round;
+    $("#copa-schedule-date").value = data.date;
+    $("#copa-schedule-details").open = false;
+    showMessage(created.message, "success");
   });
   fixtureSelect.addEventListener("change", renderFixture);
   $$('[data-copa-score-add]', form).forEach((button) => button.addEventListener("click", () => {

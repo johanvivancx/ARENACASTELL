@@ -32,6 +32,7 @@ def test_migracion_copa_repetible(conn):
     preparar_resultados_copa()
     preparar_resultados_copa()
     assert conn.execute("SELECT to_regclass('public.copa_resultados') AS tabla").fetchone()['tabla'] == 'copa_resultados'
+    assert conn.execute("SELECT to_regclass('public.copa_partidos_programados') AS tabla").fetchone()['tabla'] == 'copa_partidos_programados'
     assert conn.execute("SELECT 1 FROM information_schema.columns WHERE table_name='copa_resultados' AND column_name='estado'").fetchone()
 
 
@@ -77,6 +78,35 @@ def test_partido_en_vivo_no_altera_posiciones_hasta_finalizar(conn):
         copa.guardar_resultado(conn, admin, {
             'fixture_id': fixture['id'], 'homeGoals': 0, 'awayGoals': 1,
             'revision': 3, 'estado': 'EN_JUEGO', 'goals': []})
+
+
+def test_programar_siguiente_fecha_y_publicar_marcador(conn, user):
+    admin = conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()['id']
+    new_match = {'round': 8, 'date': '2026-10-16', 'time': '20:00',
+                 'home': 'Argentina', 'away': 'Japón'}
+    with pytest.raises(s.HTTPError) as denied:
+        copa.programar_partido(conn, user['id'], new_match)
+    assert denied.value.status == 403
+    created = copa.programar_partido(conn, admin, new_match)
+    fixture_id = created['fixture_id']
+    assert fixture_id.startswith('admin:')
+    with pytest.raises(s.ErrorValidacion, match='ya está programado'):
+        copa.programar_partido(conn, admin, {**new_match, 'home': 'Japón', 'away': 'Argentina'})
+    assert any(m['id'] == fixture_id for m in copa.panel_admin(conn, admin)['fixtures'])
+    scheduled = next(m for m in copa.estado_publico(conn)['matches'] if m.get('id') == fixture_id)
+    assert scheduled['round'] == 8 and scheduled['status'] == 'scheduled'
+    before = copa.estado_publico(conn)['standings']
+    copa.guardar_resultado(conn, admin, {'fixture_id': fixture_id, 'homeGoals': 1,
+        'awayGoals': 0, 'revision': 0, 'estado': 'EN_JUEGO', 'goals': []})
+    live = copa.estado_publico(conn)
+    assert next(m for m in live['matches'] if m.get('id') == fixture_id)['status'] == 'live'
+    assert live['standings'] == before
+    copa.guardar_resultado(conn, admin, {'fixture_id': fixture_id, 'homeGoals': 1,
+        'awayGoals': 0, 'revision': 1, 'estado': 'FINALIZADO', 'goals': []})
+    final = copa.estado_publico(conn)
+    assert final['throughRound'] == 8
+    assert next(m for m in final['matches'] if m.get('id') == fixture_id)['status'] == 'final'
+    assert final['standings'] != before
 
 
 def test_resultado_actualiza_tabla_y_goleadores_sin_duplicar(conn, user):

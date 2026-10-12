@@ -26,24 +26,39 @@
   const upcoming = data.upcoming;
   const upcomingContainer = document.getElementById('mundial-proxima-partidos');
   const renderUpcoming = () => {
-    if (!upcoming || !upcomingContainer) return;
+    if (!upcomingContainer) return;
     upcomingContainer.replaceChildren();
-    let remaining = 0;
+    const future = (data.matches || []).filter(match =>
+      match.date && match.time && ['scheduled', 'rescheduled', 'live'].includes(match.status));
+    future.sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+    const days = [];
+    for (const match of future) {
+      let day = days.find(item => item.date === match.date);
+      if (!day) {
+        day = {date: match.date, label: new Date(`${match.date}T12:00:00`).toLocaleDateString('es-EC',
+          {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}), matches: []};
+        days.push(day);
+      }
+      day.matches.push(match);
+    }
+    const title = document.getElementById('proxima-fecha-title');
+    if (title) title.textContent = days.length
+      ? `Próximos partidos · Fecha ${Math.max(...future.map(match => match.round))}`
+      : 'Próximos partidos';
     const timeLabel = value => {
       const [hour, minute] = value.split(':').map(Number);
       return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour >= 12 ? 'p. m.' : 'a. m.'}`;
     };
-    for (const day of upcoming.days) {
+    for (const day of days) {
       const dayCard = element('section');
       dayCard.className = 'mundial-upcoming-day';
       const heading = element('h4', day.label);
       dayCard.append(heading);
       const games = element('ol');
       games.className = 'mundial-upcoming-games';
-      for (const [start, home, away] of day.matches) {
-        const match = data.matches.find(item => item.home === home && item.away === away && item.date === day.date);
-        if (match?.status === 'final') continue;
-        remaining++;
+      for (const match of day.matches) {
+        const {home, away} = match;
+        const start = match.time;
         const game = element('li');
         game.className = 'mundial-upcoming-game';
         if (match?.status === 'live') game.classList.add('is-live');
@@ -69,9 +84,9 @@
         upcomingContainer.append(dayCard);
       }
     }
-    if (!remaining) upcomingContainer.append(element('p', 'Todos los partidos de esta fecha finalizaron. Consulta sus marcadores en Resultados.'));
+    if (!future.length) upcomingContainer.append(element('p', 'No hay partidos pendientes programados. Consulta los marcadores en Resultados.'));
     const rest = document.getElementById('mundial-proxima-descanso');
-    if (rest) rest.hidden = !remaining;
+    if (rest) rest.hidden = !future.length || !upcoming?.bye || future.some(match => match.round !== upcoming.round);
     if (rest && upcoming.bye && !rest.children.length) {
       const byes = Array.isArray(upcoming.bye) ? upcoming.bye : [upcoming.bye];
       rest.append(element('strong', byes.length > 1 ? 'Descansan:' : 'Descansa:'));
@@ -289,7 +304,12 @@
       if (!response.ok) return;
       const live = await response.json();
       Object.assign(data, live);
-      if (live.throughRound === 7 && !round.dataset.touched) round.value = '7';
+      const rounds = [...new Set(live.matches.map(match => match.round))].sort((a, b) => a - b);
+      for (const value of rounds) {
+        if (![...round.options].some(option => Number(option.value) === value))
+          round.append(new Option(`Fecha ${value}`, String(value)));
+      }
+      if (!round.dataset.touched) round.value = String(Math.max(...rounds));
       document.getElementById('posiciones-title').textContent = `Tabla de posiciones · Fecha ${live.throughRound}`;
       document.getElementById('posiciones-actualizacion').textContent = `Posiciones con partidos finalizados: ${live.roundNote}. Los marcadores en juego todavía no suman puntos.`;
       document.getElementById('goleadores-actualizacion').textContent = live.goleadoresPendientes

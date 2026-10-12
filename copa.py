@@ -6,7 +6,9 @@ import base64
 import binascii
 from io import BytesIO
 import json
+import re
 import unicodedata
+from datetime import date, time
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from db import ROOT
@@ -66,6 +68,49 @@ def catalogo():
     return fixtures, players
 
 
+def partidos(conn):
+    """Une los partidos históricos programados con los añadidos desde administración."""
+    fixtures = dict(catalogo()[0])
+    for row in conn.execute(
+        """SELECT id,fecha,local,visitante,dia,hora
+           FROM copa_partidos_programados ORDER BY dia,hora,id"""
+    ).fetchall():
+        key = f'admin:{row["id"]}'
+        fixtures[key] = {"id": key, "round": row["fecha"], "home": row["local"],
+                         "away": row["visitante"], "date": row["dia"].isoformat(),
+                         "time": row["hora"].strftime("%H:%M"), "status": "scheduled"}
+    return fixtures
+
+
+def programar_partido(conn, admin_uid, data):
+    exigir_administrador(conn, admin_uid)
+    round_number = numero(data.get("round"), "Fecha del torneo", 7, 30)
+    home, away = str(data.get("home", "")), str(data.get("away", ""))
+    known = catalogo()[1]
+    if home not in known or away not in known or home == away:
+        raise ErrorValidacion("Selecciona dos selecciones distintas de la Copa Castell.")
+    raw_date, raw_time = str(data.get("date", "")), str(data.get("time", ""))
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw_date) or not re.fullmatch(r"\d{2}:\d{2}", raw_time):
+        raise ErrorValidacion("Indica el día y la hora del partido.")
+    try:
+        day, start = date.fromisoformat(raw_date), time.fromisoformat(raw_time)
+    except ValueError:
+        raise ErrorValidacion("La fecha u hora del partido no es válida.") from None
+    if any(f["round"] == round_number and {f["home"], f["away"]} == {home, away}
+           for f in partidos(conn).values()):
+        raise ErrorValidacion("Ese encuentro ya está programado en la fecha seleccionada.")
+    created = conn.execute(
+        """INSERT INTO copa_partidos_programados(fecha,local,visitante,dia,hora,creado_por)
+           VALUES(%s,%s,%s,%s,%s,%s)
+           ON CONFLICT (fecha,local,visitante) DO NOTHING RETURNING id""",
+        (round_number, home, away, day, start, admin_uid),
+    ).fetchone()
+    if not created:
+        raise ErrorValidacion("Ese partido ya fue programado.")
+    return {"fixture_id": f'admin:{created["id"]}',
+            "message": f'Partido programado para la fecha {round_number}: {home}–{away}.'}
+
+
 def _resultados(conn):
     results = conn.execute(
         """SELECT fixture_id,goles_local,goles_visitante,estado,revision,actualizado_en
@@ -84,11 +129,12 @@ def _resultados(conn):
 def jugadores_del_partido(conn):
     """Combina los destacados incluidos en el sitio con las fotos publicadas después."""
     awards = {row["fixture_id"]: dict(row) for row in base().get("mvps", [])}
+    fixtures = partidos(conn)
     for row in conn.execute(
         """SELECT id,fixture_id,equipo,jugador_clave,jugador_nombre,dorsal,actualizado_en
            FROM copa_mvp ORDER BY actualizado_en,id"""
     ).fetchall():
-        fixture = catalogo()[0].get(row["fixture_id"])
+        fixture = fixtures.get(row["fixture_id"])
         if not fixture:
             continue
         awards[row["fixture_id"]] = {
@@ -109,7 +155,7 @@ def foto_jugador_del_partido(conn, photo_id):
 
 def guardar_jugador_del_partido(conn, admin_uid, data):
     exigir_administrador(conn, admin_uid)
-    fixtures, players = catalogo()
+    fixtures, players = partidos(conn), catalogo()[1]
     fixture = fixtures.get(str(data.get("fixture_id", "")))
     if not fixture:
         raise ErrorValidacion("Selecciona un partido programado.")
@@ -188,7 +234,7 @@ def calcular_posiciones(matches, groups):
 
 def estado_publico(conn):
     data = base()
-    fixtures, _ = catalogo()
+    fixtures = partidos(conn)
     results, goals = _resultados(conn)
     by_id = {row["fixture_id"]: row for row in results}
     matches = deepcopy(data["matches"])
@@ -245,6 +291,17 @@ def estado_publico(conn):
     else:
         partial = finished_postponed < len(postponed)
         note = ("Alemania–Venezuela de la fecha 6 en juego" if live_postponed else data["roundNote"]) if partial else "Fecha 6 completa"
+    later = [f for f in fixtures.values() if f["round"] > 7 and
+             by_id.get(f["id"], {}).get("estado") in {"EN_JUEGO", "FINALIZADO"}]
+    if later:
+        through_round = max(f["round"] for f in later)
+        current = [f for f in fixtures.values() if f["round"] == through_round]
+        finished = sum(by_id.get(f["id"], {}).get("estado") == "FINALIZADO" for f in current)
+        live = sum(by_id.get(f["id"], {}).get("estado") == "EN_JUEGO" for f in current)
+        partial = finished < len(current)
+        note = f"Fecha {through_round}: {finished} de {len(current)} partidos finalizados"
+        if live:
+            note += f"; {live} en juego"
     return {"matches": matches, "standings": standings, "scorers": scorers,
             "mvps": jugadores_del_partido(conn),
             "throughRound": through_round, "partialRound": partial, "roundNote": note,
@@ -253,7 +310,7 @@ def estado_publico(conn):
 
 def panel_admin(conn, admin_uid):
     exigir_administrador(conn, admin_uid)
-    fixtures, players = catalogo()
+    fixtures, players = partidos(conn), catalogo()[1]
     results, goals = _resultados(conn)
     by_id = {row["fixture_id"]: row for row in results}
     authors = {row["fixture_id"]: row["nombre"] for row in conn.execute(
@@ -275,10 +332,10 @@ def panel_admin(conn, admin_uid):
 
 def guardar_resultado(conn, admin_uid, data):
     exigir_administrador(conn, admin_uid)
-    fixtures, players = catalogo()
+    fixtures, players = partidos(conn), catalogo()[1]
     fixture = fixtures.get(str(data.get("fixture_id", "")))
     if not fixture:
-        raise ErrorValidacion("Selecciona un partido programado de la fecha 7 o el reprogramado.")
+        raise ErrorValidacion("Selecciona un partido programado de Copa Castell.")
     home = numero(data.get("homeGoals"), "Goles del local", 0, 99)
     away = numero(data.get("awayGoals"), "Goles del visitante", 0, 99)
     status = str(data.get("estado", "FINALIZADO"))
