@@ -138,6 +138,7 @@ def resumen(conn, admin_uid, semana=None):
         autor.nombre AS registrado_por_nombre,cobrador.nombre AS cobrada_por_nombre
         FROM copa_bar_deudas d JOIN usuarios autor ON autor.id=d.registrado_por
         LEFT JOIN usuarios cobrador ON cobrador.id=d.cobrada_por
+        WHERE d.anulado_en IS NULL
         ORDER BY d.fecha DESC,d.id DESC""").fetchall()
     pending_debts = [row for row in debts if row["cobrada_en"] is None]
     debtors = {}
@@ -256,7 +257,7 @@ def registrar_deuda_bar(conn, admin_uid, data):
     name = " ".join(texto(data.get("nombre"), "Nombre", 2, 120).split())
     if len(name) < 2:
         raise ErrorValidacion("Escribe el nombre de la persona que debe.")
-    for existing in conn.execute("SELECT DISTINCT nombre FROM copa_bar_deudas").fetchall():
+    for existing in conn.execute("SELECT DISTINCT nombre FROM copa_bar_deudas WHERE anulado_en IS NULL").fetchall():
         if _clave_deudor(existing["nombre"]) == _clave_deudor(name):
             name = existing["nombre"]
             break
@@ -276,6 +277,8 @@ def cobrar_deuda_bar(conn, admin_uid, debt_id, data):
     debt = conn.execute("SELECT * FROM copa_bar_deudas WHERE id=%s FOR UPDATE", (did,)).fetchone()
     if not debt:
         raise HTTPError(404, "No encontramos esa deuda del bar.")
+    if debt["anulado_en"]:
+        raise ErrorValidacion("Esta deuda fue eliminada y no puede cobrarse.")
     if debt["cobrada_en"]:
         raise ErrorValidacion("Esta deuda ya se cobró.")
     day = _fecha(data.get("fecha"))
@@ -287,6 +290,32 @@ def cobrar_deuda_bar(conn, admin_uid, debt_id, data):
         cobrada_por=%s,movimiento_cobro_id=%s WHERE id=%s""",
         (admin_uid,movement["id"],did))
     return {"id": did, "message": "Deuda cobrada e ingreso del bar registrado."}
+
+
+def anular_deuda_bar(conn, admin_uid, debt_id, data):
+    """Retira un fiado individual y, si fue cobrado, también su ingreso vinculado."""
+    exigir_administrador(conn, admin_uid)
+    conn.execute("SELECT pg_advisory_xact_lock(20491007)")
+    did = numero(debt_id, "Deuda")
+    reason = texto(data.get("motivo"), "Motivo de eliminación", 3, 250)
+    debt = conn.execute("SELECT * FROM copa_bar_deudas WHERE id=%s FOR UPDATE", (did,)).fetchone()
+    if not debt:
+        raise HTTPError(404, "No encontramos esa deuda del bar.")
+    if debt["anulado_en"]:
+        raise ErrorValidacion("Este fiado ya fue eliminado.")
+    if debt["cobrada_en"]:
+        movement = conn.execute("SELECT * FROM copa_movimientos WHERE id=%s FOR UPDATE",
+                                (debt["movimiento_cobro_id"],)).fetchone()
+        if not movement or movement["anulado_en"] or movement["tipo"] != "INGRESO" or movement["cuenta"] != "BAR":
+            raise ErrorValidacion("No se puede eliminar: revisa el cobro vinculado en el historial del bar.")
+        conn.execute("""UPDATE copa_movimientos SET anulado_en=current_timestamp,
+            anulado_por=%s,motivo_anulacion=%s WHERE id=%s""",
+            (admin_uid, f"Fiado #{did} eliminado: {reason}"[:250], movement["id"]))
+        if _saldos(_movimientos(conn))["BAR"] < 0:
+            raise ErrorValidacion("No se puede eliminar: anular el cobro dejaría negativa la caja del bar.")
+    conn.execute("""UPDATE copa_bar_deudas SET anulado_en=current_timestamp,
+        anulado_por=%s,motivo_anulacion=%s WHERE id=%s""", (admin_uid, reason, did))
+    return {"id": did, "message": "Fiado eliminado de la lista y los totales. La anulación queda auditada."}
 
 
 def anular(conn, admin_uid, movement_id, data):

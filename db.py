@@ -45,6 +45,7 @@ def preparar_movimientos_copa():
         conn.execute((ROOT / "sql/migrations/020_inscripciones_copa.sql").read_text(encoding="utf8"))
         conn.execute((ROOT / "sql/migrations/021_corregir_carnets_colombia.sql").read_text(encoding="utf8"))
         conn.execute((ROOT / "sql/migrations/022_carnets_egipto.sql").read_text(encoding="utf8"))
+        conn.execute((ROOT / "sql/migrations/023_anular_fiados_bar.sql").read_text(encoding="utf8"))
 
 
 def preparar_escuela_manual():

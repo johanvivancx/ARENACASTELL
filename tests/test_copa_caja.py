@@ -145,6 +145,60 @@ def test_deudas_repetidas_se_agrupan_por_persona_y_cobros_reducen_su_total(conn)
     assert after["saldos"]["BAR"] == Decimal("2.80")
 
 
+def test_eliminar_solo_un_fiado_pendiente_recalcula_deudor_y_conserva_auditoria(conn, user):
+    admin = _admin(conn)
+    day = datetime.now(TZ).date().isoformat()
+    debts = [caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "Johan Vivanco", "monto": "2.80",
+        "concepto": f"Cerveza {i}"})["id"] for i in range(3)]
+    with pytest.raises(HTTPError):
+        caja.anular_deuda_bar(conn, user["id"], debts[1], {"motivo": "Registro duplicado"})
+    result = caja.anular_deuda_bar(conn, admin, debts[1], {"motivo": "Registro duplicado"})
+    assert result["id"] == debts[1]
+    state = caja.resumen(conn, admin)
+    assert {row["id"] for row in state["bar_deudas"]} == {debts[0], debts[2]}
+    assert state["bar_deudores"] == [{"nombre": "Johan Vivanco", "pendiente": Decimal("5.60"), "deudas": 2}]
+    assert state["bar_deuda_pendiente"] == Decimal("5.60")
+    assert state["saldos"]["BAR"] == 0
+    audit = conn.execute("SELECT anulado_por,motivo_anulacion FROM copa_bar_deudas WHERE id=%s", (debts[1],)).fetchone()
+    assert audit == {"anulado_por": admin, "motivo_anulacion": "Registro duplicado"}
+    with pytest.raises(ErrorValidacion, match="eliminad"):
+        caja.cobrar_deuda_bar(conn, admin, debts[1], {"fecha": day})
+    with pytest.raises(ErrorValidacion, match="eliminad"):
+        caja.anular_deuda_bar(conn, admin, debts[1], {"motivo": "Otra vez"})
+
+
+def test_eliminar_fiado_cobrado_anula_su_ingreso_sin_tocar_otro_fiado(conn):
+    admin = _admin(conn)
+    day = datetime.now(TZ).date().isoformat()
+    paid = caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "Johan Vivanco", "monto": "2.80", "concepto": "Cerveza cobrada"})["id"]
+    pending = caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "Johan Vivanco", "monto": "3.20", "concepto": "Comida pendiente"})["id"]
+    caja.cobrar_deuda_bar(conn, admin, paid, {"fecha": day})
+    movement_id = conn.execute("SELECT movimiento_cobro_id FROM copa_bar_deudas WHERE id=%s", (paid,)).fetchone()["movimiento_cobro_id"]
+    caja.anular_deuda_bar(conn, admin, paid, {"motivo": "Cobro de prueba"})
+    state = caja.resumen(conn, admin)
+    assert [row["id"] for row in state["bar_deudas"]] == [pending]
+    assert state["bar_deuda_pendiente"] == Decimal("3.20")
+    assert state["saldos"]["BAR"] == 0
+    assert conn.execute("SELECT anulado_en FROM copa_movimientos WHERE id=%s", (movement_id,)).fetchone()["anulado_en"]
+
+
+def test_no_anula_cobro_fiado_si_dejaria_la_caja_del_bar_negativa(conn):
+    admin = _admin(conn)
+    day = datetime.now(TZ).date().isoformat()
+    debt = caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "Cliente del bar", "monto": "5", "concepto": "Comida fiada"})["id"]
+    caja.cobrar_deuda_bar(conn, admin, debt, {"fecha": day})
+    _save(conn, admin, "GASTO", "BAR", "5", area="BAR")
+    with pytest.raises(ErrorValidacion, match="negativa"):
+        with conn.transaction():
+            caja.anular_deuda_bar(conn, admin, debt, {"motivo": "Registro de prueba"})
+    assert caja.resumen(conn, admin)["saldos"]["BAR"] == 0
+    assert conn.execute("SELECT anulado_en FROM copa_bar_deudas WHERE id=%s", (debt,)).fetchone()["anulado_en"] is None
+
+
 def test_limpieza_de_vocalias_incluye_anulados_y_conserva_las_otras_cajas(conn, monkeypatch):
     admin = _admin(conn)
     monkeypatch.setenv("ADMIN_OWNER_EMAIL", "revision@arena.test")

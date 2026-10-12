@@ -91,6 +91,8 @@ Los resultados de Copa Castell publicados desde el panel se guardan en PostgreSQ
 
 Cuando se agregan carnets a un equipo que ya había pagado los anteriores, los nuevos quedan pendientes. Egipto tiene 17 carnets: 15 anteriores cubiertos ($7,50) y dos nuevos ($1 pendiente). La migración `sql/migrations/022_carnets_egipto.sql` corrige el estado ya publicado sin modificar otros equipos ni atribuir un medio de pago anterior.
 
+En **Copa Castell · Movimientos → Bar → Detalle de los fiados**, cada registro tiene «Eliminar fiado». Se exige motivo y confirmación; solo ese fiado desaparece del listado y del total pendiente, mientras la anulación conserva autor y motivo en la base. Si ya estaba cobrado, también se anula su ingreso vinculado al bar, siempre que la caja no quede negativa. La migración idempotente es `sql/migrations/023_anular_fiados_bar.sql` (alternativa manual: `sql/pgadmin/27_anular_fiados_bar.sql`).
+
 Colombia tiene 14 carnets a $0,50: el total es $7, de los cuales $3 figuran como abonados y $4 quedan pendientes. Su inscripción de $25 sigue pendiente. La migración idempotente `sql/migrations/021_corregir_carnets_colombia.sql` corrige la importación ya publicada si el registro aún conserva el valor erróneo de 20 carnets y los cobros nuevos no superarían el total corregido; `sql/pgadmin/25_corregir_carnets_colombia.sql` permite aplicarla manualmente.
 
 Separé la información para no repetirla. Por ejemplo, los datos del cliente se guardan una sola vez en `usuarios`. Después, cada orden se relaciona con ese usuario y con el servicio correspondiente. Los jugadores también se guardan por separado y se conectan con su equipo.

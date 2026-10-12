@@ -403,6 +403,9 @@ class Handler(SimpleHTTPRequestHandler):
         if match := re.fullmatch(r"/api/admin/copa-bar-deudas/(\d+)/collect", path):
             if method == "POST":
                 return copa_caja.cobrar_deuda_bar(conn, uid, match[1], data)
+        if match := re.fullmatch(r"/api/admin/copa-bar-deudas/(\d+)/void", path):
+            if method == "POST":
+                return copa_caja.anular_deuda_bar(conn, uid, match[1], data)
         if match := re.fullmatch(r"/api/admin/copa-caja/(\d+)/void", path):
             if method == "POST":
                 return copa_caja.anular(conn, uid, match[1], data)

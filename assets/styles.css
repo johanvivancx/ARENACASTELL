@@ -1731,6 +1731,7 @@ td small {
 .copa-ledger-table th, .copa-ledger-table td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
 .copa-ledger-table th { color: var(--muted); white-space: nowrap; }
 .copa-ledger-table .btn { padding: 8px 10px; font-size: 12px; }
+.copa-debt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 160px; }
 .copa-void { opacity: .58; }
 @media (max-width: 960px) { .copa-area-nav, .copa-area-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .copa-caja-weekly, .copa-form-grid { grid-template-columns: 1fr; } }

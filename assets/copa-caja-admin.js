@@ -111,7 +111,7 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       : '<p class="small-text muted">No hay personas con deudas pendientes que coincidan con la búsqueda.</p>';
     $("#copa-bar-deudas", root).innerHTML = rows.length
       ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Qué debe</th><th>Monto</th><th>Registrado por</th><th>Estado</th></tr></thead><tbody>${rows.map((item) =>
-          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td>${item.cobrada_en ? `Cobrada por ${esc(item.cobrada_por_nombre)}` : `<button class="btn secondary" type="button" data-bar-debt-collect="${esc(item.id)}">Registrar cobro</button>`}</td></tr>`).join("")}</tbody></table>`
+          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td><div class="copa-debt-actions">${item.cobrada_en ? `<span>Cobrada por ${esc(item.cobrada_por_nombre)}</span>` : `<button class="btn secondary" type="button" data-bar-debt-collect="${esc(item.id)}">Registrar cobro</button>`}<button class="btn danger" type="button" data-bar-debt-void="${esc(item.id)}" aria-label="Eliminar fiado de ${esc(item.nombre)} por ${esc(money(item.monto))}">Eliminar fiado</button></div></td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">No hay fiados que coincidan con la búsqueda.</p>';
     updateDebtorHint();
   };
@@ -202,6 +202,24 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       .forEach((input) => input.addEventListener("input", () => syncVocaliaTotal(form)));
   });
   $("#copa-bar-deudas", root).addEventListener("click", async (event) => {
+    const remove = event.target.closest("[data-bar-debt-void]");
+    if (remove) {
+      const item = state.bar_deudas.find((row) => String(row.id) === remove.dataset.barDebtVoid);
+      if (!item) return;
+      const motivo = prompt(`Motivo para eliminar el fiado de ${item.nombre} (${item.concepto}, ${money(item.monto)}):`, "Registro duplicado");
+      if (motivo === null) return;
+      if (motivo.trim().length < 3) { showMessage("Escribe un motivo de al menos 3 caracteres."); return; }
+      const consequence = item.cobrada_en
+        ? "También se anulará el ingreso de caja asociado a este cobro."
+        : "Se restará del pendiente de esta persona; la caja no cambiará.";
+      if (!confirm(`¿Eliminar solo este fiado de ${item.nombre} por ${money(item.monto)}? ${consequence} Los otros fiados no cambiarán.`)) return;
+      try {
+        const result = await api(`/admin/copa-bar-deudas/${item.id}/void`, {motivo: motivo.trim()});
+        await refresh();
+        showMessage(result.message, "success");
+      } catch (error) { showMessage(error.message); }
+      return;
+    }
     const button = event.target.closest("[data-bar-debt-collect]");
     if (!button || !confirm("¿Ya recibiste el importe completo? Se sumará una sola vez al bar.")) return;
     try {
