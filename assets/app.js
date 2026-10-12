@@ -1098,6 +1098,91 @@ async function initCopaResults() {
   });
 }
 
+// Publica la foto y la identidad del destacado sin tocar marcador ni goleadores.
+async function initCopaMvp() {
+  const form = $("#copa-mvp-form");
+  if (!form) return;
+  let schedule = await api("/admin/copa-fixtures");
+  const fixtureSelect = $("#copa-mvp-fixture");
+  const countrySelect = $("#copa-mvp-country");
+  const playerSelect = $("#copa-mvp-player");
+  const imageInput = $("#copa-mvp-image");
+  const preview = $("#copa-mvp-preview");
+  const status = $("#copa-mvp-status");
+  const currentFixture = () => schedule.fixtures.find((fixture) => fixture.id === fixtureSelect.value);
+  const currentAward = () => schedule.mvps.find((award) => award.fixture_id === fixtureSelect.value);
+  const renderPlayers = (selected = "") => {
+    playerSelect.innerHTML = `<option value="">Selecciona un jugador</option>${(schedule.players[countrySelect.value] || [])
+      .map((player) => `<option value="${esc(player.id)}">${player.number ? `#${esc(player.number)} · ` : ""}${esc(player.name)}</option>`).join("")}`;
+    playerSelect.value = selected;
+  };
+  const renderFixture = () => {
+    const fixture = currentFixture();
+    if (!fixture) return;
+    const award = currentAward();
+    countrySelect.innerHTML = [fixture.home, fixture.away]
+      .map((country) => `<option value="${esc(country)}">${esc(country)}</option>`).join("");
+    countrySelect.value = award?.country || fixture.home;
+    renderPlayers(award?.player_id || "");
+    imageInput.value = "";
+    preview.hidden = !award;
+    if (award) preview.src = award.photo_url;
+    else preview.removeAttribute("src");
+    status.textContent = award
+      ? `Publicado: ${award.name} · ${award.country}. Para corregirlo, selecciona una foto nueva.`
+      : "Todavía no hay jugador del partido. Selecciona un jugador y su foto.";
+  };
+  fixtureSelect.innerHTML = schedule.fixtures.filter((fixture) => fixture.result)
+    .sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`))
+    .map((fixture) => `<option value="${esc(fixture.id)}">Fecha ${fixture.round} · ${esc(fixture.home)} ${fixture.result.homeGoals}–${fixture.result.awayGoals} ${esc(fixture.away)}</option>`).join("");
+  if (!fixtureSelect.options.length) {
+    status.textContent = "Publica primero el resultado final de un partido.";
+    return;
+  }
+  form.hidden = false;
+  renderFixture();
+  fixtureSelect.addEventListener("change", renderFixture);
+  countrySelect.addEventListener("change", () => renderPlayers());
+  imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+    if (!file) return renderFixture();
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5_000_000) {
+      imageInput.value = "";
+      showMessage("Usa una foto JPG, PNG o WebP de hasta 5 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => { preview.src = reader.result; preview.hidden = false; };
+    reader.readAsDataURL(file);
+  });
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = imageInput.files[0];
+    if (!file || !playerSelect.value) return showMessage("Elige el jugador y su foto.");
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5_000_000)
+      return showMessage("Usa una foto JPG, PNG o WebP de hasta 5 MB.");
+    if (!confirm(`¿Publicar a ${playerSelect.selectedOptions[0].textContent} de ${countrySelect.value} como jugador del partido?`)) return;
+    const button = $("button[type=submit]", form);
+    button.disabled = true;
+    try {
+      const image = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",", 2)[1]);
+        reader.onerror = () => reject(new Error("No se pudo leer la foto."));
+        reader.readAsDataURL(file);
+      });
+      const result = await api("/admin/copa-mvp", {
+        fixture_id: fixtureSelect.value, country: countrySelect.value,
+        player_id: playerSelect.value, image,
+      });
+      schedule = await api("/admin/copa-fixtures");
+      renderFixture();
+      showMessage(result.message, "success");
+    } catch (error) { showMessage(error.message); }
+    finally { button.disabled = false; }
+  });
+}
+
 // Presenta formularios de caja separados por actividad.
 async function initCopaCaja() {
   await window.CopaCajaAdmin({$, $$, api, bindForm, esc, money, dates, showMessage, today: catalog.hoy,
@@ -1116,7 +1201,7 @@ function initAdminWorkspace() {
   const panels = $$(".admin-workspace-section", $("#admin-content"))
     .filter((section) => section !== overview);
   const groups = {
-    "admin-copa": {title: "Resultados de Copa Castell", tabs: [["admin-copa", "Resultados"]]},
+    "admin-copa": {title: "Copa Castell · Partidos", tabs: [["admin-copa", "Resultados"], ["admin-copa-mvp", "Jugadores del partido"]]},
     "admin-copa-caja": {title: "Copa Castell · Movimientos", tabs: [["admin-copa-caja", "Movimientos"]]},
     "admin-reservas": {title: "Reservas", tabs: [["admin-reservas", "Reservas realizadas"], ["admin-cobros", "Pendientes por cobrar"], ["admin-ocupacion", "Ocupación"]]},
     "admin-finanzas": {title: "Ingresos y gastos", tabs: [["admin-finanzas", "Saldos y gastos"], ["admin-reportes", "Operaciones"], ["admin-pagos", "Auditoría de pagos"]]},
@@ -1678,6 +1763,7 @@ async function initialize() {
       initManualReservation();
       initExpenses();
       await initCopaResults();
+      await initCopaMvp();
       await initCopaCaja();
     }
   } catch (error) {

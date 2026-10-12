@@ -16,12 +16,12 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261010-deudas-bar" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261011-mvp7" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261009-escuela-manual" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261010-deudas-bar" defer></script>
-    <script src="../assets/app.js?v=20261010-limpiar-vocalias" defer></script>
+    <script src="../assets/app.js?v=20261011-mvp7" defer></script>
   </head>
 
   <body data-page="admin">
@@ -201,6 +201,21 @@
               </div>
               <p id="copa-result-status" class="small-text muted" role="status"></p>
               <div class="form-actions"><button class="btn" type="submit">Publicar resultado</button></div>
+            </form>
+          </section>
+
+          <section class="admin-workspace-section" id="admin-copa-mvp" aria-labelledby="copa-mvp-admin-title" hidden>
+            <h2 id="copa-mvp-admin-title">Jugadores del partido</h2>
+            <p class="small-text muted">Publica la foto después de registrar el resultado final. Elige el partido, la selección y un jugador de su plantilla. Si ya hay un destacado, podrás corregirlo con una nueva foto.</p>
+            <form method="post" id="copa-mvp-form" class="panel" hidden>
+              <div class="field"><label for="copa-mvp-fixture">Partido</label><select id="copa-mvp-fixture" required></select></div>
+              <div class="form-grid">
+                <div class="field"><label for="copa-mvp-country">Selección</label><select id="copa-mvp-country" required></select></div>
+                <div class="field"><label for="copa-mvp-player">Jugador</label><select id="copa-mvp-player" required></select></div>
+              </div>
+              <div class="field"><label for="copa-mvp-image">Foto del jugador (JPG, PNG o WebP, máximo 5 MB)</label><input id="copa-mvp-image" type="file" accept="image/jpeg,image/png,image/webp" required /></div>
+              <div class="copa-mvp-preview"><img id="copa-mvp-preview" alt="Vista previa de la foto del jugador del partido" hidden /><p id="copa-mvp-status" class="small-text muted" role="status"></p></div>
+              <div class="form-actions"><button class="btn" type="submit">Publicar jugador del partido</button></div>
             </form>
           </section>
 

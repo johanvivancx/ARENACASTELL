@@ -2,8 +2,12 @@
 
 from copy import deepcopy
 from functools import lru_cache
+import base64
+import binascii
+from io import BytesIO
 import json
 import unicodedata
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from db import ROOT
 from models import ErrorValidacion
@@ -75,6 +79,78 @@ def _resultados(conn):
     for goal in goals:
         by_match[goal["fixture_id"]].append(goal)
     return results, by_match
+
+
+def jugadores_del_partido(conn):
+    """Combina los destacados incluidos en el sitio con las fotos publicadas después."""
+    awards = {row["fixture_id"]: dict(row) for row in base().get("mvps", [])}
+    for row in conn.execute(
+        """SELECT id,fixture_id,equipo,jugador_clave,jugador_nombre,dorsal,actualizado_en
+           FROM copa_mvp ORDER BY actualizado_en,id"""
+    ).fetchall():
+        fixture = catalogo()[0].get(row["fixture_id"])
+        if not fixture:
+            continue
+        awards[row["fixture_id"]] = {
+            "fixture_id": row["fixture_id"], "round": fixture["round"],
+            "country": row["equipo"], "player_id": row["jugador_clave"],
+            "name": row["jugador_nombre"], "number": row["dorsal"],
+            "photo_url": f'/api/copa-mvp/photos/{row["id"]}?v={int(row["actualizado_en"].timestamp() * 1_000_000)}',
+        }
+    return sorted(awards.values(), key=lambda award: (-award["round"], award["fixture_id"]))
+
+
+def foto_jugador_del_partido(conn, photo_id):
+    row = conn.execute("SELECT foto FROM copa_mvp WHERE id=%s", (photo_id,)).fetchone()
+    if not row:
+        raise HTTPError(404, "Foto no encontrada.")
+    return bytes(row["foto"])
+
+
+def guardar_jugador_del_partido(conn, admin_uid, data):
+    exigir_administrador(conn, admin_uid)
+    fixtures, players = catalogo()
+    fixture = fixtures.get(str(data.get("fixture_id", "")))
+    if not fixture:
+        raise ErrorValidacion("Selecciona un partido programado.")
+    if not conn.execute("SELECT 1 FROM copa_resultados WHERE fixture_id=%s", (fixture["id"],)).fetchone():
+        raise ErrorValidacion("Publica primero el resultado final de este partido.")
+    country = str(data.get("country", ""))
+    if country not in (fixture["home"], fixture["away"]):
+        raise ErrorValidacion("Selecciona una de las dos selecciones del partido.")
+    player = next((p for p in players[country] if p["id"] == str(data.get("player_id", ""))), None)
+    if not player:
+        raise ErrorValidacion("Selecciona un jugador de la plantilla de esa selección.")
+    encoded = data.get("image")
+    if not isinstance(encoded, str) or len(encoded) > 8_000_000:
+        raise ErrorValidacion("Selecciona una foto JPG, PNG o WebP de hasta 5 MB.")
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+        if not 1 <= len(raw) <= 5_000_000:
+            raise ValueError("Tamaño no permitido")
+        with Image.open(BytesIO(raw)) as source:
+            if source.format not in {"JPEG", "PNG", "WEBP"} or source.width * source.height > 24_000_000:
+                raise ValueError("Formato o dimensiones no permitidos")
+            photo = ImageOps.exif_transpose(source).convert("RGB")
+            photo.thumbnail((1600, 2000), Image.Resampling.LANCZOS)
+            output = BytesIO()
+            photo.save(output, format="JPEG", quality=82, optimize=True)
+        jpeg = output.getvalue()
+        if len(jpeg) > 2_097_152:
+            raise ValueError("Foto procesada demasiado grande")
+    except (ValueError, binascii.Error, OSError, UnidentifiedImageError, Image.DecompressionBombError):
+        raise ErrorValidacion("La foto no es válida. Usa JPG, PNG o WebP de hasta 5 MB.") from None
+    conn.execute(
+        """INSERT INTO copa_mvp(fixture_id,equipo,jugador_clave,jugador_nombre,dorsal,foto,registrado_por)
+           VALUES(%s,%s,%s,%s,%s,%s,%s)
+           ON CONFLICT (fixture_id) DO UPDATE SET
+             equipo=EXCLUDED.equipo,jugador_clave=EXCLUDED.jugador_clave,
+             jugador_nombre=EXCLUDED.jugador_nombre,dorsal=EXCLUDED.dorsal,
+             foto=EXCLUDED.foto,registrado_por=EXCLUDED.registrado_por,
+             actualizado_en=current_timestamp""",
+        (fixture["id"], country, player["id"], player["name"], player["number"], jpeg, admin_uid),
+    )
+    return {"message": f'Jugador del partido publicado: {player["name"]} · {country}.'}
 
 
 def calcular_posiciones(matches, groups):
@@ -163,6 +239,7 @@ def estado_publico(conn):
         partial = finished_postponed < len(postponed)
         note = data["roundNote"] if partial else "Fecha 6 completa"
     return {"matches": matches, "standings": standings, "scorers": scorers,
+            "mvps": jugadores_del_partido(conn),
             "throughRound": through_round, "partialRound": partial, "roundNote": note,
             "goleadoresPendientes": pending, "updatedAt": max((r["actualizado_en"] for r in results), default=None)}
 
@@ -185,7 +262,7 @@ def panel_admin(conn, admin_uid):
             "registrado_por": authors.get(key),
             "goals": [dict(row) for row in goals[key]],
         } if result else None})
-    return {"fixtures": schedule, "players": players}
+    return {"fixtures": schedule, "players": players, "mvps": jugadores_del_partido(conn)}
 
 
 def guardar_resultado(conn, admin_uid, data):

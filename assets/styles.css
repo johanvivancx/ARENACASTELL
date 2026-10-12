@@ -2446,6 +2446,12 @@ td small {
 .mundial-mvp-card figcaption { padding: 18px; }
 .mundial-mvp-card figcaption small { color: #e5cb87; font-size: 11px; letter-spacing: 1px; }
 .mundial-mvp-card h4 { margin-block: 12px; }
+.mundial-mvp-history { margin-top: 28px; }
+.mundial-mvp-history summary { cursor: pointer; font-weight: 700; }
+.mundial-mvp-history .mundial-mvp-grid { margin-top: 22px; }
+.copa-mvp-preview { display: flex; align-items: flex-start; gap: 20px; margin-top: 18px; }
+.copa-mvp-preview img { width: min(180px, 40vw); max-height: 240px; object-fit: contain; border: 1px solid #555; border-radius: 10px; }
+.copa-mvp-preview p { margin-top: 0; }
 @media (max-width: 900px) {
   .mundial-mvp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

@@ -1,5 +1,13 @@
 window.CopaCastellData = {
   "throughRound": 6,
+  "mvps": [
+    {"fixture_id":"7:Argentina:Japón","round":7,"country":"Japón","player_id":"s:34","name":"Sebastián Taipe","number":"13","photo_url":"/assets/mvp-fecha7/japon-13.jpeg"},
+    {"fixture_id":"7:Portugal:Alemania","round":7,"country":"Portugal","player_id":"s:8","name":"Andrés Gavilanes","number":"7","photo_url":"/assets/mvp-fecha7/portugal-7.jpeg"},
+    {"fixture_id":"7:Ecuador:Uruguay","round":7,"country":"Ecuador","player_id":"s:0","name":"Elvis Loachamin","number":"9","photo_url":"/assets/mvp-fecha7/ecuador-9.jpeg"},
+    {"fixture_id":"7:Brasil:Egipto","round":7,"country":"Egipto","player_id":"s:31","name":"Kleber Sebastián Aulestia Ramos","number":"88","photo_url":"/assets/mvp-fecha7/egipto-88.jpeg"},
+    {"fixture_id":"7:Cabo Verde:Marruecos","round":7,"country":"Cabo Verde","player_id":"s:1","name":"Cristopher Sebastián Domínguez Casco","number":"10","photo_url":"/assets/mvp-fecha7/cabo-verde-10.jpeg"},
+    {"fixture_id":"7:Francia:España","round":7,"country":"Francia","player_id":"s:2","name":"Abdías Méndez","number":"7","photo_url":"/assets/mvp-fecha7/francia-7.jpeg"}
+  ],
   "upcoming": {
     "round": 7,
     "days": [

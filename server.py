@@ -172,6 +172,14 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    def send_jpeg(self, payload):
+        self.send_response(200)
+        self.send_header("Content-Type", "image/jpeg")
+        self.send_header("Cache-Control", "public, max-age=300")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
     # Dirige las rutas API
     def api(self):
         cookie_out = None
@@ -186,7 +194,8 @@ class Handler(SimpleHTTPRequestHandler):
                     length = int(self.headers.get("Content-Length", "0"))
                 except ValueError:
                     raise s.HTTPError(400, "Solicitud inválida.") from None
-                if not 1 <= length <= 32768:
+                limit = 8_000_000 if path == "/api/admin/copa-mvp" else 32768
+                if not 1 <= length <= limit:
                     raise s.HTTPError(413, "El formulario es demasiado grande o está vacío.")
                 data = json.loads(self.rfile.read(length))
                 if not isinstance(data, dict):
@@ -256,6 +265,10 @@ class Handler(SimpleHTTPRequestHandler):
                         result = s.catalogo(conn)
                     elif path == "/api/availability" and self.command == "GET":
                         result = s.disponibilidad(conn, params)
+                    elif match := re.fullmatch(r"/api/copa-mvp/photos/(\d+)", path):
+                        if self.command != "GET":
+                            raise s.HTTPError(404, "Ruta no encontrada.")
+                        result = copa.foto_jugador_del_partido(conn, match[1])
                     elif path == "/api/copa-castell" and self.command == "GET":
                         result = copa.estado_publico(conn)
                     else:
@@ -263,7 +276,10 @@ class Handler(SimpleHTTPRequestHandler):
                         result = self.private_route(conn, uid, path, data, params, session["token_hash"])
                         if self.command == "POST" and path.startswith("/api/admin/"):
                             s.registrar_actividad_admin(conn, uid, path, result)
-            self.send_json(200, result, cookie_out)
+            if isinstance(result, bytes):
+                self.send_jpeg(result)
+            else:
+                self.send_json(200, result, cookie_out)
         except (ErrorValidacion, json.JSONDecodeError, UnicodeDecodeError) as error:
             self.send_json(
                 400,
@@ -366,6 +382,8 @@ class Handler(SimpleHTTPRequestHandler):
                 return copa_caja.desglosar_vocalia(conn, uid, match[1], data)
         if path == "/api/admin/copa-results" and method == "POST":
             return copa.guardar_resultado(conn, uid, data)
+        if path == "/api/admin/copa-mvp" and method == "POST":
+            return copa.guardar_jugador_del_partido(conn, uid, data)
         if path == "/api/admin/expenses" and method == "POST":
             return s.registrar_gasto(conn, uid, data)
         if match := re.fullmatch(r"/api/admin/expenses/(\d+)/void", path):

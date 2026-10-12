@@ -641,6 +641,7 @@ def exigir_administrador(conn, uid):
 ACCIONES_ADMIN = {
     "/api/admin/reservations": "Registró una reserva manual",
     "/api/admin/copa-results": "Publicó o corrigió un resultado",
+    "/api/admin/copa-mvp": "Publicó o corrigió un jugador del partido",
     "/api/admin/copa-caja": "Registró un movimiento de Copa Castell",
     "/api/admin/copa-bar-deudas": "Registró una deuda del bar",
     "/api/admin/expenses": "Registró un gasto",

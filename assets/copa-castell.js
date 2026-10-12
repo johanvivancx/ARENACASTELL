@@ -224,30 +224,40 @@
     ['Egipto','88','Kleber Sebastián Aulestia Ramos','egipto'],
     ['Francia','7','Abdías Méndez','francia']
   ];
-  for (const [country, number, name, file] of awards) {
+  const renderAward = (container, {country, number, name, photo_url, round}) => {
     const card = element('figure');
     card.className = 'mundial-mvp-card';
     const link = element('a');
-    link.href = `../assets/mvp-fecha6/${file}.jpeg`;
+    link.href = photo_url;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.setAttribute('aria-label', `Ver foto completa de ${name} (nueva pestaña)`);
     const photo = element('img');
     photo.src = link.href;
-    photo.alt = `${name}, jugador del partido de ${country}, fecha 6`;
+    photo.alt = `${name}, jugador del partido de ${country}, fecha ${round}`;
     photo.loading = 'lazy';
     photo.width = 960;
     photo.height = 1280;
     link.append(photo);
     const caption = element('figcaption');
-    caption.append(element('small', 'JUGADOR DEL PARTIDO · FECHA 6'), element('h4', `#${number} ${name}`));
+    caption.append(element('small', `JUGADOR DEL PARTIDO · FECHA ${round}`), element('h4', `${number ? `#${number} ` : ''}${name}`));
     const selection = element('p');
     selection.className = 'mundial-player-identity';
     selection.append(flag(country), element('span', country));
     caption.append(selection);
     card.append(link, caption);
-    document.getElementById('mundial-mvp').append(card);
+    container.append(card);
+  };
+  const renderAwards = () => {
+    const current = document.getElementById('mundial-mvp');
+    current.replaceChildren();
+    for (const award of data.mvps || []) renderAward(current, award);
+  };
+  for (const [country, number, name, file] of awards) {
+    renderAward(document.getElementById('mundial-mvp-history'),
+      {country, number, name, photo_url: `../assets/mvp-fecha6/${file}.jpeg`, round: 6});
   }
+  renderAwards();
   round.addEventListener('change', matches);
   round.addEventListener('change', () => { round.dataset.touched = 'true'; });
   filter.addEventListener('change', scorers);
@@ -273,6 +283,7 @@
       renderStandings();
       matches();
       scorers();
+      renderAwards();
     } catch {
       // Conserva la información histórica cuando el servicio no está disponible.
     } finally {
