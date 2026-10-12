@@ -44,7 +44,7 @@ INSERT INTO copa_inscripciones_equipos
   ('Argentina',15,0,0,false,false,'Sin pagos anotados en la hoja.'),
   ('Venezuela',15,0,0,true,false,'Inscripción completa según confirmación del organizador; carnets pendientes.'),
   ('Colombia',14,0,3,false,false,'14 carnets tras el retiro de dos jugadores: total $7, abonados $3 y pendientes $4. Inscripción $25 pendiente.'),
-  ('Egipto',15,0,0,true,true,'Carnets completos por $7,50 según hoja; la plantilla web muestra más jugadores.'),
+  ('Egipto',17,0,7.50,true,false,'15 carnets anteriores cubiertos por $7,50; dos carnets nuevos por $1 pendiente. Inscripción completa.'),
   ('Japón',17,0,0,true,true,'Inscripción y carnets completos según hoja.'),
   ('Marruecos',18,15,5,false,false,'$15 de inscripción y $5 de carnets anotados; medio anterior desconocido.')
 ON CONFLICT (equipo) DO NOTHING;

@@ -30,8 +30,10 @@ def test_saldos_iniciales_de_la_hoja_y_carnets_por_jugador(conn):
     assert _team(state, "Colombia")["inscripcion"]["pendiente"] == Decimal("25")
     assert _team(state, "Colombia")["carnets"]["pendiente"] == Decimal("4")
     assert _team(state, "Colombia")["carnets_cantidad"] == 14
-    assert _team(state, "Egipto")["carnets_cantidad"] == 15
-    assert _team(state, "Egipto")["carnets"]["pendiente"] == 0
+    assert _team(state, "Egipto")["carnets_cantidad"] == 17
+    assert _team(state, "Egipto")["carnets"]["abono_inicial"] == Decimal("7.50")
+    assert _team(state, "Egipto")["carnets"]["pendiente"] == Decimal("1")
+    assert _team(state, "Egipto")["inscripcion"]["pendiente"] == 0
     assert _team(state, "Francia")["carnets"]["pendiente"] == Decimal("7")
     assert state["cobrado_efectivo"] == state["cobrado_transferencia"] == 0
 
@@ -65,6 +67,30 @@ def test_cantidad_carnets_ajustable_sin_bajar_de_lo_cobrado(conn):
     assert _team(ci.resumen(conn, admin), "Francia")["carnets"]["pendiente"] == Decimal("8")
     with pytest.raises(ErrorValidacion):
         ci.ajustar_carnets(conn, admin, {"equipo": "Marruecos", "cantidad": 5})
+
+
+def test_carnets_nuevos_de_equipo_pagado_quedan_pendientes(conn):
+    admin = _admin(conn)
+    ci.ajustar_carnets(conn, admin, {"equipo": "Japón", "cantidad": 19})
+    team = _team(ci.resumen(conn, admin), "Japón")
+    assert team["carnets"]["abono_inicial"] == Decimal("8.50")
+    assert team["carnets"]["pendiente"] == Decimal("1")
+    assert team["inscripcion"]["pendiente"] == 0
+
+
+def test_corrige_egipto_publicado_sin_sobrescribir_ajustes(conn):
+    from db import ROOT
+    correction = (ROOT / 'sql/migrations/022_carnets_egipto.sql').read_text(encoding='utf8')
+    conn.execute("""UPDATE copa_inscripciones_equipos SET carnets_cantidad=15,
+        carnets_inicial=0,carnets_completos_inicial=true WHERE equipo='Egipto'""")
+    conn.execute(correction)
+    conn.execute(correction)
+    team = _team(ci.resumen(conn, _admin(conn)), 'Egipto')
+    assert team['carnets_cantidad'] == 17
+    assert team['carnets']['pendiente'] == Decimal('1')
+    conn.execute("UPDATE copa_inscripciones_equipos SET carnets_cantidad=18 WHERE equipo='Egipto'")
+    conn.execute(correction)
+    assert _team(ci.resumen(conn, _admin(conn)), 'Egipto')['carnets_cantidad'] == 18
 
 
 def test_migracion_repetible_no_reinicia_pagos(conn):

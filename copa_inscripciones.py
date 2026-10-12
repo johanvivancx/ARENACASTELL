@@ -117,7 +117,13 @@ def ajustar_carnets(conn, admin_uid, data):
         WHERE equipo=%s AND concepto='CARNETS' AND anulado_en IS NULL""", (name,)).fetchone()["total"]
     if qty * CARNET < paid + team["carnets_inicial"]:
         raise ErrorValidacion("La nueva cantidad dejaría cobros de carnets por encima de lo esperado.")
-    conn.execute("UPDATE copa_inscripciones_equipos SET carnets_cantidad=%s WHERE equipo=%s", (qty, name))
+    if qty > team["carnets_cantidad"] and team["carnets_completos_inicial"]:
+        # La marca de pago completo solo cubría los carnets anteriores.
+        conn.execute("""UPDATE copa_inscripciones_equipos SET carnets_cantidad=%s,
+            carnets_inicial=%s,carnets_completos_inicial=false WHERE equipo=%s""",
+            (qty, team["carnets_cantidad"] * CARNET, name))
+    else:
+        conn.execute("UPDATE copa_inscripciones_equipos SET carnets_cantidad=%s WHERE equipo=%s", (qty, name))
     return {"message": f"Carnets de {name}: {qty} jugadores × $0,50."}
 
 
