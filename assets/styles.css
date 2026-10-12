@@ -1691,7 +1691,7 @@ td small {
 .copa-week-card dd { margin: 0; text-align: right; font-weight: 700; }
 .copa-caja-form { margin-bottom: 36px; }
 .copa-total-line { margin: 8px 0 22px; color: var(--text); font-weight: 700; }
-.copa-area-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0 30px; }
+.copa-area-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0 30px; }
 .copa-area-nav button { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 148px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface2); color: var(--text); text-align: left; font: inherit; cursor: pointer; }
 .copa-area-nav button:hover, .copa-area-nav button:focus-visible { border-color: #a6bdc6; }
 .copa-area-nav button[aria-pressed="true"] { border-color: #b5ccd4; background: linear-gradient(145deg, #273136, var(--surface2)); box-shadow: inset 3px 0 #b5ccd4; }
@@ -1701,6 +1701,17 @@ td small {
 .copa-area-nav em { margin-top: auto; color: var(--accent-soft); font-size: 13px; font-style: normal; font-weight: 700; }
 .copa-area-panel > h3 { margin-bottom: 8px; }
 .copa-area-panel > p { max-width: 760px; }
+.copa-inscripciones-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0 28px; }
+.copa-inscripcion-card { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface2); }
+.copa-inscripcion-card-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+.copa-inscripcion-card-head small { color: var(--accent-soft); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.copa-inscripcion-card h4 { margin: 3px 0 8px; font-size: 20px; }
+.copa-inscripcion-card > p { margin: 8px 0 16px; }
+.copa-inscripcion-estados { display: grid; gap: 8px; margin-bottom: 16px; }
+.copa-inscripcion-estados > div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 3px 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.copa-inscripcion-estados small { flex-basis: 100%; color: var(--muted); }
+.copa-inscripcion-estados strong.good { color: #a3dbc4; }
+.copa-inscripciones-filtros { margin-top: 18px; }
 .copa-area-panel[hidden], .copa-caja-form[hidden] { display: none; }
 .copa-area-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 22px 0; }
 .copa-area-summary > div { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface2); }
@@ -1724,6 +1735,7 @@ td small {
 @media (max-width: 960px) { .copa-area-nav, .copa-area-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .copa-caja-weekly, .copa-form-grid { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .copa-area-nav, .copa-area-summary { grid-template-columns: 1fr; } .copa-area-nav button { min-height: auto; } }
+@media (max-width: 700px) { .copa-inscripciones-grid { grid-template-columns: 1fr; } .copa-inscripcion-card-head { flex-direction: column; } }
 .copa-goal-rows {
   display: grid;
   gap: 12px;

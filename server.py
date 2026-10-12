@@ -25,6 +25,7 @@ from models import ErrorValidacion
 import services as s
 import copa
 import copa_caja
+import copa_inscripciones
 import escuela_admin
 import correos
 
@@ -384,6 +385,15 @@ class Handler(SimpleHTTPRequestHandler):
             return copa_caja.resumen(conn, uid, params.get("semana"))
         if path == "/api/admin/copa-caja" and method == "POST":
             return copa_caja.registrar(conn, uid, data)
+        if path == "/api/admin/copa-inscripciones" and method == "GET":
+            return copa_inscripciones.resumen(conn, uid)
+        if path == "/api/admin/copa-inscripciones/pagos" and method == "POST":
+            return copa_inscripciones.registrar_pago(conn, uid, data)
+        if path == "/api/admin/copa-inscripciones/carnets" and method == "POST":
+            return copa_inscripciones.ajustar_carnets(conn, uid, data)
+        if match := re.fullmatch(r"/api/admin/copa-inscripciones/pagos/(\d+)/void", path):
+            if method == "POST":
+                return copa_inscripciones.anular_pago(conn, uid, match[1], data)
         if path == "/api/admin/copa-caja/vocalias/reset-preview" and method == "GET":
             return copa_caja.vista_previa_limpieza_vocalias(conn, uid)
         if path == "/api/admin/copa-caja/vocalias/reset" and method == "POST":

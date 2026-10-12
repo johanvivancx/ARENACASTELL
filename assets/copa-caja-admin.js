@@ -3,6 +3,7 @@
 window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates, showMessage, today, canResetVocalias}) {
   const root = $("#admin-copa-caja");
   if (!root) return;
+  const inscriptions = window.CopaInscripcionesAdmin({$, $$, api, bindForm, esc, money, dates, showMessage, today});
   const week = $("#copa-week", root);
   const names = {DISPONIBLE: "Dinero disponible", BAR: "Bar", ENTRADAS: "Entradas", VOCALIAS: "Vocalías"};
   const descriptions = {APERTURA: "Saldo inicial", TRASPASO: "Caja entregada", INGRESO: "Ingreso", GASTO: "Gasto"};
@@ -14,10 +15,20 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
 
   const showArea = (area) => {
     active = area;
+    const separate = area === "INSCRIPCIONES";
     $$('[data-copa-area]', root).forEach((button) =>
       button.setAttribute("aria-pressed", String(button.dataset.copaArea === area)));
     $$('[data-copa-panel]', root).forEach((panel) =>
       panel.hidden = panel.dataset.copaPanel !== area);
+    $(".copa-week-picker", root).hidden = separate;
+    $("#copa-week-caption", root).hidden = separate;
+    $("#copa-caja-total", root).hidden = separate;
+    $(".copa-area-records", root).hidden = separate;
+    $("#copa-caja-history", root).hidden = separate;
+    if (separate) {
+      inscriptions.refresh().catch((error) => showMessage(error.message));
+      return;
+    }
     $("#copa-area-days-title", root).textContent = area === "DISPONIBLE"
       ? "Movimientos diarios de Disponible" : `Resumen diario · ${names[area]}`;
     $("#copa-area-history-title", root).textContent = `Historial de la semana · ${names[area]}`;
@@ -177,7 +188,7 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
           `<tr><td>${esc(item.fixture_id)}</td><td>${esc(item.equipo)}</td><td>${esc(money(item.esperado))}</td><td>${esc(money(item.pagado))}</td><td>${esc(money(item.pendiente))}</td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">No hay partidos programados en esta semana.</p>';
     renderBarDebts();
-    renderArea();
+    if (active !== "INSCRIPCIONES") renderArea();
   }
 
   $$('[data-copa-area]', root).forEach((button) =>

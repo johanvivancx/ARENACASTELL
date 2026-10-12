@@ -475,6 +475,36 @@ CREATE TABLE IF NOT EXISTS copa_movimientos (
 CREATE INDEX IF NOT EXISTS idx_copa_movimientos_fecha ON copa_movimientos(fecha DESC,id DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_copa_apertura_activa ON copa_movimientos(tipo) WHERE tipo='APERTURA' AND anulado_en IS NULL;
 
+-- Inscripciones de equipos y carnets de Copa Castell. El saldo de la hoja se importa
+-- aparte mediante 020_inscripciones_copa.sql, sin adjudicarle un medio de pago ficticio.
+CREATE TABLE IF NOT EXISTS copa_inscripciones_equipos (
+  equipo varchar(50) PRIMARY KEY,
+  carnets_cantidad integer NOT NULL CHECK (carnets_cantidad BETWEEN 0 AND 100),
+  inscripcion_inicial numeric(12,2) NOT NULL DEFAULT 0 CHECK (inscripcion_inicial BETWEEN 0 AND 25),
+  carnets_inicial numeric(12,2) NOT NULL DEFAULT 0 CHECK (carnets_inicial >= 0),
+  inscripcion_completa_inicial boolean NOT NULL DEFAULT false,
+  carnets_completos_inicial boolean NOT NULL DEFAULT false,
+  nota varchar(250) NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS copa_inscripciones_pagos (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  equipo varchar(50) NOT NULL REFERENCES copa_inscripciones_equipos(equipo),
+  concepto varchar(12) NOT NULL CHECK (concepto IN ('INSCRIPCION','CARNETS')),
+  fecha date NOT NULL,
+  efectivo numeric(12,2) NOT NULL DEFAULT 0 CHECK (efectivo >= 0),
+  transferencia numeric(12,2) NOT NULL DEFAULT 0 CHECK (transferencia >= 0),
+  monto numeric(12,2) GENERATED ALWAYS AS (efectivo + transferencia) STORED,
+  registrado_por bigint NOT NULL REFERENCES usuarios(id),
+  creado_en timestamptz NOT NULL DEFAULT current_timestamp,
+  anulado_en timestamptz,
+  anulado_por bigint REFERENCES usuarios(id),
+  motivo_anulacion varchar(250),
+  CHECK (efectivo + transferencia > 0),
+  CHECK ((anulado_en IS NULL AND anulado_por IS NULL AND motivo_anulacion IS NULL) OR
+         (anulado_en IS NOT NULL AND anulado_por IS NOT NULL AND motivo_anulacion IS NOT NULL))
+);
+CREATE INDEX IF NOT EXISTS idx_copa_inscripciones_pagos_equipo ON copa_inscripciones_pagos(equipo,fecha,id);
+
 -- Identifica la cuenta que ejecuta cada acción administrativa nueva.
 CREATE TABLE IF NOT EXISTS actividad_administrativa (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

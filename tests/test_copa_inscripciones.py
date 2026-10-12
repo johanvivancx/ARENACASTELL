@@ -1,0 +1,77 @@
+"""Inscripción y carnets de la Copa: saldos, medios de pago y aislamiento."""
+from decimal import Decimal
+
+import pytest
+
+import copa_inscripciones as ci
+import copa_caja
+from models import ErrorValidacion
+from services import HTTPError
+
+
+def _admin(conn):
+    return conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()["id"]
+
+
+def _team(state, name):
+    return next(row for row in state["equipos"] if row["equipo"] == name)
+
+
+def test_saldos_iniciales_de_la_hoja_y_carnets_por_jugador(conn):
+    state = ci.resumen(conn, _admin(conn))
+    assert len(state["equipos"]) == 15
+    assert state["inscripcion_unitaria"] == Decimal("25")
+    assert state["carnet_unitario"] == Decimal("0.50")
+    assert _team(state, "Uruguay")["inscripcion"]["pendiente"] == Decimal("7.50")
+    assert _team(state, "Venezuela")["inscripcion"]["pendiente"] == 0
+    assert _team(state, "Venezuela")["carnets"]["pendiente"] == Decimal("7.50")
+    assert _team(state, "Marruecos")["inscripcion"]["pendiente"] == Decimal("10")
+    assert _team(state, "Marruecos")["carnets"]["pendiente"] == Decimal("4")
+    assert _team(state, "Colombia")["inscripcion"]["pendiente"] == Decimal("25")
+    assert _team(state, "Colombia")["carnets"]["pendiente"] == Decimal("7")
+    assert _team(state, "Colombia")["carnets_cantidad"] == 20
+    assert _team(state, "Egipto")["carnets_cantidad"] == 15
+    assert _team(state, "Egipto")["carnets"]["pendiente"] == 0
+    assert _team(state, "Francia")["carnets"]["pendiente"] == Decimal("7")
+    assert state["cobrado_efectivo"] == state["cobrado_transferencia"] == 0
+
+
+def test_cobro_parcial_mixto_no_se_duplica_en_vocalias(conn, user):
+    admin = _admin(conn)
+    payload = {"equipo": "Uruguay", "concepto": "INSCRIPCION", "fecha": "2026-10-10",
+               "efectivo": "4", "transferencia": "3.50"}
+    with pytest.raises(HTTPError) as denied:
+        ci.registrar_pago(conn, user["id"], payload)
+    assert denied.value.status == 403
+    before = copa_caja.resumen(conn, admin)
+    saved = ci.registrar_pago(conn, admin, payload)
+    after = ci.resumen(conn, admin)
+    assert _team(after, "Uruguay")["inscripcion"]["pendiente"] == 0
+    assert after["cobrado_efectivo"] == Decimal("4")
+    assert after["cobrado_transferencia"] == Decimal("3.50")
+    assert copa_caja.resumen(conn, admin)["saldo_total"] == before["saldo_total"]
+    with pytest.raises(ErrorValidacion, match="supera"):
+        ci.registrar_pago(conn, admin, payload)
+    ci.anular_pago(conn, admin, saved["id"], {"motivo": "Cobro duplicado"})
+    restored = ci.resumen(conn, admin)
+    assert _team(restored, "Uruguay")["inscripcion"]["pendiente"] == Decimal("7.50")
+    assert restored["cobrado_efectivo"] == restored["cobrado_transferencia"] == 0
+    assert restored["pagos"][0]["anulado_en"] is not None
+
+
+def test_cantidad_carnets_ajustable_sin_bajar_de_lo_cobrado(conn):
+    admin = _admin(conn)
+    ci.ajustar_carnets(conn, admin, {"equipo": "Francia", "cantidad": 16})
+    assert _team(ci.resumen(conn, admin), "Francia")["carnets"]["pendiente"] == Decimal("8")
+    with pytest.raises(ErrorValidacion):
+        ci.ajustar_carnets(conn, admin, {"equipo": "Marruecos", "cantidad": 5})
+
+
+def test_migracion_repetible_no_reinicia_pagos(conn):
+    admin = _admin(conn)
+    ci.registrar_pago(conn, admin, {"equipo": "Francia", "concepto": "CARNETS",
+        "fecha": "2026-10-10", "efectivo": "1", "transferencia": "0"})
+    conn.commit()
+    from db import preparar_movimientos_copa
+    preparar_movimientos_copa()
+    assert _team(ci.resumen(conn, admin), "Francia")["carnets"]["pendiente"] == Decimal("6")

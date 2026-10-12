@@ -17,11 +17,12 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261012-inscripciones" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/copa-caja-admin.js?v=20261010-deudas-bar" defer></script>
+    <script src="../assets/copa-inscripciones-admin.js?v=20261012-inscripciones" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261012-inscripciones" defer></script>
     <script src="../assets/app.js?v=20261011-programacion" defer></script>
   </head>
 
@@ -133,7 +134,7 @@
             <button type="button" data-admin-target="admin-copa-caja">
               <span class="admin-nav-top"><span>02 / COPA CASTELL</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v12H3V7Zm0 4h18M7 4h10m-5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" /></svg></span>
               <strong>Movimientos de la Copa</strong>
-              <small>Disponible, bar, entradas y vocalías por semana</small>
+              <small>Disponible, bar, entradas, vocalías e inscripciones</small>
               <span class="admin-nav-arrow" aria-hidden="true">↗</span>
             </button>
             <button type="button" data-admin-target="admin-reservas">
@@ -243,7 +244,7 @@
 
           <section class="admin-workspace-section" id="admin-copa-caja" aria-labelledby="copa-caja-title" hidden>
             <h2 id="copa-caja-title">Copa Castell · Movimientos</h2>
-            <p class="small-text muted">Control de efectivo de la Copa, independiente de reservas, inscripciones al torneo y Súper Chaca. La caja entregada al bar o entradas es un traspaso, no una venta.</p>
+            <p class="small-text muted">Control de la Copa separado por actividad. Las inscripciones y carnets de equipos tienen su propio registro; no se mezclan con bar, entradas, vocalías ni Súper Chaca.</p>
             <div class="field copa-week-picker"><label for="copa-week">Semana que quieres revisar</label><input id="copa-week" type="date" /></div>
             <p id="copa-week-caption" class="small-text muted" role="status"></p>
             <p id="copa-caja-total" class="copa-total-line" role="status"></p>
@@ -252,6 +253,7 @@
               <button type="button" data-copa-area="BAR" aria-pressed="false"><span>02 / VENTAS</span><strong>Bar</strong><small>Ventas y compras del bar</small><em data-area-balance="BAR"></em></button>
               <button type="button" data-copa-area="ENTRADAS" aria-pressed="false"><span>03 / BOLETERÍA</span><strong>Entradas</strong><small>Recaudación y gastos de entradas</small><em data-area-balance="ENTRADAS"></em></button>
               <button type="button" data-copa-area="VOCALIAS" aria-pressed="false"><span>04 / PARTIDOS</span><strong>Vocalías</strong><small>Pago de cada equipo y gastos arbitrales</small><em data-area-balance="VOCALIAS"></em></button>
+              <button type="button" data-copa-area="INSCRIPCIONES" aria-pressed="false"><span>05 / EQUIPOS</span><strong>Inscripciones y carnets</strong><small>$25 por equipo · $0,50 por carnet</small><em>Pendientes y cobros por equipo</em></button>
             </nav>
 
             <div class="copa-area-panel" data-copa-panel="DISPONIBLE">
@@ -384,6 +386,33 @@
                   <div class="form-actions"><button class="btn secondary" type="submit">Borrar solo Vocalías</button></div>
                 </form>
               </details>
+            </div>
+
+            <div class="copa-area-panel" data-copa-panel="INSCRIPCIONES" hidden>
+              <h3>Inscripciones y carnets</h3>
+              <p class="small-text muted">Cada inscripción cuesta $25 y cada carnet $0,50 por jugador. Los estados anteriores provienen de tu hoja; como no consta su forma de pago, no se inventan importes en efectivo ni transferencia. Esta caja es independiente de las otras actividades.</p>
+              <div id="copa-inscripciones-resumen" class="copa-area-summary" role="status"></div>
+              <div class="form-grid copa-inscripciones-filtros">
+                <div class="field"><label for="copa-inscripciones-buscar">Buscar equipo</label><input id="copa-inscripciones-buscar" type="search" placeholder="Selección o nombre del equipo" autocomplete="off" /></div>
+                <div class="field"><label for="copa-inscripciones-filtro">Mostrar</label><select id="copa-inscripciones-filtro"><option value="PENDIENTES">Con pagos pendientes</option><option value="TODOS">Todos los equipos</option><option value="COMPLETOS">Pagados completos</option></select></div>
+              </div>
+              <p id="copa-inscripciones-filtrado" class="small-text muted" role="status"></p>
+              <div id="copa-inscripciones-equipos" class="copa-inscripciones-grid"></div>
+              <form id="copa-inscripciones-pago-form" class="panel" method="post">
+                <h4>Registrar un cobro</h4>
+                <p id="copa-inscripciones-pago-aviso" class="small-text muted" role="status">Selecciona un equipo y un concepto para ver cuánto falta.</p>
+                <div class="form-grid">
+                  <div class="field"><label for="copa-inscripciones-fecha">Fecha de cobro</label><input id="copa-inscripciones-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="copa-inscripciones-equipo">Equipo</label><select id="copa-inscripciones-equipo" name="equipo" required></select></div>
+                  <div class="field"><label for="copa-inscripciones-concepto">Concepto</label><select id="copa-inscripciones-concepto" name="concepto" required><option value="INSCRIPCION">Inscripción del equipo</option><option value="CARNETS">Carnets de jugadores</option></select></div>
+                  <div class="field"><label for="copa-inscripciones-efectivo">Recibido en efectivo (USD)</label><input id="copa-inscripciones-efectivo" name="efectivo" type="number" min="0" step="0.01" value="0" inputmode="decimal" required /></div>
+                  <div class="field"><label for="copa-inscripciones-transferencia">Recibido por transferencia (USD)</label><input id="copa-inscripciones-transferencia" name="transferencia" type="number" min="0" step="0.01" value="0" inputmode="decimal" required /></div>
+                  <div class="field"><label for="copa-inscripciones-total">Total a registrar</label><input id="copa-inscripciones-total" type="text" value="$0,00" readonly /></div>
+                </div>
+                <div class="form-actions"><button class="btn" type="submit">Guardar cobro</button></div>
+              </form>
+              <h4>Historial de cobros registrados en la página</h4>
+              <div id="copa-inscripciones-historial" class="copa-ledger-scroll"></div>
             </div>
 
             <div class="copa-area-records">
