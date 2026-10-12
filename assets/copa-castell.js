@@ -258,10 +258,13 @@
       const card = element('article');
       card.className = `copa-format-cup copa-format-${cup.toLowerCase()}`;
       card.append(element('h4', `Copa ${cup === 'ORO' ? 'Oro' : 'Plata'}`));
+      card.append(element('p', cup === 'ORO'
+        ? 'Clasifican los puestos 1.º y 2.º de los grupos A y B.'
+        : 'Clasifican los puestos 3.º y 4.º de los grupos A y B.'));
       const qualified = confirmed ? format.qualified[cup] : [];
       card.append(element('p', qualified.length
         ? `Clasificados: ${qualified.join(' · ')}`
-        : 'Clasificados por definir después de jugar la nueva fase.'));
+        : 'Equipos por definir después de jugar la nueva fase.'));
       cupsHost.append(card);
     }
   };
