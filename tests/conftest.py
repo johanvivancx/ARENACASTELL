@@ -37,6 +37,7 @@ def database_url():
         conn.execute((ROOT/'sql/migrations/009_resultados_copa.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/018_estados_partidos.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/019_programacion_copa.sql').read_text(encoding='utf8'))
+        conn.execute((ROOT/'sql/migrations/024_formato_copas.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/010_movimientos_copa.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/011_vocalias_bar_deudas.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/023_anular_fiados_bar.sql').read_text(encoding='utf8'))

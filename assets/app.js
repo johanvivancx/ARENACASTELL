@@ -1031,10 +1031,34 @@ async function initCopaResults() {
   let schedule = await api("/admin/copa-fixtures");
   const scheduleForm = $("#copa-schedule-form");
   const countries = Object.keys(schedule.players).sort((a, b) => a.localeCompare(b, "es"));
-  const teamOptions = '<option value="">Selecciona una selección</option>' + countries
-    .map((country) => `<option value="${esc(country)}">${esc(country)}</option>`).join("");
-  $("#copa-schedule-home").innerHTML = teamOptions;
-  $("#copa-schedule-away").innerHTML = teamOptions;
+  const stageSelect = $("#copa-schedule-stage");
+  const scheduleTeams = (stage) => {
+    if (stage === "FASE1") return countries;
+    if (stage === "ORO" || stage === "PLATA") return schedule.format?.qualified?.[stage] || [];
+    return schedule.format?.groups?.[stage === "BRONCE" ? "BRONCE" : stage.slice(-1)]?.teams || [];
+  };
+  const updateScheduleTeams = () => {
+    const stage = stageSelect.value;
+    const previous = [$("#copa-schedule-home").value, $("#copa-schedule-away").value];
+    const teams = scheduleTeams(stage);
+    const options = '<option value="">Selecciona una selección</option>' + teams
+      .map((country) => `<option value="${esc(country)}">${esc(country)}</option>`).join("");
+    $("#copa-schedule-home").innerHTML = options;
+    $("#copa-schedule-away").innerHTML = options;
+    if (teams.includes(previous[0])) $("#copa-schedule-home").value = previous[0];
+    if (teams.includes(previous[1])) $("#copa-schedule-away").value = previous[1];
+    const hints = {
+      GRUPO_A: "Grupo A: 4 equipos, todos contra todos en 3 fechas. Noruega inicia con 2 puntos de bonificación.",
+      GRUPO_B: "Grupo B: 5 equipos y 4 jornadas. Programa solo los cruces confirmados; Francia inicia con 2 puntos de bonificación.",
+      BRONCE: "Bronce: estos equipos están identificados, pero programa los cruces solo cuando la organización los confirme.",
+      ORO: "Oro: los equipos estarán disponibles después de finalizar las tablas de ambos grupos.",
+      PLATA: "Plata: los equipos estarán disponibles después de finalizar las tablas de ambos grupos.",
+      FASE1: "Usa Primera fase únicamente para un encuentro histórico reprogramado."
+    };
+    $("#copa-schedule-hint").textContent = hints[stage];
+  };
+  stageSelect.addEventListener("change", updateScheduleTeams);
+  updateScheduleTeams();
   $("#copa-schedule-round").value = String(Math.min(30, Math.max(7, ...schedule.fixtures.map((f) => f.round)) + 1));
   $("#copa-schedule-date").value = catalog.hoy;
   const fixtureSelect = $("#copa-fixture");
@@ -1098,7 +1122,7 @@ async function initCopaResults() {
     $("#copa-active-count").textContent = `${active.length} partido${active.length === 1 ? "" : "s"} por terminar. Los finalizados se conservan en resultados y pueden verse aquí para correcciones.`;
     fixtureSelect.innerHTML = shown
       .slice().sort((a, b) => Number(b.result?.status === "EN_JUEGO") - Number(a.result?.status === "EN_JUEGO") || `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
-      .map((m) => `<option value="${esc(m.id)}">${m.result?.status === "EN_JUEGO" ? "● EN JUEGO · " : m.result?.status === "FINALIZADO" ? "FINALIZADO · " : "PROGRAMADO · "}${esc(m.date)} · ${esc(m.time)} · ${esc(m.home)} vs. ${esc(m.away)}${m.result ? ` · ${m.result.homeGoals}–${m.result.awayGoals}` : ""}</option>`)
+      .map((m) => `<option value="${esc(m.id)}">${m.result?.status === "EN_JUEGO" ? "● EN JUEGO · " : m.result?.status === "FINALIZADO" ? "FINALIZADO · " : "PROGRAMADO · "}${esc(m.stage || "FASE1")} · ${esc(m.date)} · ${esc(m.time)} · ${esc(m.home)} vs. ${esc(m.away)}${m.result ? ` · ${m.result.homeGoals}–${m.result.awayGoals}` : ""}</option>`)
       .join("");
     if (selected && shown.some((m) => m.id === selected)) fixtureSelect.value = selected;
     form.hidden = !shown.length;
@@ -1112,6 +1136,7 @@ async function initCopaResults() {
     try {
       const selected = fixtureSelect.value;
       schedule = await api("/admin/copa-fixtures");
+      updateScheduleTeams();
       fillSchedule(selected);
       showMessage("Partidos actualizados.", "success");
     } catch (error) { showMessage(error.message); }
@@ -1119,11 +1144,14 @@ async function initCopaResults() {
   });
   bindForm("#copa-schedule-form", async (data) => {
     if (data.home === data.away) throw new Error("Selecciona dos selecciones distintas.");
-    if (!confirm(`¿Programar ${data.home} vs. ${data.away} para la fecha ${data.round} el ${data.date} a las ${data.time}?`)) return;
+    if (!confirm(`¿Programar ${data.home} vs. ${data.away} en ${data.stage} para la fecha ${data.round} el ${data.date} a las ${data.time}?`)) return;
     const created = await api("/admin/copa-fixtures", data);
     schedule = await api("/admin/copa-fixtures");
+    updateScheduleTeams();
     fillSchedule(created.fixture_id);
     scheduleForm.reset();
+    stageSelect.value = data.stage;
+    updateScheduleTeams();
     $("#copa-schedule-round").value = data.round;
     $("#copa-schedule-date").value = data.date;
     $("#copa-schedule-details").open = false;
@@ -1161,6 +1189,7 @@ async function initCopaResults() {
     if (!confirm(action)) return;
     const result = await api("/admin/copa-results", {...data, goals});
     schedule = await api("/admin/copa-fixtures");
+    updateScheduleTeams();
     fillSchedule(fixture.id);
     document.dispatchEvent(new Event("copa-results-updated"));
     showMessage(result.message, "success");

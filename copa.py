@@ -68,15 +68,50 @@ def catalogo():
     return fixtures, players
 
 
+ETAPAS = {"FASE1", "GRUPO_A", "GRUPO_B", "BRONCE", "ORO", "PLATA"}
+PARTIDOS_GRUPO = {"A": 6, "B": 8}
+
+
+def formato_actual(matches):
+    """La nueva fase empieza en cero; solo sus finales alimentan sus tablas."""
+    rules = base()["format"]
+    groups = {}
+    for code in ("A", "B", "BRONCE"):
+        stage = "BRONCE" if code == "BRONCE" else f"GRUPO_{code}"
+        games = [m for m in matches if m.get("stage") == stage]
+        final = [m for m in games if m.get("status") in ("final", "finalizado")]
+        bonus = rules["bonuses"] if code != "BRONCE" else {}
+        rows = calcular_posiciones(final, {code: [[team] for team in rules["groups"][code]]}, bonus)[code]
+        needed = PARTIDOS_GRUPO.get(code)
+        complete = bool(needed and len(games) >= needed and len(final) == len(games))
+        groups[code] = {"teams": rules["groups"][code], "standings": rows,
+                        "finished": len(final), "scheduled": len(games), "complete": complete}
+    qualified = {"ORO": [], "PLATA": []}
+    def unresolved_boundary(rows, left, right):
+        # Un empate deportivo completo no se decide por orden alfabético.
+        return all(rows[left][index] == rows[right][index] for index in (1, 8, 6, 7))
+    ties = (unresolved_boundary(groups["A"]["standings"], 1, 2)
+            or unresolved_boundary(groups["B"]["standings"], 1, 2)
+            or unresolved_boundary(groups["B"]["standings"], 3, 4))
+    if groups["A"]["complete"] and groups["B"]["complete"] and not ties:
+        for cup, positions in rules["qualification"].items():
+            qualified[cup] = [groups[code]["standings"][position - 1][0]
+                              for code in ("A", "B") for position in positions]
+    return {"groups": groups, "qualified": qualified,
+            "semifinalistsConfirmed": bool(qualified["ORO"] and qualified["PLATA"]),
+            "tiePendingReview": bool(ties and groups["A"]["complete"] and groups["B"]["complete"]),
+            "expectedMatches": PARTIDOS_GRUPO}
+
+
 def partidos(conn):
     """Une los partidos históricos programados con los añadidos desde administración."""
     fixtures = dict(catalogo()[0])
     for row in conn.execute(
-        """SELECT id,fecha,local,visitante,dia,hora
+        """SELECT id,fecha,etapa,local,visitante,dia,hora
            FROM copa_partidos_programados ORDER BY dia,hora,id"""
     ).fetchall():
         key = f'admin:{row["id"]}'
-        fixtures[key] = {"id": key, "round": row["fecha"], "home": row["local"],
+        fixtures[key] = {"id": key, "round": row["fecha"], "stage": row["etapa"], "home": row["local"],
                          "away": row["visitante"], "date": row["dia"].isoformat(),
                          "time": row["hora"].strftime("%H:%M"), "status": "scheduled"}
     return fixtures
@@ -86,9 +121,23 @@ def programar_partido(conn, admin_uid, data):
     exigir_administrador(conn, admin_uid)
     round_number = numero(data.get("round"), "Fecha del torneo", 7, 30)
     home, away = str(data.get("home", "")), str(data.get("away", ""))
+    stage = str(data.get("stage", "FASE1"))
+    if stage not in ETAPAS:
+        raise ErrorValidacion("Selecciona una etapa válida de la Copa.")
     known = catalogo()[1]
     if home not in known or away not in known or home == away:
         raise ErrorValidacion("Selecciona dos selecciones distintas de la Copa Castell.")
+    pools = base()["format"]["groups"]
+    if stage in {"GRUPO_A", "GRUPO_B", "BRONCE"}:
+        pool = pools["BRONCE" if stage == "BRONCE" else stage[-1]]
+        if home not in pool or away not in pool:
+            raise ErrorValidacion("Los dos equipos deben pertenecer al grupo de la etapa seleccionada.")
+    if stage in {"ORO", "PLATA"}:
+        public = estado_publico(conn)
+        if not public["format"]["semifinalistsConfirmed"]:
+            raise ErrorValidacion("Termina primero las dos tablas de la nueva fase antes de programar finales.")
+        if home not in public["format"]["qualified"][stage] or away not in public["format"]["qualified"][stage]:
+            raise ErrorValidacion("Estos equipos no están clasificados para la copa seleccionada.")
     raw_date, raw_time = str(data.get("date", "")), str(data.get("time", ""))
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw_date) or not re.fullmatch(r"\d{2}:\d{2}", raw_time):
         raise ErrorValidacion("Indica el día y la hora del partido.")
@@ -96,19 +145,21 @@ def programar_partido(conn, admin_uid, data):
         day, start = date.fromisoformat(raw_date), time.fromisoformat(raw_time)
     except ValueError:
         raise ErrorValidacion("La fecha u hora del partido no es válida.") from None
-    if any(f["round"] == round_number and {f["home"], f["away"]} == {home, away}
+    if any({f["home"], f["away"]} == {home, away} and
+           (f["round"] == round_number or
+            (stage in {"GRUPO_A", "GRUPO_B"} and f.get("stage") == stage))
            for f in partidos(conn).values()):
         raise ErrorValidacion("Ese encuentro ya está programado en la fecha seleccionada.")
     created = conn.execute(
-        """INSERT INTO copa_partidos_programados(fecha,local,visitante,dia,hora,creado_por)
-           VALUES(%s,%s,%s,%s,%s,%s)
+        """INSERT INTO copa_partidos_programados(fecha,etapa,local,visitante,dia,hora,creado_por)
+           VALUES(%s,%s,%s,%s,%s,%s,%s)
            ON CONFLICT (fecha,local,visitante) DO NOTHING RETURNING id""",
-        (round_number, home, away, day, start, admin_uid),
+        (round_number, stage, home, away, day, start, admin_uid),
     ).fetchone()
     if not created:
         raise ErrorValidacion("Ese partido ya fue programado.")
     return {"fixture_id": f'admin:{created["id"]}',
-            "message": f'Partido programado para la fecha {round_number}: {home}–{away}.'}
+            "message": f'Partido de {stage} programado para la fecha {round_number}: {home}–{away}.'}
 
 
 def _resultados(conn):
@@ -199,7 +250,7 @@ def guardar_jugador_del_partido(conn, admin_uid, data):
     return {"message": f'Jugador del partido publicado: {player["name"]} · {country}.'}
 
 
-def calcular_posiciones(matches, groups):
+def calcular_posiciones(matches, groups, bonuses=None):
     """Recalcula desde cero; no arrastra puntos de tablas guardadas anteriormente."""
     standings = {
         group: [[row[0], 0, 0, 0, 0, 0, 0, 0, 0, 0] for row in rows]
@@ -214,7 +265,9 @@ def calcular_posiciones(matches, groups):
             continue
         for country, scored, received in ((match["home"], home, away),
                                           (match["away"], away, home)):
-            row = lookup[country]
+            row = lookup.get(country)
+            if row is None:
+                continue
             row[2] += 1
             row[3] += scored > received
             row[4] += scored == received
@@ -223,7 +276,7 @@ def calcular_posiciones(matches, groups):
             row[7] += received
     for rows in standings.values():
         for row in rows:
-            row[1] = row[3] * 3 + row[4]
+            row[1] = row[3] * 3 + row[4] + (bonuses or {}).get(row[0], 0)
             row[8] = row[6] - row[7]
         # Nombre solo estabiliza la presentación; no es un desempate deportivo.
         rows.sort(key=lambda row: (-row[1], -row[8], -row[6], _normalizar(row[0])))
@@ -245,6 +298,8 @@ def estado_publico(conn):
     for key, fixture in fixtures.items():
         if not any(m.get("id") == key for m in matches):
             matches.append(deepcopy(fixture))
+    for match in matches:
+        match.setdefault("stage", "FASE1")
     scorers = deepcopy(data["scorers"])
     added_scorers = {}
     pending = 0
@@ -271,7 +326,8 @@ def estado_publico(conn):
                     added_scorers[key] = {"name": goal["jugador_nombre"], "number": goal["dorsal"],
                                           "country": goal["equipo"], "goals": 0}
                 added_scorers[key]["goals"] += goal["goles"]
-    standings = calcular_posiciones(matches, data["standings"])
+    standings = calcular_posiciones([m for m in matches if m["stage"] == "FASE1"], data["standings"])
+    current_format = formato_actual(matches)
     scorers.extend(added_scorers.values())
     scorers.sort(key=lambda row: -row["goals"])
     round_seven = [f for f in fixtures.values() if f["round"] == 7]
@@ -291,6 +347,7 @@ def estado_publico(conn):
     else:
         partial = finished_postponed < len(postponed)
         note = ("Alemania–Venezuela de la fecha 6 en juego" if live_postponed else data["roundNote"]) if partial else "Fecha 6 completa"
+    first_phase_round, first_phase_note = through_round, note
     later = [f for f in fixtures.values() if f["round"] > 7 and
              by_id.get(f["id"], {}).get("estado") in {"EN_JUEGO", "FINALIZADO"}]
     if later:
@@ -302,8 +359,9 @@ def estado_publico(conn):
         note = f"Fecha {through_round}: {finished} de {len(current)} partidos finalizados"
         if live:
             note += f"; {live} en juego"
-    return {"matches": matches, "standings": standings, "scorers": scorers,
+    return {"matches": matches, "standings": standings, "format": current_format, "scorers": scorers,
             "mvps": jugadores_del_partido(conn),
+            "firstPhaseRound": first_phase_round, "firstPhaseNote": first_phase_note,
             "throughRound": through_round, "partialRound": partial, "roundNote": note,
             "goleadoresPendientes": pending, "updatedAt": max((r["actualizado_en"] for r in results), default=None)}
 
@@ -327,7 +385,15 @@ def panel_admin(conn, admin_uid):
             "registrado_por": authors.get(key),
             "goals": [dict(row) for row in goals[key]],
         } if result else None})
-    return {"fixtures": schedule, "players": players, "mvps": jugadores_del_partido(conn)}
+    format_matches = [
+        {**fixture, "status": ("final" if fixture["result"]["status"] == "FINALIZADO"
+                               else "live") if fixture["result"] else "scheduled",
+         "homeGoals": fixture["result"]["homeGoals"] if fixture["result"] else None,
+         "awayGoals": fixture["result"]["awayGoals"] if fixture["result"] else None}
+        for fixture in schedule
+    ]
+    return {"fixtures": schedule, "players": players, "mvps": jugadores_del_partido(conn),
+            "format": formato_actual(format_matches)}
 
 
 def guardar_resultado(conn, admin_uid, data):

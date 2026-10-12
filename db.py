@@ -34,6 +34,7 @@ def preparar_resultados_copa():
         conn.execute((ROOT / "sql/migrations/009_resultados_copa.sql").read_text(encoding="utf8"))
         conn.execute((ROOT / "sql/migrations/018_estados_partidos.sql").read_text(encoding="utf8"))
         conn.execute((ROOT / "sql/migrations/019_programacion_copa.sql").read_text(encoding="utf8"))
+        conn.execute((ROOT / "sql/migrations/024_formato_copas.sql").read_text(encoding="utf8"))
         conn.execute((ROOT / "sql/migrations/015_copa_mvp.sql").read_text(encoding="utf8"))
 
 

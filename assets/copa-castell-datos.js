@@ -1,4 +1,13 @@
 window.CopaCastellData = {
+  "format": {
+    "groups": {
+      "A": ["Noruega", "Cabo Verde", "Portugal", "Japón"],
+      "B": ["Francia", "Ecuador", "Egipto", "Colombia", "Marruecos"],
+      "BRONCE": ["Venezuela", "Alemania", "Uruguay", "España", "Argentina", "Brasil"]
+    },
+    "bonuses": {"Noruega": 2, "Francia": 2},
+    "qualification": {"ORO": [1, 2], "PLATA": [3, 4]}
+  },
   "throughRound": 6,
   "mvps": [
     {"fixture_id":"7:Argentina:Japón","round":7,"country":"Japón","player_id":"s:34","name":"Sebastián Taipe","number":"13","photo_url":"/assets/mvp-fecha7/japon-13.jpeg"},

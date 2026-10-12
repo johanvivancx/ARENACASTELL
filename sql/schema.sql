@@ -299,6 +299,7 @@ CREATE INDEX idx_gastos_fecha ON gastos(fecha_gasto DESC,id DESC);
 CREATE TABLE copa_partidos_programados (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   fecha smallint NOT NULL CHECK (fecha BETWEEN 1 AND 30),
+  etapa varchar(12) NOT NULL DEFAULT 'FASE1' CHECK (etapa IN ('FASE1','GRUPO_A','GRUPO_B','BRONCE','ORO','PLATA')),
   local varchar(50) NOT NULL,
   visitante varchar(50) NOT NULL CHECK (visitante <> local),
   dia date NOT NULL,

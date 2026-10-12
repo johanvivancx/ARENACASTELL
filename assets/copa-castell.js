@@ -14,6 +14,8 @@
     ? name.toLocaleLowerCase('es').replace(/(^|\s)(\p{L})/gu, (_, space, letter) => space + letter.toLocaleUpperCase('es'))
     : name;
   const flags = {'Argentina':'ar','Brasil':'br','Cabo Verde':'cv','Colombia':'co','Ecuador':'ec','Egipto':'eg','Francia':'fr','Alemania':'de','Japón':'jp','Marruecos':'ma','Noruega':'no','Portugal':'pt','España':'es','Uruguay':'uy','Venezuela':'ve'};
+  const stageLabels = {FASE1: 'Primera fase', GRUPO_A: 'Grupo A · nueva fase',
+    GRUPO_B: 'Grupo B · nueva fase', BRONCE: 'Copa Bronce', ORO: 'Copa Oro', PLATA: 'Copa Plata'};
   const flag = country => {
     const image = element('img');
     image.src = `../assets/banderas/${flags[country]}.png`;
@@ -76,6 +78,7 @@
           if (country === home) matchup.append(element('span', match?.status === 'live' ? `${match.homeGoals} – ${match.awayGoals}` : 'vs'));
         }
         game.append(time, matchup);
+        if (match.stage && match.stage !== 'FASE1') game.append(element('small', stageLabels[match.stage] || match.stage));
         if (match?.status === 'live') game.append(element('strong', 'EN JUEGO'));
         games.append(game);
       }
@@ -120,7 +123,7 @@
       const pending = match.status === 'rescheduled' || match.status === 'scheduled';
       const live = match.status === 'live';
       if (live) card.classList.add('is-live');
-      card.append(element('span', `FECHA ${match.round} · ${live ? 'EN JUEGO' : pending ? 'PENDIENTE' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
+      card.append(element('span', `FECHA ${match.round} · ${stageLabels[match.stage || 'FASE1']} · ${live ? 'EN JUEGO' : pending ? 'PENDIENTE' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
       const score = element('p', pending ? 'Pendiente de jugar' : suspended ? 'Esperando decisión' : `${match.homeGoals} – ${match.awayGoals}`);
       score.className = suspended || pending ? 'mundial-match-status' : 'mundial-score';
       card.append(score);
@@ -144,7 +147,7 @@
     wrapper.setAttribute('role', 'region');
     wrapper.setAttribute('aria-label', `${group}: tabla de posiciones`);
     const table = element('table');
-    table.append(element('caption', `${group} · Hasta la fecha ${data.throughRound}${data.roundNote ? ` · ${data.roundNote}` : data.partialRound ? " (parcial)" : ""}`));
+    table.append(element('caption', `${group} · Primera fase hasta fecha ${data.firstPhaseRound || data.throughRound}${data.firstPhaseNote ? ` · ${data.firstPhaseNote}` : ""}`));
     const head = element('thead');
     const titles = element('tr');
     ['#', 'Selección / equipo', 'Pts', 'PJ', 'DG', 'PG', 'PE', 'PP', 'GF', 'GC'].forEach((label, index) => {
@@ -180,6 +183,86 @@
     table.append(body);
     wrapper.append(table);
       groups.append(wrapper);
+    }
+  };
+  const renderFormat = () => {
+    const format = data.format;
+    if (!format?.groups) return;
+    const labels = {A: 'Grupo A', B: 'Grupo B', BRONCE: 'Copa Bronce'};
+    const codes = {A: ['A1', 'B2', 'A3', 'B4'],
+      B: ['B1', 'A2', 'B3', 'A4', 'B5'],
+      BRONCE: ['A5', 'A6', 'A7', 'B6', 'B7', 'B8']};
+    const groupHost = document.getElementById('copa-format-groups');
+    const tablesHost = document.getElementById('copa-format-standings');
+    const cupsHost = document.getElementById('copa-format-cups');
+    if (!groupHost || !tablesHost || !cupsHost) return;
+    groupHost.replaceChildren();
+    tablesHost.replaceChildren();
+    cupsHost.replaceChildren();
+    for (const code of ['A', 'B', 'BRONCE']) {
+      const group = format.groups[code];
+      const countries = Array.isArray(group) ? group : group.teams;
+      const card = element('article');
+      card.className = `copa-format-group copa-format-${code.toLowerCase()}`;
+      card.append(element('h4', labels[code]));
+      const list = element('ol');
+      countries.forEach((country, index) => {
+        const item = element('li');
+        item.append(element('b', codes[code][index]), flag(country));
+        const name = element('span');
+        name.append(element('strong', country), element('small', teams.get(country)?.club || ''));
+        item.append(name);
+        list.append(item);
+      });
+      card.append(list);
+      card.append(element('p', code === 'A' ? 'Todos contra todos · 3 fechas.'
+        : code === 'B' ? '4 jornadas · cruces según calendario.'
+          : 'Cruces por confirmar.'));
+      groupHost.append(card);
+      if (!Array.isArray(group) && group.standings && group.finished) {
+        const wrap = element('div');
+        wrap.className = 'table-wrap copa-format-table';
+        wrap.tabIndex = 0;
+        wrap.setAttribute('role', 'region');
+        wrap.setAttribute('aria-label', `Tabla de ${labels[code]}`);
+        const table = element('table');
+        table.append(element('caption', `${labels[code]} · ${group.finished} de ${group.scheduled} partidos finalizados${group.complete ? ' · fase completa' : ' · provisional'}`));
+        const thead = element('thead');
+        const headers = element('tr');
+        ['Puesto', 'Equipo', 'Pts', 'PJ', 'DG'].forEach(label => { const th = element('th', label); th.scope = 'col'; headers.append(th); });
+        thead.append(headers);
+        table.append(thead);
+        const tbody = element('tbody');
+        group.standings.forEach(row => {
+          const tr = element('tr');
+          tr.append(element('td', row[9]));
+          const identity = element('td');
+          identity.append(flag(row[0]), element('span', `${row[0]} · ${teams.get(row[0])?.club || ''}`));
+          tr.append(identity, element('td', row[1]), element('td', row[2]),
+            element('td', row[8] > 0 ? `+${row[8]}` : row[8]));
+          tbody.append(tr);
+        });
+        table.append(tbody);
+        wrap.append(table);
+        tablesHost.append(wrap);
+      }
+    }
+    const confirmed = format.semifinalistsConfirmed;
+    const status = document.getElementById('copa-format-status');
+    if (status) status.textContent = confirmed
+      ? 'La nueva fase terminó: los clasificados para Oro y Plata ya se pueden anunciar.'
+      : format.tiePendingReview
+        ? 'La nueva fase terminó con un empate que requiere revisión de la organización antes de anunciar semifinalistas.'
+        : 'Tablas provisionales: solo suman partidos finalizados. Los semifinalistas de Oro y Plata aún no están definidos.';
+    for (const cup of ['ORO', 'PLATA']) {
+      const card = element('article');
+      card.className = `copa-format-cup copa-format-${cup.toLowerCase()}`;
+      card.append(element('h4', `Copa ${cup === 'ORO' ? 'Oro' : 'Plata'}`));
+      const qualified = confirmed ? format.qualified[cup] : [];
+      card.append(element('p', qualified.length
+        ? `Clasificados: ${qualified.join(' · ')}`
+        : 'Clasificados por definir después de jugar la nueva fase.'));
+      cupsHost.append(card);
     }
   };
   const scorers = () => {
@@ -293,6 +376,7 @@
   round.addEventListener('change', () => { round.dataset.touched = 'true'; });
   filter.addEventListener('change', scorers);
   renderStandings();
+  renderFormat();
   matches();
   scorers();
   let refreshing = false;
@@ -310,13 +394,14 @@
           round.append(new Option(`Fecha ${value}`, String(value)));
       }
       if (!round.dataset.touched) round.value = String(Math.max(...rounds));
-      document.getElementById('posiciones-title').textContent = `Tabla de posiciones · Fecha ${live.throughRound}`;
-      document.getElementById('posiciones-actualizacion').textContent = `Posiciones con partidos finalizados: ${live.roundNote}. Los marcadores en juego todavía no suman puntos.`;
+      document.getElementById('posiciones-title').textContent = `Primera fase · Fecha ${live.firstPhaseRound}`;
+      document.getElementById('posiciones-actualizacion').textContent = `Tabla de la primera fase: ${live.firstPhaseNote}. La nueva fase tiene tablas separadas en «Formato y copas».`;
       document.getElementById('goleadores-actualizacion').textContent = live.goleadoresPendientes
         ? `Top 20 actualizado. Hay ${live.goleadoresPendientes} goles de partidos publicados aún sin atribuir a jugadores.`
         : 'Top 20 actualizado con los goleadores registrados de todos los partidos publicados.';
       document.getElementById('goleadores-caption').textContent = `Top 20 de goleadores · fecha ${live.throughRound}`;
       renderStandings();
+      renderFormat();
       matches();
       renderUpcoming();
       scorers();
