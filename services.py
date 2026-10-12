@@ -671,6 +671,12 @@ def registrar_actividad_admin(conn, uid, path, result):
             accion = "Cobró una deuda del bar"
         elif re.fullmatch(r"/api/admin/expenses/\d+/void", path):
             accion = "Anuló un gasto"
+        elif re.fullmatch(r"/api/admin/school/students/(manual|web)/\d+/retire", path):
+            accion = "Retiró un alumno de Súper Chaca"
+        elif re.fullmatch(r"/api/admin/school/students/(manual|web)/\d+/restore", path):
+            accion = "Reactivó un alumno de Súper Chaca"
+        elif re.fullmatch(r"/api/admin/school/students/manual/\d+/void-test", path):
+            accion = "Anuló un registro de prueba de Súper Chaca"
         elif re.fullmatch(r"/api/admin/orders/[^/]+/approve-transfer", path):
             accion = "Aprobó una transferencia"
         elif re.fullmatch(r"/api/admin/orders/[^/]+/reject-transfer", path):
@@ -814,7 +820,8 @@ def historial(conn, uid):
             (uid,),
         ).fetchall(),
         "escuela": conn.execute(
-            """SELECT sc.*,v.mes_actual_pagado,v.ultimo_periodo,v.cuotas_pagadas
+            """SELECT sc.*,CASE WHEN sc.retirado_en IS NOT NULL THEN 'RETIRADO' ELSE sc.estado END AS estado_visible,
+            v.mes_actual_pagado,v.ultimo_periodo,v.cuotas_pagadas
             FROM inscripciones_chaca sc JOIN ordenes o ON o.id=sc.orden_id
             JOIN vista_mensualidades_escuela v ON v.inscripcion_id=sc.id WHERE o.usuario_id=%s ORDER BY sc.id""",
             (uid,),
@@ -884,7 +891,7 @@ def renovar_escuela(conn, uid, inscription_id, data):
       WHERE sc.id=%s AND o.usuario_id=%s FOR UPDATE OF sc""",
         (numero(inscription_id, "Inscripción"), uid),
     ).fetchone()
-    if not inscription or inscription["estado"] != "ACTIVA":
+    if not inscription or inscription["estado"] != "ACTIVA" or inscription["retirado_en"] is not None:
         raise ErrorValidacion("Necesitas una inscripción activa para pagar otra mensualidad.")
     period = fecha(str(data.get("periodo", "")) + "-01")
     current = datetime.now(TZ).date().replace(day=1)
@@ -1081,7 +1088,8 @@ def reportes(conn, uid, data):
            admin.nombre AS registrado_por
            FROM pagos_chaca_manuales p JOIN alumnos_chaca_manuales a ON a.id=p.alumno_id
            JOIN usuarios admin ON admin.id=p.registrado_por
-           WHERE (p.pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s
+           WHERE p.anulado_en IS NULL
+             AND (p.pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s
            ORDER BY p.pagado_en DESC""", (start, end)
     ).fetchall()
     payments.extend({"pago_id": f"chaca-{p['id']}", "pagado_en": p["pagado_en"],
@@ -1099,7 +1107,8 @@ def reportes(conn, uid, data):
            GROUP BY o.tipo"""
     ).fetchall()
     school_manual_totals = conn.execute(
-        """SELECT tipo,coalesce(sum(monto),0) AS total FROM pagos_chaca_manuales GROUP BY tipo"""
+        """SELECT tipo,coalesce(sum(monto),0) AS total FROM pagos_chaca_manuales
+           WHERE anulado_en IS NULL GROUP BY tipo"""
     ).fetchall()
     manual_payments = conn.execute(
         """SELECT p.metodo,coalesce(sum(p.monto),0) AS total

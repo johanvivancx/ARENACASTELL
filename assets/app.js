@@ -805,7 +805,7 @@ async function loadHistory() {
     ? historyData.escuela
         .map(
           (sc) =>
-            `<article class="panel"><h3>${esc(sc.alumno)} · ${esc(sc.categoria)}</h3><p class="small-text muted">${esc(sc.estado)} · ${sc.cuotas_pagadas} mensualidades pagadas · Último período: ${esc(dates(sc.ultimo_periodo))}</p><span class="tag ${sc.mes_actual_pagado ? "good" : "gold"}">${sc.mes_actual_pagado ? "Mes actual pagado" : "Mes actual pendiente"}</span>${sc.estado === "ACTIVA" ? `<form method="post" data-renew="${sc.id}"><div class="form-grid"><div class="field"><label for="period-${sc.id}">Período a pagar</label><input id="period-${sc.id}" name="periodo" type="month" value="${catalog.hoy.slice(0, 7)}" min="${sc.fecha_inscripcion.slice(0, 7)}" max="${nextMonth(catalog.hoy)}" required></div></div><div class="form-actions"><button type="submit" class="btn small">Pagar mensualidad · ${money(catalog.mensualidad || 30)}</button></div></form>` : '<p class="small-text muted">Completa el pago inicial desde tu actividad para activar la inscripción.</p>'}</article>`,
+            `<article class="panel"><h3>${esc(sc.alumno)} · ${esc(sc.categoria)}</h3><p class="small-text muted">${esc(sc.estado_visible || sc.estado)} · ${sc.cuotas_pagadas} mensualidades pagadas · Último período: ${esc(dates(sc.ultimo_periodo))}</p><span class="tag ${sc.mes_actual_pagado ? "good" : "gold"}">${sc.mes_actual_pagado ? "Mes actual pagado" : "Mes actual pendiente"}</span>${sc.estado_visible === "RETIRADO" ? '<p class="small-text muted">Alumno retirado. Sus pagos anteriores se conservan.</p>' : sc.estado === "ACTIVA" ? `<form method="post" data-renew="${sc.id}"><div class="form-grid"><div class="field"><label for="period-${sc.id}">Período a pagar</label><input id="period-${sc.id}" name="periodo" type="month" value="${catalog.hoy.slice(0, 7)}" min="${sc.fecha_inscripcion.slice(0, 7)}" max="${nextMonth(catalog.hoy)}" required></div></div><div class="form-actions"><button type="submit" class="btn small">Pagar mensualidad · ${money(catalog.mensualidad || 30)}</button></div></form>` : '<p class="small-text muted">Completa el pago inicial desde tu actividad para activar la inscripción.</p>'}</article>`,
         )
         .join("")
     : `<p class="muted small-text">Aún no tienes alumnos inscritos. <a href="${pageHref("informacion_super_chaca.html")}">Inscribir a un alumno</a>.</p>`;
@@ -1321,11 +1321,41 @@ async function loadSchoolAdmin() {
   const selector = $("#school-payment-student");
   const selected = selector.value;
   selector.innerHTML = '<option value="">Selecciona un alumno</option>' + schoolData.alumnos
-    .filter((student) => student.origen === "MANUAL")
+    .filter((student) => student.origen === "MANUAL" && student.estado === "ACTIVA")
     .sort((a, b) => a.alumno.localeCompare(b.alumno, "es"))
     .map((student) => `<option value="${esc(student.id.split(":")[1])}">${esc(student.alumno)} · ${esc(student.categoria)}</option>`).join("");
   if ([...selector.options].some((option) => option.value === selected)) selector.value = selected;
+  const manage = $("#school-manage-student");
+  const managed = manage.value;
+  manage.innerHTML = '<option value="">Selecciona un alumno</option>' + schoolData.alumnos
+    .slice().sort((a, b) => a.alumno.localeCompare(b.alumno, "es"))
+    .map((student) => `<option value="${esc(student.id)}">${esc(student.alumno)} · ${esc(student.categoria)} · ${esc(student.estado.replaceAll("_", " "))}</option>`).join("");
+  if ([...manage.options].some((option) => option.value === managed)) manage.value = managed;
   renderSchoolAdmin();
+  renderSchoolManagement();
+}
+
+function renderSchoolManagement() {
+  if (!schoolData) return;
+  const student = schoolData.alumnos.find((row) => row.id === $("#school-manage-student").value);
+  $("#school-void-test-form").hidden = true;
+  $("#school-void-test-form").reset();
+  $("#school-manage-status").textContent = student
+    ? `${student.alumno} · ${student.categoria} · ${student.estado.replaceAll("_", " ")}. ${student.origen === "MANUAL" ? "Registro manual" : "Inscripción web"}.`
+    : "Selecciona un alumno para consultar sus pagos o cambiar su estado.";
+  const payments = student?.historial_pagos || [];
+  $("#school-manage-history").innerHTML = student ? table(
+    ["Fecha", "Concepto", "Método", "Monto", "Estado"],
+    payments.map((payment) => [dates(payment.pagado_en),
+      payment.tipo === "INSCRIPCION" ? "Inscripción y primer mes" : `Mensualidad ${dates(payment.periodo)}`,
+      methods[payment.metodo] || payment.metodo, money(payment.monto),
+      payment.anulado_en ? "Anulado como prueba · fuera de ingresos" : "Conservado en ingresos"]),
+    `Historial de pagos de ${student.alumno}.`)
+    : "";
+  $("#school-retire").hidden = !student || ["RETIRADO", "PRUEBA_ANULADA"].includes(student.estado);
+  $("#school-restore").hidden = !student || student.estado !== "RETIRADO";
+  $("#school-void-toggle").hidden = !student || student.origen !== "MANUAL" ||
+    student.estado === "PRUEBA_ANULADA" || !session.usuario?.puede_crear_admins;
 }
 
 function renderSchoolAdmin() {
@@ -1333,7 +1363,10 @@ function renderSchoolAdmin() {
   const status = $("#school-filter-status").value;
   const category = $("#school-filter-category").value;
   const search = $("#school-filter-name").value.trim().toLocaleLowerCase("es");
+  const lifecycle = $("#school-filter-lifecycle").value;
   const rows = schoolData.alumnos.filter((student) =>
+    (lifecycle === "ACTIVOS" ? !["RETIRADO", "PRUEBA_ANULADA"].includes(student.estado)
+      : lifecycle === "RETIRADOS" ? student.estado === "RETIRADO" : student.estado === "PRUEBA_ANULADA") &&
     (status === "TODOS" || student.mes_pagado === (status === "PAGADO")) &&
     (category === "TODAS" || student.categoria === category) &&
     student.alumno.toLocaleLowerCase("es").includes(search));
@@ -1407,6 +1440,48 @@ async function initSchoolAdmin() {
   });
   ["#school-filter-status", "#school-filter-category", "#school-filter-name"].forEach((selector) =>
     $(selector).addEventListener(selector.endsWith("name") ? "input" : "change", renderSchoolAdmin));
+  $("#school-filter-lifecycle").addEventListener("change", renderSchoolAdmin);
+  $("#school-manage-student").addEventListener("change", () => { voidPreview = null; renderSchoolManagement(); });
+  for (const [buttonId, action] of [["school-retire", "retire"], ["school-restore", "restore"]]) {
+    $("#" + buttonId).addEventListener("click", async () => {
+      const student = schoolData.alumnos.find((row) => row.id === $("#school-manage-student").value);
+      if (!student) return;
+      const message = action === "retire"
+        ? `¿Retirar a ${student.alumno} de la lista activa? Sus pagos seguirán registrados y contarán en las finanzas.`
+        : `¿Reactivar a ${student.alumno}? Sus pagos anteriores se conservarán.`;
+      if (!confirm(message)) return;
+      const button = $("#" + buttonId);
+      button.disabled = true;
+      try {
+        const result = await api(`/admin/school/students/${student.id}/${action}`, {});
+        await Promise.all([loadSchoolAdmin(), loadReports()]);
+        showMessage(result.message, "success");
+      } catch (error) { showMessage(error.message); }
+      finally { button.disabled = false; }
+    });
+  }
+  let voidPreview = null;
+  $("#school-void-toggle").addEventListener("click", async () => {
+    const student = schoolData.alumnos.find((row) => row.id === $("#school-manage-student").value);
+    if (!student || student.origen !== "MANUAL") return;
+    try {
+      voidPreview = await api(`/admin/school/students/manual/${student.id.split(":")[1]}/void-preview`);
+      $("#school-void-preview").textContent = `Solo para pruebas: se anularán ${voidPreview.cantidad} cobro(s) por ${money(voidPreview.total)} de ${voidPreview.alumno}. Dejarán de contar como ingresos; las filas quedarán auditadas.`;
+      $("#school-void-test-form").hidden = false;
+      $("#school-void-phrase").focus();
+    } catch (error) { showMessage(error.message); }
+  });
+  bindForm("#school-void-test-form", async (data) => {
+    const student = schoolData.alumnos.find((row) => row.id === $("#school-manage-student").value);
+    if (!student || !voidPreview) throw new Error("Actualiza la vista previa de la prueba.");
+    if (!confirm(`Última confirmación: ¿anular el registro de prueba de ${student.alumno} y excluir ${money(voidPreview.total)} de los ingresos?`)) return;
+    const result = await api(`/admin/school/students/manual/${student.id.split(":")[1]}/void-test`,
+      {...data, cantidad: Number(voidPreview.cantidad), total: voidPreview.total});
+    voidPreview = null;
+    $("#school-filter-lifecycle").value = "ACTIVOS";
+    await Promise.all([loadSchoolAdmin(), loadReports()]);
+    showMessage(result.message, "success");
+  });
   bindForm("#school-student-form", async (data) => {
     data.inscripcion_pagada = data.inscripcion_pagada === "SI";
     if (!confirm(`¿Registrar a ${data.alumno} en ${data.categoria}${data.inscripcion_pagada ? ` y confirmar ${money(data.monto_inscripcion)} recibidos` : " con la inscripción pendiente"}?`)) return;

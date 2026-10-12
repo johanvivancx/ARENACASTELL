@@ -18,10 +18,10 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-mvp7" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
-    <link rel="stylesheet" href="../assets/super-chaca.css?v=20261009-escuela-manual" />
+    <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261010-deudas-bar" defer></script>
-    <script src="../assets/app.js?v=20261011-mvp7" defer></script>
+    <script src="../assets/app.js?v=20261011-retiro-alumnos" defer></script>
   </head>
 
   <body data-page="admin">
@@ -594,7 +594,28 @@
               </div>
               <div class="form-actions"><button class="btn" type="submit">Guardar pago</button></div>
             </form>
+            <details class="panel school-manage-panel" id="school-manage-panel">
+              <summary>Gestionar un alumno o corregir una prueba</summary>
+              <p class="small-text muted"><strong>Retirar:</strong> sale de la lista activa y conserva todos sus pagos. <strong>Anular prueba:</strong> solo la cuenta propietaria puede excluir los cobros manuales de los totales; queda constancia de lo anulado.</p>
+              <div class="field"><label for="school-manage-student">Alumno</label><select id="school-manage-student"><option value="">Selecciona un alumno</option></select></div>
+              <p id="school-manage-status" class="small-text muted" role="status"></p>
+              <div id="school-manage-history"></div>
+              <div class="form-actions">
+                <button class="btn secondary" id="school-retire" type="button" hidden>Retirar alumno y conservar pagos</button>
+                <button class="btn secondary" id="school-restore" type="button" hidden>Reactivar alumno</button>
+                <button class="btn secondary" id="school-void-toggle" type="button" hidden>Anular registro de prueba</button>
+              </div>
+              <form id="school-void-test-form" method="post" hidden>
+                <p id="school-void-preview" class="small-text"></p>
+                <div class="form-grid">
+                  <div class="field"><label for="school-void-phrase">Escribe ANULAR PRUEBA</label><input id="school-void-phrase" name="confirmacion" type="text" autocomplete="off" required /></div>
+                  <div class="field"><label for="school-void-password">Tu contraseña de administrador</label><input id="school-void-password" name="password_actual" type="password" autocomplete="current-password" required /></div>
+                </div>
+                <div class="form-actions"><button class="btn" type="submit">Confirmar anulación de prueba</button></div>
+              </form>
+            </details>
             <div class="school-admin-filters" aria-label="Filtros de alumnos">
+              <div class="field"><label for="school-filter-lifecycle">Estado del alumno</label><select id="school-filter-lifecycle"><option value="ACTIVOS">Activos</option><option value="RETIRADOS">Retirados</option><option value="PRUEBAS">Pruebas anuladas</option></select></div>
               <div class="field"><label for="school-filter-month">Mes a consultar</label><input id="school-filter-month" type="month" /></div>
               <div class="field"><label for="school-filter-status">Estado de mensualidad</label><select id="school-filter-status"><option value="TODOS">Todos</option><option value="PAGADO">Pagó</option><option value="PENDIENTE">Pendiente</option></select></div>
               <div class="field"><label for="school-filter-category">Categoría</label><select id="school-filter-category"><option value="TODAS">Todas</option><option>Sub-6</option><option>Sub-8</option><option>Sub-10</option><option>Sub-12</option><option>Sub-14</option><option>Sub-16</option><option>Sub-18</option></select></div>

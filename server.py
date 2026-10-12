@@ -350,6 +350,15 @@ class Handler(SimpleHTTPRequestHandler):
             return escuela_admin.registrar_alumno(conn, uid, data)
         if path == "/api/admin/school/payments" and method == "POST":
             return escuela_admin.registrar_pago(conn, uid, data)
+        if match := re.fullmatch(r"/api/admin/school/students/(manual|web)/(\d+)/(retire|restore)", path):
+            if method == "POST":
+                return escuela_admin.cambiar_estado_alumno(conn, uid, match[1], match[2], match[3])
+        if match := re.fullmatch(r"/api/admin/school/students/manual/(\d+)/void-preview", path):
+            if method == "GET":
+                return escuela_admin.vista_previa_prueba(conn, uid, match[1])
+        if match := re.fullmatch(r"/api/admin/school/students/manual/(\d+)/void-test", path):
+            if method == "POST":
+                return escuela_admin.anular_prueba(conn, uid, match[1], data, self.client_ip())
         if path == "/api/admin/admins" and method == "POST":
             return s.crear_administrador(conn, uid, data, self.client_ip())
         if match := re.fullmatch(r"/api/admin/emails/(\d+)/queue-receipt", path):
