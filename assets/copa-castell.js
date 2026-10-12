@@ -25,7 +25,10 @@
   };
   const upcoming = data.upcoming;
   const upcomingContainer = document.getElementById('mundial-proxima-partidos');
-  if (upcoming && upcomingContainer) {
+  const renderUpcoming = () => {
+    if (!upcoming || !upcomingContainer) return;
+    upcomingContainer.replaceChildren();
+    let remaining = 0;
     const timeLabel = value => {
       const [hour, minute] = value.split(':').map(Number);
       return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour >= 12 ? 'p. m.' : 'a. m.'}`;
@@ -38,8 +41,12 @@
       const games = element('ol');
       games.className = 'mundial-upcoming-games';
       for (const [start, home, away] of day.matches) {
+        const match = data.matches.find(item => item.home === home && item.away === away && item.date === day.date);
+        if (match?.status === 'final') continue;
+        remaining++;
         const game = element('li');
         game.className = 'mundial-upcoming-game';
+        if (match?.status === 'live') game.classList.add('is-live');
         const time = element('time', timeLabel(start));
         time.dateTime = `${day.date}T${start}:00-05:00`;
         const matchup = element('div');
@@ -51,16 +58,21 @@
           names.append(element('strong', country), element('small', teams.get(country)?.club || ''));
           side.append(flag(country), names);
           matchup.append(side);
-          if (country === home) matchup.append(element('span', 'vs'));
+          if (country === home) matchup.append(element('span', match?.status === 'live' ? `${match.homeGoals} – ${match.awayGoals}` : 'vs'));
         }
         game.append(time, matchup);
+        if (match?.status === 'live') game.append(element('strong', 'EN JUEGO'));
         games.append(game);
       }
-      dayCard.append(games);
-      upcomingContainer.append(dayCard);
+      if (games.children.length) {
+        dayCard.append(games);
+        upcomingContainer.append(dayCard);
+      }
     }
+    if (!remaining) upcomingContainer.append(element('p', 'Todos los partidos de esta fecha finalizaron. Consulta sus marcadores en Resultados.'));
     const rest = document.getElementById('mundial-proxima-descanso');
-    if (rest && upcoming.bye) {
+    if (rest) rest.hidden = !remaining;
+    if (rest && upcoming.bye && !rest.children.length) {
       const byes = Array.isArray(upcoming.bye) ? upcoming.bye : [upcoming.bye];
       rest.append(element('strong', byes.length > 1 ? 'Descansan:' : 'Descansa:'));
       for (const country of byes) {
@@ -68,7 +80,8 @@
         rest.append(flag(country), element('span', `${country}${club ? ` (${club})` : ''}`));
       }
     }
-  }
+  };
+  renderUpcoming();
   const matches = () => {
     const container = document.getElementById('mundial-partidos');
     container.replaceChildren();
@@ -90,10 +103,13 @@
       }
       const suspended = match.status === 'suspended';
       const pending = match.status === 'rescheduled' || match.status === 'scheduled';
-      card.append(element('span', `FECHA ${match.round} · ${pending ? 'PENDIENTE' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
+      const live = match.status === 'live';
+      if (live) card.classList.add('is-live');
+      card.append(element('span', `FECHA ${match.round} · ${live ? 'EN JUEGO' : pending ? 'PENDIENTE' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
       const score = element('p', pending ? 'Pendiente de jugar' : suspended ? 'Esperando decisión' : `${match.homeGoals} – ${match.awayGoals}`);
       score.className = suspended || pending ? 'mundial-match-status' : 'mundial-score';
       card.append(score);
+      if (live && match.updatedAt) card.append(element('small', `Marcador actualizado a las ${new Date(match.updatedAt).toLocaleTimeString('es-EC', {timeZone: 'America/Guayaquil', hour: '2-digit', minute: '2-digit'})}`));
       if (match.goleadores_pendientes) card.append(element('small', `${match.goleadores_pendientes} goles por atribuir a jugadores`));
       if (match.date) {
         const [year, month, day] = match.date.split('-');
@@ -275,13 +291,14 @@
       Object.assign(data, live);
       if (live.throughRound === 7 && !round.dataset.touched) round.value = '7';
       document.getElementById('posiciones-title').textContent = `Tabla de posiciones · Fecha ${live.throughRound}`;
-      document.getElementById('posiciones-actualizacion').textContent = `Actualización en vivo: ${live.roundNote}. Puntos, diferencia de goles y goles a favor determinan el orden.`;
+      document.getElementById('posiciones-actualizacion').textContent = `Posiciones con partidos finalizados: ${live.roundNote}. Los marcadores en juego todavía no suman puntos.`;
       document.getElementById('goleadores-actualizacion').textContent = live.goleadoresPendientes
         ? `Top 20 actualizado. Hay ${live.goleadoresPendientes} goles de partidos publicados aún sin atribuir a jugadores.`
         : 'Top 20 actualizado con los goleadores registrados de todos los partidos publicados.';
       document.getElementById('goleadores-caption').textContent = `Top 20 de goleadores · fecha ${live.throughRound}`;
       renderStandings();
       matches();
+      renderUpcoming();
       scorers();
       renderAwards();
     } catch {
@@ -291,6 +308,6 @@
     }
   };
   refresh();
-  setInterval(() => { if (!document.hidden) refresh(); }, 30000);
+  setInterval(() => { if (!document.hidden) refresh(); }, 15000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 })();

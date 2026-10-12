@@ -286,15 +286,23 @@ def test_http_admin_publica_resultado_copa_y_publico_lo_ve(conn):
         status,fixtures,_=request('/api/admin/copa-fixtures')
         assert status==200
         fixture=next(m for m in fixtures['fixtures'] if m['home']=='Argentina' and m['away']=='Japón')
-        payload={'fixture_id':fixture['id'],'homeGoals':1,'awayGoals':2,'revision':0,'goals':[]}
+        payload={'fixture_id':fixture['id'],'homeGoals':1,'awayGoals':2,'revision':0,
+                 'estado':'EN_JUEGO','goals':[]}
         assert request('/api/admin/copa-results',payload)[0]==403
         status,saved,_=request('/api/admin/copa-results',payload,session['csrf'])
         assert status==200 and saved['goleadores_pendientes']==3
         assert next(m for m in request('/api/admin/copa-fixtures')[1]['fixtures'] if m['id']==fixture['id'])['result']['registrado_por']=='Operador Copa'
         status,public,_=request('/api/copa-castell')
+        assert status==200 and public['goleadoresPendientes']==0
+        played=next(m for m in public['matches'] if m.get('id')==fixture['id'])
+        assert played['status']=='live' and played['homeGoals']==1 and played['awayGoals']==2
+        status,saved,_=request('/api/admin/copa-results',
+            {**payload,'revision':1,'estado':'FINALIZADO'},session['csrf'])
+        assert status==200 and saved['goleadores_pendientes']==3
+        status,public,_=request('/api/copa-castell')
         assert status==200 and public['goleadoresPendientes']==3
         played=next(m for m in public['matches'] if m.get('id')==fixture['id'])
-    assert played['homeGoals']==1 and played['awayGoals']==2
+    assert played['status']=='final' and played['homeGoals']==1 and played['awayGoals']==2
 
 
 def test_http_admin_registra_alumno_y_cobro_manual_escuela(conn):

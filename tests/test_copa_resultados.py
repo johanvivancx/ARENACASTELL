@@ -32,6 +32,51 @@ def test_migracion_copa_repetible(conn):
     preparar_resultados_copa()
     preparar_resultados_copa()
     assert conn.execute("SELECT to_regclass('public.copa_resultados') AS tabla").fetchone()['tabla'] == 'copa_resultados'
+    assert conn.execute("SELECT 1 FROM information_schema.columns WHERE table_name='copa_resultados' AND column_name='estado'").fetchone()
+
+
+def test_partido_en_vivo_no_altera_posiciones_hasta_finalizar(conn):
+    admin = conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()['id']
+    panel = copa.panel_admin(conn, admin)
+    fixture = next(row for row in panel['fixtures'] if row['home'] == 'Argentina' and row['away'] == 'Japón')
+    scorer = next(row for row in panel['players']['Japón'] if row['number'] == '13')
+    before = copa.estado_publico(conn)
+    start = copa.guardar_resultado(conn, admin, {
+        'fixture_id': fixture['id'], 'homeGoals': 0, 'awayGoals': 0,
+        'revision': 0, 'estado': 'EN_JUEGO', 'goals': []})
+    assert start['estado'] == 'EN_JUEGO' and start['revision'] == 1
+    live = copa.guardar_resultado(conn, admin, {
+        'fixture_id': fixture['id'], 'homeGoals': 0, 'awayGoals': 1,
+        'revision': 1, 'estado': 'EN_JUEGO',
+        'goals': [{'country': 'Japón', 'playerId': scorer['id'], 'goals': 1}]})
+    assert live['revision'] == 2
+    public = copa.estado_publico(conn)
+    played = next(row for row in public['matches'] if row.get('id') == fixture['id'])
+    assert (played['status'], played['homeGoals'], played['awayGoals']) == ('live', 0, 1)
+    assert public['standings'] == before['standings']
+    assert public['scorers'] == before['scorers']
+    assert public['goleadoresPendientes'] == before['goleadoresPendientes']
+    assert next(row for row in copa.panel_admin(conn, admin)['fixtures'] if row['id'] == fixture['id'])['result']['status'] == 'EN_JUEGO'
+    with pytest.raises(s.ErrorValidacion, match='resultado final'):
+        copa.guardar_jugador_del_partido(conn, admin, {'fixture_id': fixture['id']})
+    with pytest.raises(s.HTTPError) as stale:
+        copa.guardar_resultado(conn, admin, {
+            'fixture_id': fixture['id'], 'homeGoals': 0, 'awayGoals': 0,
+            'revision': 1, 'estado': 'FINALIZADO', 'goals': []})
+    assert stale.value.status == 409
+    final = copa.guardar_resultado(conn, admin, {
+        'fixture_id': fixture['id'], 'homeGoals': 0, 'awayGoals': 1,
+        'revision': 2, 'estado': 'FINALIZADO',
+        'goals': [{'country': 'Japón', 'playerId': scorer['id'], 'goals': 1}]})
+    assert final['estado'] == 'FINALIZADO'
+    after = copa.estado_publico(conn)
+    assert next(row for row in after['matches'] if row.get('id') == fixture['id'])['status'] == 'final'
+    assert after['standings'] != before['standings']
+    assert next(row for row in after['scorers'] if row['country'] == 'Japón' and row['number'] == '13')['goals'] == next(row for row in before['scorers'] if row['country'] == 'Japón' and row['number'] == '13')['goals'] + 1
+    with pytest.raises(s.ErrorValidacion):
+        copa.guardar_resultado(conn, admin, {
+            'fixture_id': fixture['id'], 'homeGoals': 0, 'awayGoals': 1,
+            'revision': 3, 'estado': 'EN_JUEGO', 'goals': []})
 
 
 def test_resultado_actualiza_tabla_y_goleadores_sin_duplicar(conn, user):

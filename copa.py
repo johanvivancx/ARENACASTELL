@@ -68,7 +68,7 @@ def catalogo():
 
 def _resultados(conn):
     results = conn.execute(
-        """SELECT fixture_id,goles_local,goles_visitante,revision,actualizado_en
+        """SELECT fixture_id,goles_local,goles_visitante,estado,revision,actualizado_en
            FROM copa_resultados ORDER BY actualizado_en,fixture_id"""
     ).fetchall()
     goals = conn.execute(
@@ -113,7 +113,7 @@ def guardar_jugador_del_partido(conn, admin_uid, data):
     fixture = fixtures.get(str(data.get("fixture_id", "")))
     if not fixture:
         raise ErrorValidacion("Selecciona un partido programado.")
-    if not conn.execute("SELECT 1 FROM copa_resultados WHERE fixture_id=%s", (fixture["id"],)).fetchone():
+    if not conn.execute("SELECT 1 FROM copa_resultados WHERE fixture_id=%s AND estado='FINALIZADO'", (fixture["id"],)).fetchone():
         raise ErrorValidacion("Publica primero el resultado final de este partido.")
     country = str(data.get("country", ""))
     if country not in (fixture["home"], fixture["away"]):
@@ -207,8 +207,11 @@ def estado_publico(conn):
         if not result:
             continue
         home, away = result["goles_local"], result["goles_visitante"]
-        match.update({"homeGoals": home, "awayGoals": away, "status": "final",
-                      "revision": result["revision"]})
+        finished = result["estado"] == "FINALIZADO"
+        match.update({"homeGoals": home, "awayGoals": away, "status": "final" if finished else "live",
+                      "revision": result["revision"], "updatedAt": result["actualizado_en"].isoformat()})
+        if not finished:
+            continue
         scored_goals = goals.get(match["id"], [])
         missing = home + away - sum(g["goles"] for g in scored_goals)
         match["goleadores_pendientes"] = missing
@@ -226,18 +229,22 @@ def estado_publico(conn):
     scorers.extend(added_scorers.values())
     scorers.sort(key=lambda row: -row["goals"])
     round_seven = [f for f in fixtures.values() if f["round"] == 7]
-    finished_seven = sum(f["id"] in by_id for f in round_seven)
+    finished_seven = sum(by_id.get(f["id"], {}).get("estado") == "FINALIZADO" for f in round_seven)
+    live_seven = sum(by_id.get(f["id"], {}).get("estado") == "EN_JUEGO" for f in round_seven)
     postponed = [f for f in fixtures.values() if f["round"] == 6]
-    finished_postponed = sum(f["id"] in by_id for f in postponed)
-    through_round = 7 if finished_seven else 6
+    finished_postponed = sum(by_id.get(f["id"], {}).get("estado") == "FINALIZADO" for f in postponed)
+    live_postponed = sum(by_id.get(f["id"], {}).get("estado") == "EN_JUEGO" for f in postponed)
+    through_round = 7 if finished_seven or live_seven else 6
     if through_round == 7:
         note = f"Fecha 7: {finished_seven} de {len(round_seven)} partidos finalizados"
+        if live_seven:
+            note += f"; {live_seven} en juego"
         partial = finished_seven < len(round_seven) or finished_postponed < len(postponed)
         if finished_postponed < len(postponed):
-            note += "; Alemania–Venezuela de la fecha 6 pendiente"
+            note += "; Alemania–Venezuela de la fecha 6 " + ("en juego" if live_postponed else "pendiente")
     else:
         partial = finished_postponed < len(postponed)
-        note = data["roundNote"] if partial else "Fecha 6 completa"
+        note = ("Alemania–Venezuela de la fecha 6 en juego" if live_postponed else data["roundNote"]) if partial else "Fecha 6 completa"
     return {"matches": matches, "standings": standings, "scorers": scorers,
             "mvps": jugadores_del_partido(conn),
             "throughRound": through_round, "partialRound": partial, "roundNote": note,
@@ -258,6 +265,7 @@ def panel_admin(conn, admin_uid):
         result = by_id.get(key)
         schedule.append({**fixture, "result": {
             "homeGoals": result["goles_local"], "awayGoals": result["goles_visitante"],
+            "status": result["estado"],
             "revision": result["revision"],
             "registrado_por": authors.get(key),
             "goals": [dict(row) for row in goals[key]],
@@ -273,6 +281,9 @@ def guardar_resultado(conn, admin_uid, data):
         raise ErrorValidacion("Selecciona un partido programado de la fecha 7 o el reprogramado.")
     home = numero(data.get("homeGoals"), "Goles del local", 0, 99)
     away = numero(data.get("awayGoals"), "Goles del visitante", 0, 99)
+    status = str(data.get("estado", "FINALIZADO"))
+    if status not in {"EN_JUEGO", "FINALIZADO"}:
+        raise ErrorValidacion("Selecciona un estado válido para el partido.")
     revision = numero(data.get("revision", 0), "Versión del resultado", 0, 1000000)
     raw_goals = data.get("goals", [])
     if not isinstance(raw_goals, list) or len(raw_goals) > 50:
@@ -312,20 +323,22 @@ def guardar_resultado(conn, admin_uid, data):
     # La versión evita que dos administradores sobrescriban cambios ajenos sin aviso.
     if revision == 0:
         conn.execute(
-            """INSERT INTO copa_resultados(fixture_id,fecha,local,visitante,goles_local,goles_visitante,registrado_por)
-               VALUES(%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (fixture_id) DO NOTHING""",
-            (fixture["id"], fixture["round"], fixture["home"], fixture["away"], home, away, admin_uid),
+            """INSERT INTO copa_resultados(fixture_id,fecha,local,visitante,goles_local,goles_visitante,estado,registrado_por)
+               VALUES(%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (fixture_id) DO NOTHING""",
+            (fixture["id"], fixture["round"], fixture["home"], fixture["away"], home, away, status, admin_uid),
         )
     current = conn.execute(
-        "SELECT revision FROM copa_resultados WHERE fixture_id=%s FOR UPDATE", (fixture["id"],)
+        "SELECT revision,estado FROM copa_resultados WHERE fixture_id=%s FOR UPDATE", (fixture["id"],)
     ).fetchone()
     if not current or current["revision"] != revision:
         raise HTTPError(409, "Este resultado cambió mientras lo editabas. Recarga el partido antes de guardar.")
+    if current["estado"] == "FINALIZADO" and status == "EN_JUEGO":
+        raise ErrorValidacion("Un partido finalizado no puede volver a estar en juego.")
     updated = conn.execute(
         """UPDATE copa_resultados SET goles_local=%s,goles_visitante=%s,
-           revision=revision+1,registrado_por=%s,actualizado_en=current_timestamp
+           estado=%s,revision=revision+1,registrado_por=%s,actualizado_en=current_timestamp
            WHERE fixture_id=%s RETURNING revision""",
-        (home, away, admin_uid, fixture["id"]),
+        (home, away, status, admin_uid, fixture["id"]),
     ).fetchone()
     conn.execute("DELETE FROM copa_goles WHERE fixture_id=%s", (fixture["id"],))
     for identifier, (country, name, number, count) in goal_rows.items():
@@ -335,6 +348,8 @@ def guardar_resultado(conn, admin_uid, data):
             (fixture["id"], country, identifier, name, number, count),
         )
     missing = home + away - sum(totals.values())
-    return {"fixture_id": fixture["id"], "revision": updated["revision"],
+    return {"fixture_id": fixture["id"], "revision": updated["revision"], "estado": status,
             "goleadores_pendientes": missing,
-            "message": "Resultado publicado. " + (f"Quedan {missing} goles sin atribuir a jugadores." if missing else "Posiciones y goleadores actualizados.")}
+            "message": ("Marcador en vivo actualizado. La tabla y los goleadores se actualizarán al finalizar."
+                        if status == "EN_JUEGO" else "Resultado final publicado. " +
+                        (f"Quedan {missing} goles sin atribuir a jugadores." if missing else "Posiciones y goleadores actualizados."))}

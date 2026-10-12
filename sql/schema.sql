@@ -303,6 +303,7 @@ CREATE TABLE copa_resultados (
   visitante varchar(50) NOT NULL CHECK (visitante <> local),
   goles_local smallint NOT NULL CHECK (goles_local BETWEEN 0 AND 99),
   goles_visitante smallint NOT NULL CHECK (goles_visitante BETWEEN 0 AND 99),
+  estado varchar(12) NOT NULL DEFAULT 'FINALIZADO' CHECK (estado IN ('EN_JUEGO','FINALIZADO')),
   revision integer NOT NULL DEFAULT 0 CHECK (revision >= 0),
   registrado_por bigint NOT NULL REFERENCES usuarios(id),
   actualizado_en timestamptz NOT NULL DEFAULT current_timestamp

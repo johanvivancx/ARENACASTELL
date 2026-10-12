@@ -279,22 +279,23 @@ function bindForm(id, action) {
     event.preventDefault();
     clearMessage();
     if (form.dataset.busy === "true") return;
-    const submit = $("[type=submit]", form);
+    const submit = event.submitter || $("[type=submit]", form);
     const label = submit.innerHTML;
     form.dataset.busy = "true";
     submit.disabled = true;
     submit.textContent = "Procesando…";
+    let outcome;
     try {
       await boot;
-      await action(formData(form), form);
+      outcome = await action(formData(form), form, event.submitter);
     } catch (error) {
       showMessage(error.message);
       if (error.status === 401 && $("#auth-gate"))
         $("#auth-gate").hidden = false;
     } finally {
       form.dataset.busy = "false";
-      submit.disabled = form.dataset.locked === "true";
-      submit.innerHTML = label;
+      submit.disabled = form.dataset.locked === "true" || submit.hidden;
+      submit.innerHTML = outcome?.submitLabel || label;
       if (form.id === "payment-form") renderPaymentMethod();
     }
   });
@@ -1029,6 +1030,7 @@ async function initCopaResults() {
   if (!form) return;
   let schedule = await api("/admin/copa-fixtures");
   const fixtureSelect = $("#copa-fixture");
+  const showFinished = $("#copa-show-finished");
   const goalsHost = $("#copa-goal-rows");
   const selectedFixture = () => schedule.fixtures.find((m) => m.id === fixtureSelect.value);
   const addGoalRow = (country, goal = null) => {
@@ -1061,35 +1063,65 @@ async function initCopaResults() {
     if (!fixture) return;
     $("#copa-home-label").textContent = `Goles de ${fixture.home}`;
     $("#copa-away-label").textContent = `Goles de ${fixture.away}`;
-    $("#copa-home-goals").value = fixture.result?.homeGoals ?? "";
-    $("#copa-away-goals").value = fixture.result?.awayGoals ?? "";
+    $("#copa-home-goals").value = fixture.result?.homeGoals ?? 0;
+    $("#copa-away-goals").value = fixture.result?.awayGoals ?? 0;
     $("#copa-revision").value = fixture.result?.revision ?? 0;
     $('[data-copa-add="home"]').textContent = `Añadir goleador · ${fixture.home}`;
     $('[data-copa-add="away"]').textContent = `Añadir goleador · ${fixture.away}`;
     goalsHost.replaceChildren();
     for (const goal of fixture.result?.goals || []) addGoalRow(goal.equipo, goal);
-    $("#copa-result-status").textContent = fixture.result
-      ? `Publicado: ${fixture.result.homeGoals}–${fixture.result.awayGoals}. Último cambio: ${fixture.result.registrado_por || "administración"}. Puedes corregir el marcador y los goleadores; se reemplazará el registro anterior.`
-      : "Sin resultado publicado. El partido no suma puntos ni goles todavía.";
+    const finished = fixture.result?.status === "FINALIZADO";
+    const live = fixture.result?.status === "EN_JUEGO";
+    $("#copa-live-save").hidden = finished;
+    $("#copa-live-save").disabled = finished;
+    $("#copa-live-save").textContent = live ? "Actualizar marcador en vivo" : "Poner partido en juego";
+    $("#copa-finish").hidden = !fixture.result;
+    $("#copa-finish").disabled = !fixture.result;
+    $("#copa-finish").textContent = finished ? "Corregir resultado final" : "Finalizar y publicar resultado";
+    $("#copa-result-status").textContent = finished
+      ? `Finalizado ${fixture.result.homeGoals}–${fixture.result.awayGoals}. Este partido ya suma en posiciones y goleadores. Puedes corregir el acta aquí.`
+      : live
+        ? `EN JUEGO · ${fixture.result.homeGoals}–${fixture.result.awayGoals}. Actualizado por ${fixture.result.registrado_por || "administración"}. El marcador se ve en Torneos; la tabla y goleadores esperan al final.`
+        : "Programado. Al iniciar se publicará 0–0; el partido aún no sumará puntos ni goleadores.";
   };
   const fillSchedule = (selected) => {
-    fixtureSelect.innerHTML = schedule.fixtures
-      .slice().sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
-      .map((m) => `<option value="${esc(m.id)}">${esc(m.date)} · ${esc(m.time)} · Fecha ${m.round} · ${esc(m.home)} vs. ${esc(m.away)}${m.result ? ` · ${m.result.homeGoals}–${m.result.awayGoals}` : " · pendiente"}</option>`)
+    const active = schedule.fixtures.filter((m) => m.result?.status !== "FINALIZADO");
+    const shown = showFinished.checked ? schedule.fixtures : active;
+    $("#copa-active-count").textContent = `${active.length} partido${active.length === 1 ? "" : "s"} por terminar. Los finalizados se conservan en resultados y pueden verse aquí para correcciones.`;
+    fixtureSelect.innerHTML = shown
+      .slice().sort((a, b) => Number(b.result?.status === "EN_JUEGO") - Number(a.result?.status === "EN_JUEGO") || `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
+      .map((m) => `<option value="${esc(m.id)}">${m.result?.status === "EN_JUEGO" ? "● EN JUEGO · " : m.result?.status === "FINALIZADO" ? "FINALIZADO · " : "PROGRAMADO · "}${esc(m.date)} · ${esc(m.time)} · ${esc(m.home)} vs. ${esc(m.away)}${m.result ? ` · ${m.result.homeGoals}–${m.result.awayGoals}` : ""}</option>`)
       .join("");
-    if (selected && schedule.fixtures.some((m) => m.id === selected)) fixtureSelect.value = selected;
-    renderFixture();
+    if (selected && shown.some((m) => m.id === selected)) fixtureSelect.value = selected;
+    form.hidden = !shown.length;
+    if (shown.length) renderFixture();
   };
   fillSchedule();
-  form.hidden = false;
+  showFinished.addEventListener("change", () => fillSchedule(fixtureSelect.value));
+  $("#copa-refresh").addEventListener("click", async () => {
+    const button = $("#copa-refresh");
+    button.disabled = true;
+    try {
+      const selected = fixtureSelect.value;
+      schedule = await api("/admin/copa-fixtures");
+      fillSchedule(selected);
+      showMessage("Partidos actualizados.", "success");
+    } catch (error) { showMessage(error.message); }
+    finally { button.disabled = false; }
+  });
   fixtureSelect.addEventListener("change", renderFixture);
+  $$('[data-copa-score-add]', form).forEach((button) => button.addEventListener("click", () => {
+    const input = button.dataset.copaScoreAdd === "home" ? $("#copa-home-goals") : $("#copa-away-goals");
+    input.value = String(Math.min(99, Number(input.value || 0) + 1));
+  }));
   $$('[data-copa-add]', form).forEach((button) => button.addEventListener("click", () => {
     const fixture = selectedFixture();
     if (fixture) addGoalRow(fixture[button.dataset.copaAdd]);
   }));
-  bindForm("#copa-result-form", async (data) => {
+  bindForm("#copa-result-form", async (data, _form, submitter) => {
     const fixture = selectedFixture();
     if (!fixture) throw new Error("Selecciona un partido.");
+    data.estado = submitter?.value === "FINALIZADO" ? "FINALIZADO" : "EN_JUEGO";
     const goals = $$(".copa-goal-row", goalsHost).map((row) => {
       const playerId = $(".copa-player", row).value;
       return {country: row.dataset.country, playerId,
@@ -1103,11 +1135,16 @@ async function initCopaResults() {
     if (totals[fixture.home] > Number(data.homeGoals) || totals[fixture.away] > Number(data.awayGoals))
       throw new Error("Los goles de los jugadores superan el marcador.");
     const missing = Number(data.homeGoals) + Number(data.awayGoals) - totals[fixture.home] - totals[fixture.away];
-    if (!confirm(`¿Publicar ${fixture.home} ${data.homeGoals}–${data.awayGoals} ${fixture.away}? ${missing ? `Quedarán ${missing} goles por atribuir a jugadores.` : "La tabla y los goleadores se actualizarán."}`)) return;
+    const action = data.estado === "FINALIZADO"
+      ? `¿${fixture.result?.status === "FINALIZADO" ? "Corregir" : "Finalizar"} ${fixture.home} ${data.homeGoals}–${data.awayGoals} ${fixture.away}? La tabla y los goleadores se actualizarán. ${missing ? `Quedarán ${missing} goles por atribuir.` : ""}`
+      : `¿${fixture.result ? "Actualizar" : "Iniciar"} ${fixture.home} ${data.homeGoals}–${data.awayGoals} ${fixture.away} como EN JUEGO? El marcador será público; la tabla y goleadores esperarán al final.`;
+    if (!confirm(action)) return;
     const result = await api("/admin/copa-results", {...data, goals});
     schedule = await api("/admin/copa-fixtures");
     fillSchedule(fixture.id);
+    document.dispatchEvent(new Event("copa-results-updated"));
     showMessage(result.message, "success");
+    return {submitLabel: submitter?.textContent || "Marcador guardado"};
   });
 }
 
@@ -1145,15 +1182,23 @@ async function initCopaMvp() {
       ? `Publicado: ${award.name} · ${award.country}. Para corregirlo, selecciona una foto nueva.`
       : "Todavía no hay jugador del partido. Selecciona un jugador y su foto.";
   };
-  fixtureSelect.innerHTML = schedule.fixtures.filter((fixture) => fixture.result)
-    .sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`))
-    .map((fixture) => `<option value="${esc(fixture.id)}">Fecha ${fixture.round} · ${esc(fixture.home)} ${fixture.result.homeGoals}–${fixture.result.awayGoals} ${esc(fixture.away)}</option>`).join("");
-  if (!fixtureSelect.options.length) {
-    status.textContent = "Publica primero el resultado final de un partido.";
-    return;
-  }
-  form.hidden = false;
-  renderFixture();
+  const fillMvpFixtures = () => {
+    const previous = fixtureSelect.value;
+    fixtureSelect.innerHTML = schedule.fixtures.filter((fixture) => fixture.result?.status === "FINALIZADO")
+      .sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`))
+      .map((fixture) => `<option value="${esc(fixture.id)}">Fecha ${fixture.round} · ${esc(fixture.home)} ${fixture.result.homeGoals}–${fixture.result.awayGoals} ${esc(fixture.away)}</option>`).join("");
+    if ([...fixtureSelect.options].some((option) => option.value === previous)) fixtureSelect.value = previous;
+    form.hidden = !fixtureSelect.options.length;
+    $("#copa-mvp-empty").hidden = Boolean(fixtureSelect.options.length);
+    if (fixtureSelect.options.length) renderFixture();
+  };
+  fillMvpFixtures();
+  document.addEventListener("copa-results-updated", async () => {
+    try {
+      schedule = await api("/admin/copa-fixtures");
+      fillMvpFixtures();
+    } catch (error) { showMessage(error.message); }
+  });
   fixtureSelect.addEventListener("change", renderFixture);
   countrySelect.addEventListener("change", () => renderPlayers());
   imageInput.addEventListener("change", () => {
@@ -1189,7 +1234,7 @@ async function initCopaMvp() {
         player_id: playerSelect.value, image,
       });
       schedule = await api("/admin/copa-fixtures");
-      renderFixture();
+      fillMvpFixtures();
       showMessage(result.message, "success");
     } catch (error) { showMessage(error.message); }
     finally { button.disabled = false; }

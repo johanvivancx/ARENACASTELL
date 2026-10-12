@@ -1739,6 +1739,11 @@ td small {
   border-radius: 10px;
 }
 .copa-goal-row .field { min-width: 0; }
+.copa-finished-toggle { display: inline-flex; align-items: center; gap: 9px; margin: 8px 0 20px; cursor: pointer; }
+.copa-finished-toggle input { width: 18px; height: 18px; accent-color: #e1e2df; }
+.copa-score-control { display: flex; gap: 8px; }
+.copa-score-control input { flex: 1; min-width: 0; }
+.copa-score-control button { white-space: nowrap; }
 .copa-goal-row .copa-new-player { grid-column: 1 / -1; }
 @media (max-width: 600px) {
   .copa-goal-row { grid-template-columns: minmax(0, 1fr) 80px; }
@@ -2352,6 +2357,9 @@ td small {
 .mundial-upcoming-day h4 { margin: 0 0 18px; color: #f5f4f1; font-size: 18px; }
 .mundial-upcoming-games { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
 .mundial-upcoming-game { display: grid; grid-template-columns: 88px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; padding: 13px; border: 1px solid #3b4448; border-radius: 8px; background: #202527; }
+.mundial-upcoming-game.is-live, .mundial-match.is-live { border-color: #ce756c; box-shadow: inset 4px 0 #ce756c; }
+.mundial-upcoming-game.is-live > strong { grid-column: 1 / -1; color: #ffb5a8; font-size: 11px; letter-spacing: .1em; }
+.mundial-match.is-live > span:first-child { color: #ffb5a8; }
 .mundial-upcoming-game time { color: #c4d6dc; font-weight: 700; font-variant-numeric: tabular-nums; }
 .mundial-upcoming-matchup { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; min-width: 0; }
 .mundial-upcoming-matchup > span { color: #aebdc3; font-weight: bold; text-transform: uppercase; }

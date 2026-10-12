@@ -17,12 +17,12 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261011-buscar-reservas" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261011-partidos-vivo" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261010-deudas-bar" defer></script>
-    <script src="../assets/app.js?v=20261011-buscar-reservas" defer></script>
+    <script src="../assets/app.js?v=20261011-partidos-vivo" defer></script>
   </head>
 
   <body data-page="admin">
@@ -182,32 +182,39 @@
 
           <section class="admin-workspace-section" id="admin-copa" aria-labelledby="copa-admin-title" hidden>
             <h2 id="copa-admin-title">Resultados de Copa Castell</h2>
-            <p class="small-text muted">Publica el marcador final desde aquí. La página del torneo actualiza resultados, posiciones y goleadores aproximadamente cada 30 segundos. Alemania–Venezuela cuenta para la fecha 6.</p>
+            <p class="small-text muted">Inicia un partido, actualiza su marcador en vivo y finalízalo cuando termine. La página pública consulta cambios aproximadamente cada 15 segundos. Solo los partidos finalizados suman en posiciones y goleadores.</p>
+            <p id="copa-active-count" class="small-text muted" role="status"></p>
+            <label class="copa-finished-toggle"><input id="copa-show-finished" type="checkbox" /> Mostrar partidos finalizados para corregirlos</label>
+            <button class="btn secondary" id="copa-refresh" type="button">Recargar partidos</button>
             <form method="post" id="copa-result-form" class="panel" hidden>
               <div class="field">
                 <label for="copa-fixture">Partido</label>
                 <select id="copa-fixture" name="fixture_id" required></select>
               </div>
               <div class="form-grid">
-                <div class="field"><label for="copa-home-goals" id="copa-home-label">Goles local</label><input id="copa-home-goals" name="homeGoals" type="number" min="0" max="99" step="1" required /></div>
-                <div class="field"><label for="copa-away-goals" id="copa-away-label">Goles visitante</label><input id="copa-away-goals" name="awayGoals" type="number" min="0" max="99" step="1" required /></div>
+                <div class="field"><label for="copa-home-goals" id="copa-home-label">Goles local</label><div class="copa-score-control"><input id="copa-home-goals" name="homeGoals" type="number" min="0" max="99" step="1" required /><button class="btn secondary" type="button" data-copa-score-add="home" aria-label="Sumar un gol al equipo local">+1 gol</button></div></div>
+                <div class="field"><label for="copa-away-goals" id="copa-away-label">Goles visitante</label><div class="copa-score-control"><input id="copa-away-goals" name="awayGoals" type="number" min="0" max="99" step="1" required /><button class="btn secondary" type="button" data-copa-score-add="away" aria-label="Sumar un gol al equipo visitante">+1 gol</button></div></div>
               </div>
               <input id="copa-revision" name="revision" type="hidden" value="0" />
               <h3>Goleadores del partido</h3>
-              <p class="small-text muted">Añade cada jugador y el número de goles que hizo. Puedes publicar el marcador aunque aún falten goleadores; quedarán señalados como pendientes hasta completar el acta.</p>
+              <p class="small-text muted">Suma los goles y guarda el marcador mientras se juega. Puedes asignar goleadores ahora o al finalizar; los goles sin atribuir quedarán señalados en el resultado final.</p>
               <div id="copa-goal-rows" class="copa-goal-rows"></div>
               <div class="form-actions">
                 <button class="btn secondary" type="button" data-copa-add="home">Añadir goleador local</button>
                 <button class="btn secondary" type="button" data-copa-add="away">Añadir goleador visitante</button>
               </div>
               <p id="copa-result-status" class="small-text muted" role="status"></p>
-              <div class="form-actions"><button class="btn" type="submit">Publicar resultado</button></div>
+              <div class="form-actions">
+                <button class="btn secondary" id="copa-live-save" type="submit" value="EN_JUEGO">Poner partido en juego</button>
+                <button class="btn" id="copa-finish" type="submit" value="FINALIZADO" hidden>Finalizar y publicar resultado</button>
+              </div>
             </form>
           </section>
 
           <section class="admin-workspace-section" id="admin-copa-mvp" aria-labelledby="copa-mvp-admin-title" hidden>
             <h2 id="copa-mvp-admin-title">Jugadores del partido</h2>
             <p class="small-text muted">Publica la foto después de registrar el resultado final. Elige el partido, la selección y un jugador de su plantilla. Si ya hay un destacado, podrás corregirlo con una nueva foto.</p>
+            <p id="copa-mvp-empty" class="small-text muted" role="status" hidden>Finaliza primero un partido para publicar a su jugador destacado.</p>
             <form method="post" id="copa-mvp-form" class="panel" hidden>
               <div class="field"><label for="copa-mvp-fixture">Partido</label><select id="copa-mvp-fixture" required></select></div>
               <div class="form-grid">
