@@ -890,6 +890,19 @@ function table(headers, rows, caption) {
   return `<div class="table-wrap" tabindex="0" role="region" aria-label="${esc(caption)}"><table><caption>${esc(caption)}</caption><thead><tr>${headers.map((h) => `<th scope="col">${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((c, index) => `<td data-label="${esc(headers[index] || "")}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
+function filterReservationsReport() {
+  const query = $("#admin-reservation-query")?.value.trim().toLocaleLowerCase("es") || "";
+  const rows = $$("#reservations-report tbody tr");
+  let visible = 0;
+  rows.forEach((row) => {
+    row.hidden = Boolean(query) && !row.textContent.toLocaleLowerCase("es").includes(query);
+    if (!row.hidden) visible++;
+  });
+  const count = $("#admin-reservation-count");
+  if (count) count.textContent = `${visible} de ${rows.length} reservas visibles${query ? " para esta búsqueda" : ""}.`;
+}
+$("#admin-reservation-query")?.addEventListener("input", filterReservationsReport);
+
 // Prepara reservas recibidas por WhatsApp o en la cancha
 function initManualReservation() {
   const form = $("#manual-reservation-form");
@@ -1680,6 +1693,7 @@ async function loadReports(filters = {}) {
     ]),
     "Todas las reservas de la cancha, confirmadas o pendientes.",
   );
+  filterReservationsReport();
   const manualPending = reportData.reservas.filter(
     (r) => r.manual && r.estado === "CONFIRMADA" && r.estado_pago === "PENDIENTE",
   );

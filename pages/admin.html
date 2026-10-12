@@ -17,12 +17,12 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261011-tablas-movil" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261011-buscar-reservas" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-caja-admin.js?v=20261010-deudas-bar" defer></script>
-    <script src="../assets/app.js?v=20261011-tablas-movil" defer></script>
+    <script src="../assets/app.js?v=20261011-buscar-reservas" defer></script>
   </head>
 
   <body data-page="admin">
@@ -501,6 +501,11 @@
 
           <p class="small-text muted">Total histórico cobrado por reservas manuales (los pagos pendientes no se incluyen):</p>
           <div id="manual-payment-stats" class="stats-grid" aria-label="Dinero cobrado por reservas manuales"></div>
+          <div class="field admin-reservation-search">
+            <label for="admin-reservation-query">Buscar reserva</label>
+            <input id="admin-reservation-query" type="search" placeholder="Nombre, fecha, horario o estado" autocomplete="off" />
+            <p id="admin-reservation-count" class="small-text muted" role="status"></p>
+          </div>
           <div id="reservations-report"></div>
           <details id="manual-reservation-corrections" class="panel" hidden>
             <summary>Corregir reservas manuales pendientes</summary>
