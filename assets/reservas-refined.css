@@ -42,6 +42,7 @@ body[data-page="reserva-form"] legend { letter-spacing: -.045em; }
 .reservation-hero-copy > p:not(.eyebrow) { max-width: 490px; margin: 0; color: #d4d9d8; font-size: 16px; line-height: 1.72; }
 .reservation-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 31px; }
 .reservation-hero-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 13px; }
+.reservation-hero-copy > p.reservation-access-note { max-width: 490px; margin-top: 14px; color: #bfcac8; font-size: 12px; line-height: 1.6; }
 .reservation-hero-facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 32px; }
 .reservation-hero-facts span { color: #c9d2d0; font-size: 11px; }
 .reservation-hero-facts span + span::before { content: "·"; padding-right: 8px; color: #859294; }

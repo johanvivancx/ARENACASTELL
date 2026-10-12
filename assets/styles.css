@@ -914,6 +914,27 @@ svg.icon {
   .admin-section-nav button:nth-child(5) { grid-column: span 1; min-height: 150px; }
   .admin-panel-toolbar { flex-wrap: wrap; }
   .admin-group-nav button { flex: 1 1 auto; }
+  /* En los listados frecuentes, cada fila se lee completa sin desplazamiento horizontal. */
+  #school-report .table-wrap,
+  #reservations-report .table-wrap { overflow: visible; border: 0; }
+  #school-report table,
+  #school-report tbody,
+  #school-report tr,
+  #reservations-report table,
+  #reservations-report tbody,
+  #reservations-report tr { display: block; width: 100%; }
+  #school-report thead,
+  #reservations-report thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  #school-report tr,
+  #reservations-report tr { margin: 12px 0; padding: 10px 16px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+  #school-report td,
+  #reservations-report td { display: grid; grid-template-columns: minmax(105px, 38%) minmax(0, 1fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; font-size: 13px; }
+  #school-report td:last-child,
+  #reservations-report td:last-child { border-bottom: 0; }
+  #school-report td::before,
+  #reservations-report td::before { content: attr(data-label); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+  #school-report td:first-child,
+  #reservations-report td:first-child { color: var(--text); font-weight: 700; }
 }
 
 /* Presenta cada servicio */

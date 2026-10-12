@@ -887,7 +887,7 @@ async function loadTeam() {
 function table(headers, rows, caption) {
   if (!rows.length)
     return '<div class="empty-state"><p>No hay registros para mostrar.</p></div>';
-  return `<div class="table-wrap" tabindex="0" role="region" aria-label="${esc(caption)}"><table><caption>${esc(caption)}</caption><thead><tr>${headers.map((h) => `<th scope="col">${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap" tabindex="0" role="region" aria-label="${esc(caption)}"><table><caption>${esc(caption)}</caption><thead><tr>${headers.map((h) => `<th scope="col">${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((c, index) => `<td data-label="${esc(headers[index] || "")}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
 // Prepara reservas recibidas por WhatsApp o en la cancha
