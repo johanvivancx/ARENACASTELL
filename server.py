@@ -359,6 +359,12 @@ class Handler(SimpleHTTPRequestHandler):
         if match := re.fullmatch(r"/api/admin/school/students/manual/(\d+)/void-test", path):
             if method == "POST":
                 return escuela_admin.anular_prueba(conn, uid, match[1], data, self.client_ip())
+        if match := re.fullmatch(r"/api/admin/school/students/web/(\d+)/void-preview", path):
+            if method == "GET":
+                return escuela_admin.vista_previa_prueba_web(conn, uid, match[1])
+        if match := re.fullmatch(r"/api/admin/school/students/web/(\d+)/void-test", path):
+            if method == "POST":
+                return escuela_admin.anular_prueba_web(conn, uid, match[1], data, self.client_ip())
         if path == "/api/admin/admins" and method == "POST":
             return s.crear_administrador(conn, uid, data, self.client_ip())
         if match := re.fullmatch(r"/api/admin/emails/(\d+)/queue-receipt", path):

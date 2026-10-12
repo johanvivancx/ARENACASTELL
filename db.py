@@ -47,6 +47,7 @@ def preparar_escuela_manual():
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/013_escuela_manual.sql").read_text(encoding="utf8"))
         conn.execute((ROOT / "sql/migrations/016_retiro_alumnos_chaca.sql").read_text(encoding="utf8"))
+        conn.execute((ROOT / "sql/migrations/017_anular_inscripcion_web_prueba.sql").read_text(encoding="utf8"))
 
 
 def preparar_actividad_administrativa():

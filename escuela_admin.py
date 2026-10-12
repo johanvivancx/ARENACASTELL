@@ -115,7 +115,7 @@ def resumen(conn, admin_uid, value=None):
     period = _periodo(value or datetime.now(TZ).strftime("%Y-%m"))
     rows = conn.execute(
         """SELECT sc.id,sc.alumno,sc.categoria,sc.cedula,sc.fecha_inscripcion,
-           sc.estado,sc.retirado_en,u.telefono AS telefono_representante,
+           sc.estado,sc.retirado_en,sc.prueba_anulada_en,u.telefono AS telefono_representante,
            p0.monto AS inscripcion_monto,p0.metodo AS inscripcion_metodo,
            pm.monto AS mes_monto,pm.metodo AS mes_metodo
            FROM inscripciones_chaca sc
@@ -132,7 +132,8 @@ def resumen(conn, admin_uid, value=None):
                  "categoria": r["categoria"], "cedula": r["cedula"],
                  "telefono_representante": r["telefono_representante"],
                  "fecha_ingreso": r["fecha_inscripcion"],
-                 "estado": "RETIRADO" if r["retirado_en"] else r["estado"],
+                 "estado": "PRUEBA_ANULADA" if r["prueba_anulada_en"] else
+                           "RETIRADO" if r["retirado_en"] else r["estado"],
                  "inscripcion_pagada": r["inscripcion_monto"] is not None,
                  "inscripcion_monto": r["inscripcion_monto"], "inscripcion_metodo": r["inscripcion_metodo"],
                  "mes_pagado": r["mes_monto"] is not None,
@@ -178,22 +179,22 @@ def resumen(conn, admin_uid, value=None):
             history[key].append({k: payment[k] for k in ("tipo", "periodo", "monto", "metodo", "pagado_en", "anulado_en")})
     for payment in conn.execute(
         """SELECT sc.id AS alumno_id,'INSCRIPCION' AS tipo,NULL::date AS periodo,
-           p.monto,p.metodo,p.pagado_en
+           p.monto,p.metodo,p.pagado_en,p.anulado_en
            FROM inscripciones_chaca sc JOIN pagos p ON p.orden_id=sc.orden_id
            JOIN ordenes o ON o.id=sc.orden_id
-           WHERE p.simulado=false AND o.estado='PAGADA'
+           WHERE p.simulado=false
            UNION ALL
            SELECT m.inscripcion_id AS alumno_id,'MENSUALIDAD' AS tipo,m.periodo,
-           p.monto,p.metodo,p.pagado_en
+           p.monto,p.metodo,p.pagado_en,p.anulado_en
            FROM mensualidades m JOIN inscripciones_chaca sc ON sc.id=m.inscripcion_id
            JOIN pagos p ON p.orden_id=m.orden_id
            JOIN ordenes o ON o.id=m.orden_id
-           WHERE p.simulado=false AND o.estado='PAGADA' AND m.orden_id<>sc.orden_id
+           WHERE p.simulado=false AND m.orden_id<>sc.orden_id
            ORDER BY pagado_en"""
     ).fetchall():
         key = f'web:{payment["alumno_id"]}'
         if key in history:
-            history[key].append({k: payment[k] for k in ("tipo", "periodo", "monto", "metodo", "pagado_en")})
+            history[key].append({k: payment[k] for k in ("tipo", "periodo", "monto", "metodo", "pagado_en", "anulado_en")})
     for student in students:
         student["historial_pagos"] = history[student["id"]]
     return {"periodo": period.strftime("%Y-%m"), "alumnos": students}
@@ -207,7 +208,7 @@ def cambiar_estado_alumno(conn, admin_uid, origin, student_id, action):
     identifier = numero(student_id, "Alumno")
     table = "alumnos_chaca_manuales" if origin == "manual" else "inscripciones_chaca"
     student = conn.execute(f"SELECT * FROM {table} WHERE id=%s FOR UPDATE", (identifier,)).fetchone()
-    if not student or (origin == "manual" and student["prueba_anulada_en"]):
+    if not student or student["prueba_anulada_en"]:
         raise HTTPError(404, "No encontramos un alumno que se pueda modificar.")
     if action == "retire":
         if student["retirado_en"]:
@@ -272,3 +273,65 @@ def anular_prueba(conn, admin_uid, student_id, data, ip_address=""):
         (admin_uid, admin_uid, student["id"])
     )
     return {"id": f'manual:{student["id"]}', "message": f'Registro de prueba de {preview["alumno"]} anulado. {preview["cantidad"]} cobro(s) por ${preview["total"]} quedan fuera de los ingresos, con auditoría.'}
+
+
+def vista_previa_prueba_web(conn, admin_uid, student_id):
+    exigir_administrador(conn, admin_uid)
+    admin = conn.execute("SELECT * FROM usuarios WHERE id=%s", (admin_uid,)).fetchone()
+    if not es_propietario_administracion(admin):
+        raise HTTPError(403, "Solo la cuenta propietaria puede anular registros de prueba.")
+    student = conn.execute(
+        "SELECT id,alumno,prueba_anulada_en FROM inscripciones_chaca WHERE id=%s",
+        (numero(student_id, "Alumno"),)
+    ).fetchone()
+    if not student or student["prueba_anulada_en"]:
+        raise HTTPError(404, "Ese registro ya no está disponible para anular.")
+    totals = conn.execute(
+        """SELECT count(*) AS cantidad,coalesce(sum(p.monto),0) AS total
+           FROM mensualidades m JOIN ordenes o ON o.id=m.orden_id
+           JOIN pagos p ON p.orden_id=o.id
+           WHERE m.inscripcion_id=%s AND o.estado='PAGADA'
+             AND p.simulado=false AND p.anulado_en IS NULL""",
+        (student["id"],)
+    ).fetchone()
+    return {"alumno": student["alumno"], "cantidad": totals["cantidad"], "total": totals["total"]}
+
+
+def anular_prueba_web(conn, admin_uid, student_id, data, ip_address=""):
+    """Cancela solo las órdenes de esta inscripción y audita sus pagos de prueba."""
+    preview = vista_previa_prueba_web(conn, admin_uid, student_id)
+    limitar_acceso(conn, f"chaca-void:{admin_uid}:{ip_address}", max_attempts=5)
+    if data.get("confirmacion") != "ANULAR PRUEBA":
+        raise ErrorValidacion("Escribe ANULAR PRUEBA para confirmar.")
+    admin = conn.execute("SELECT * FROM usuarios WHERE id=%s", (admin_uid,)).fetchone()
+    if not Usuario.desde_fila(admin).verificar_password(data.get("password_actual", "")):
+        raise HTTPError(401, "La contraseña de administrador no coincide.")
+    student = conn.execute(
+        "SELECT id,alumno,prueba_anulada_en FROM inscripciones_chaca WHERE id=%s FOR UPDATE",
+        (numero(student_id, "Alumno"),)
+    ).fetchone()
+    if not student or student["prueba_anulada_en"]:
+        raise HTTPError(409, "El registro cambió. Actualiza la vista previa.")
+    current = vista_previa_prueba_web(conn, admin_uid, student_id)
+    try:
+        expected_total = Decimal(str(data.get("total")))
+    except (InvalidOperation, TypeError):
+        expected_total = None
+    if data.get("cantidad") != current["cantidad"] or expected_total != current["total"]:
+        raise HTTPError(409, "Los pagos cambiaron. Actualiza la vista previa antes de continuar.")
+    conn.execute(
+        """UPDATE pagos SET anulado_en=current_timestamp,anulado_por=%s
+           WHERE orden_id IN (SELECT orden_id FROM mensualidades WHERE inscripcion_id=%s)
+             AND anulado_en IS NULL""", (admin_uid, student["id"])
+    )
+    conn.execute(
+        """UPDATE ordenes SET estado='CANCELADA'
+           WHERE id IN (SELECT orden_id FROM mensualidades WHERE inscripcion_id=%s)
+             AND estado IN ('PENDIENTE','PAGADA')""", (student["id"],)
+    )
+    conn.execute(
+        """UPDATE inscripciones_chaca SET estado='CANCELADA',prueba_anulada_en=current_timestamp,
+           prueba_anulada_por=%s,retirado_en=current_timestamp,retirado_por=%s WHERE id=%s""",
+        (admin_uid, admin_uid, student["id"])
+    )
+    return {"id": f'web:{student["id"]}', "message": f'Registro de prueba de {preview["alumno"]} anulado. {preview["cantidad"]} cobro(s) por ${preview["total"]} quedan fuera de los ingresos, con auditoría.'}

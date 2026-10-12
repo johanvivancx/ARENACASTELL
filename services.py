@@ -675,7 +675,7 @@ def registrar_actividad_admin(conn, uid, path, result):
             accion = "Retiró un alumno de Súper Chaca"
         elif re.fullmatch(r"/api/admin/school/students/(manual|web)/\d+/restore", path):
             accion = "Reactivó un alumno de Súper Chaca"
-        elif re.fullmatch(r"/api/admin/school/students/manual/\d+/void-test", path):
+        elif re.fullmatch(r"/api/admin/school/students/(manual|web)/\d+/void-test", path):
             accion = "Anuló un registro de prueba de Súper Chaca"
         elif re.fullmatch(r"/api/admin/orders/[^/]+/approve-transfer", path):
             accion = "Aprobó una transferencia"
@@ -820,7 +820,8 @@ def historial(conn, uid):
             (uid,),
         ).fetchall(),
         "escuela": conn.execute(
-            """SELECT sc.*,CASE WHEN sc.retirado_en IS NOT NULL THEN 'RETIRADO' ELSE sc.estado END AS estado_visible,
+            """SELECT sc.*,CASE WHEN sc.prueba_anulada_en IS NOT NULL THEN 'PRUEBA_ANULADA'
+            WHEN sc.retirado_en IS NOT NULL THEN 'RETIRADO' ELSE sc.estado END AS estado_visible,
             v.mes_actual_pagado,v.ultimo_periodo,v.cuotas_pagadas
             FROM inscripciones_chaca sc JOIN ordenes o ON o.id=sc.orden_id
             JOIN vista_mensualidades_escuela v ON v.inscripcion_id=sc.id WHERE o.usuario_id=%s ORDER BY sc.id""",
@@ -1078,6 +1079,7 @@ def reportes(conn, uid, data):
         raise ErrorValidacion("La fecha inicial debe ser anterior a la final.")
     payments = conn.execute(
         """SELECT v.*,a.nombre AS registrado_por FROM vista_reporte_administrador v
+       JOIN ordenes o ON o.id=v.orden_id AND o.estado='PAGADA'
        LEFT JOIN pagos p ON p.id=v.pago_id LEFT JOIN usuarios a ON a.id=p.confirmado_por
        WHERE (v.pagado_en AT TIME ZONE 'America/Guayaquil')::date BETWEEN %s AND %s
        ORDER BY v.pagado_en DESC""",

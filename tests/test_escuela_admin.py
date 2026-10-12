@@ -146,3 +146,46 @@ def test_retiro_de_alumno_web_preserva_pagos_y_bloquea_renovacion(conn, user, pa
         s.renovar_escuela(conn, user["id"], inscription["id"], {"periodo": following.strftime("%Y-%m")})
     school.cambiar_estado_alumno(conn, admin, "web", inscription["id"], "restore")
     assert s.renovar_escuela(conn, user["id"], inscription["id"], {"periodo": following.strftime("%Y-%m")})["id"]
+
+
+def test_anular_inscripcion_web_de_prueba_no_toca_otros_cobros(conn, user, pay_data, monkeypatch):
+    admin = conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()["id"]
+    today = datetime.now(s.TZ).date()
+    schedule = conn.execute("SELECT id FROM horarios_chaca WHERE categoria='Sub-12' ORDER BY id LIMIT 1").fetchone()
+    def enroll(name, number):
+        order = s.inscribir_escuela(conn, user["id"], {
+            "alumno": name, "cedula": cedula_demo(number),
+            "nacimiento": str(date(today.year - 10, 1, 1)), "categoria": "Sub-12",
+            "horario_id": schedule["id"], "consentimiento": True})
+        confirmar_transferencia(conn, user["id"], order["id"], pay_data)
+        return s.detalle_orden(conn, user["id"], order["id"])["escuela"]["id"]
+    test_id = enroll("Alumno de Prueba Web", 803)
+    other_id = enroll("Otro Alumno Real", 804)
+    before = s.reportes(conn, admin, {})["finanzas"]["SUPER_CHACA"]["ingresos"]
+    monkeypatch.setenv("ADMIN_OWNER_EMAIL", "revision@arena.test")
+    monkeypatch.setenv("ADMIN_CREATION_SECRET", "clave-de-pruebas-de-mas-de-veinte-caracteres")
+    owner = Usuario.desde_fila(conn.execute("SELECT * FROM usuarios WHERE id=%s", (admin,)).fetchone())
+    owner.set_password("PruebaSegura!2026")
+    conn.execute("UPDATE usuarios SET password_hash=%s WHERE id=%s", (owner.get_password_hash(), admin))
+    preview = school.vista_previa_prueba_web(conn, admin, test_id)
+    assert preview["cantidad"] == 1 and preview["total"] > 0
+    request = {"confirmacion": "ANULAR PRUEBA", "password_actual": "PruebaSegura!2026",
+               "cantidad": preview["cantidad"], "total": str(preview["total"])}
+    with pytest.raises(s.HTTPError):
+        school.anular_prueba_web(conn, user["id"], test_id, request)
+    with pytest.raises(s.HTTPError) as stale:
+        school.anular_prueba_web(conn, admin, test_id, {**request, "total": "0"})
+    assert stale.value.status == 409
+    school.anular_prueba_web(conn, admin, test_id, request)
+    after = s.reportes(conn, admin, {})
+    assert after["finanzas"]["SUPER_CHACA"]["ingresos"] == before - preview["total"]
+    assert not any(p["descripcion"].startswith("Súper Chaca · Alumno de Prueba Web") for p in after["pagos"])
+    students = {row["id"]: row for row in school.resumen(conn, admin)["alumnos"]}
+    assert students[f"web:{test_id}"]["estado"] == "PRUEBA_ANULADA"
+    assert students[f"web:{test_id}"]["historial_pagos"][0]["anulado_en"] is not None
+    assert students[f"web:{other_id}"]["estado"] == "ACTIVA"
+    assert students[f"web:{other_id}"]["mes_pagado"]
+    assert next(row for row in s.historial(conn, user["id"])["escuela"]
+                if row["id"] == test_id)["estado_visible"] == "PRUEBA_ANULADA"
+    with pytest.raises(s.HTTPError):
+        school.vista_previa_prueba_web(conn, admin, test_id)

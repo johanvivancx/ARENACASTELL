@@ -1354,7 +1354,7 @@ function renderSchoolManagement() {
     : "";
   $("#school-retire").hidden = !student || ["RETIRADO", "PRUEBA_ANULADA"].includes(student.estado);
   $("#school-restore").hidden = !student || student.estado !== "RETIRADO";
-  $("#school-void-toggle").hidden = !student || student.origen !== "MANUAL" ||
+  $("#school-void-toggle").hidden = !student ||
     student.estado === "PRUEBA_ANULADA" || !session.usuario?.puede_crear_admins;
 }
 
@@ -1463,9 +1463,9 @@ async function initSchoolAdmin() {
   let voidPreview = null;
   $("#school-void-toggle").addEventListener("click", async () => {
     const student = schoolData.alumnos.find((row) => row.id === $("#school-manage-student").value);
-    if (!student || student.origen !== "MANUAL") return;
+    if (!student) return;
     try {
-      voidPreview = await api(`/admin/school/students/manual/${student.id.split(":")[1]}/void-preview`);
+      voidPreview = await api(`/admin/school/students/${student.origen.toLowerCase()}/${student.id.split(":")[1]}/void-preview`);
       $("#school-void-preview").textContent = `Solo para pruebas: se anularán ${voidPreview.cantidad} cobro(s) por ${money(voidPreview.total)} de ${voidPreview.alumno}. Dejarán de contar como ingresos; las filas quedarán auditadas.`;
       $("#school-void-test-form").hidden = false;
       $("#school-void-phrase").focus();
@@ -1475,7 +1475,7 @@ async function initSchoolAdmin() {
     const student = schoolData.alumnos.find((row) => row.id === $("#school-manage-student").value);
     if (!student || !voidPreview) throw new Error("Actualiza la vista previa de la prueba.");
     if (!confirm(`Última confirmación: ¿anular el registro de prueba de ${student.alumno} y excluir ${money(voidPreview.total)} de los ingresos?`)) return;
-    const result = await api(`/admin/school/students/manual/${student.id.split(":")[1]}/void-test`,
+    const result = await api(`/admin/school/students/${student.origen.toLowerCase()}/${student.id.split(":")[1]}/void-test`,
       {...data, cantidad: Number(voidPreview.cantidad), total: voidPreview.total});
     voidPreview = null;
     $("#school-filter-lifecycle").value = "ACTIVOS";
