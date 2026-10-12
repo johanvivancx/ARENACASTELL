@@ -128,7 +128,7 @@ body[data-page="escuela-form"] button:focus-visible {
 .school-uniforms-heading .school-kicker { margin-bottom: 6px; }
 .school-uniforms-heading h3 { margin: 0; font-size: clamp(25px, 2.6vw, 34px); text-transform: uppercase; }
 .school-uniforms-heading > span { color: #d3c8ca; font-size: 12px; }
-.school-uniform-grid { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 16px; }
+.school-uniform-grid { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 760px; }
 .school-uniform { min-width: 0; margin: 0; }
 .school-uniform a { display: flex; align-items: center; justify-content: center; height: clamp(250px, 29vw, 390px); overflow: hidden; border: 1px solid #66575a; border-radius: 10px; background: #e9e8e9; }
 .school-uniform a:hover { border-color: #ff9da5; }
