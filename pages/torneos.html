@@ -19,12 +19,12 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-copas-visibles" />
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-formato-pausado" />
     <script src="../assets/copa-castell-datos.js?v=20261012-formato" defer></script>
     <script src="../assets/copa-castell.js?v=20261012-copas-visibles" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20260930-pagos" defer></script>
-    <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
+    <script src="../assets/torneos-ui.js?v=20261012-formato-pausado" defer></script>
   </head>
 
   <body data-page="torneos">
@@ -128,14 +128,15 @@
           <div class="copa-section-heading"><div><p class="eyebrow">COPA CASTELL · EN JUEGO</p><h2 id="mundial-title">Sigue el torneo</h2></div><p>Consulta marcadores en vivo. Las posiciones y los goleadores se actualizan al finalizar cada partido.</p></div>
           <nav class="copa-section-nav" aria-label="Información del Mundial de Campeones">
             <a href="#mundial-resultados" data-copa-tab="mundial-resultados" class="is-active" aria-current="page">Resultados</a>
-            <a href="#mundial-formato" data-copa-tab="mundial-formato">Formato y copas</a>
+            <a href="#mundial-formato" data-copa-tab="mundial-formato" hidden>Formato y copas</a>
             <a href="#mundial-posiciones" data-copa-tab="mundial-posiciones">Posiciones</a>
             <a href="#mundial-goleadores" data-copa-tab="mundial-goleadores">Goleadores</a>
             <a href="#mundial-proxima-fecha" data-copa-tab="mundial-proxima-fecha">Calendario</a>
             <a href="#mundial-premiados" data-copa-tab="mundial-premiados">Destacados</a>
             <a href="#mundial-equipos" data-copa-tab="mundial-equipos">Equipos y jugadores</a>
           </nav>
-          <section id="mundial-formato" aria-labelledby="copa-formato-title">
+          <!-- Apartado temporalmente oculto mientras se confirma el formato; conservar para reactivarlo. -->
+          <section id="mundial-formato" aria-labelledby="copa-formato-title" hidden>
             <p class="eyebrow">NUEVA FASE · COPA CASTELL</p>
             <h3 id="copa-formato-title">Clasificados y camino a las copas</h3>
             <p>El Grupo 1 de la primera fase se identifica con A y el Grupo 2 con B. Los equipos de la nueva fase ya están definidos; <strong>las semifinales todavía no tienen protagonistas</strong>. Las posiciones se decidirán en la cancha.</p>

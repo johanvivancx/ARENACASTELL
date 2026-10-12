@@ -1,9 +1,10 @@
-/* Una sola vista de la Copa a la vez; sin JavaScript, todas siguen disponibles. */
+/* Una sola vista de la Copa a la vez; los apartados pausados siguen ocultos sin JavaScript. */
 (() => {
   const root = document.querySelector('#mundial-campeones');
   if (!root) return;
 
-  const links = [...root.querySelectorAll('[data-copa-tab]')];
+  // Las pestañas pausadas permanecen en el HTML, pero ni el menú ni un enlace directo las activan.
+  const links = [...root.querySelectorAll('[data-copa-tab]')].filter((link) => !link.hidden);
   const panels = links.map((link) => document.getElementById(link.dataset.copaTab));
   if (panels.some((panel) => !panel)) return;
 
