@@ -40,6 +40,7 @@ def database_url():
         conn.execute((ROOT/'sql/migrations/010_movimientos_copa.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/011_vocalias_bar_deudas.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/020_inscripciones_copa.sql').read_text(encoding='utf8'))
+        conn.execute((ROOT/'sql/migrations/021_corregir_carnets_colombia.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/012_reservas_manuales_hoy.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/013_escuela_manual.sql').read_text(encoding='utf8'))
         conn.execute((ROOT/'sql/migrations/014_actividad_administrativa.sql').read_text(encoding='utf8'))
@@ -61,6 +62,7 @@ def conn(database_url,monkeypatch):
         connection.execute("TRUNCATE usuarios,torneos,canchas,horarios_chaca,intentos_acceso,copa_inscripciones_equipos RESTART IDENTITY CASCADE")
         connection.execute((ROOT/"sql/seed.sql").read_text(encoding="utf8"))
         connection.execute((ROOT/'sql/migrations/020_inscripciones_copa.sql').read_text(encoding='utf8'))
+        connection.execute((ROOT/'sql/migrations/021_corregir_carnets_colombia.sql').read_text(encoding='utf8'))
         connection.execute("UPDATE torneos SET nombre='Torneo de prueba', fecha_inicio=current_date+30, abierto=true, max_jugadores=20 WHERE id=1")
         connection.execute("""INSERT INTO usuarios(nombre,email,cedula,telefono,password_hash,rol)
             VALUES('Administrador de pruebas','revision@arena.test',%s,'0990000000',%s,'ADMIN')""",

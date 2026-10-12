@@ -28,8 +28,8 @@ def test_saldos_iniciales_de_la_hoja_y_carnets_por_jugador(conn):
     assert _team(state, "Marruecos")["inscripcion"]["pendiente"] == Decimal("10")
     assert _team(state, "Marruecos")["carnets"]["pendiente"] == Decimal("4")
     assert _team(state, "Colombia")["inscripcion"]["pendiente"] == Decimal("25")
-    assert _team(state, "Colombia")["carnets"]["pendiente"] == Decimal("7")
-    assert _team(state, "Colombia")["carnets_cantidad"] == 20
+    assert _team(state, "Colombia")["carnets"]["pendiente"] == Decimal("4")
+    assert _team(state, "Colombia")["carnets_cantidad"] == 14
     assert _team(state, "Egipto")["carnets_cantidad"] == 15
     assert _team(state, "Egipto")["carnets"]["pendiente"] == 0
     assert _team(state, "Francia")["carnets"]["pendiente"] == Decimal("7")
@@ -75,3 +75,20 @@ def test_migracion_repetible_no_reinicia_pagos(conn):
     from db import preparar_movimientos_copa
     preparar_movimientos_copa()
     assert _team(ci.resumen(conn, admin), "Francia")["carnets"]["pendiente"] == Decimal("6")
+
+
+def test_corrige_solo_colombia_publicada_sin_sobrescribir_ajustes(conn):
+    from db import ROOT
+    correction = (ROOT / 'sql/migrations/021_corregir_carnets_colombia.sql').read_text(encoding='utf8')
+    conn.execute("UPDATE copa_inscripciones_equipos SET carnets_cantidad=20 WHERE equipo='Colombia'")
+    before = _team(ci.resumen(conn, _admin(conn)), 'Colombia')
+    assert before['carnets']['pendiente'] == Decimal('7')
+    conn.execute(correction)
+    conn.execute(correction)
+    after = _team(ci.resumen(conn, _admin(conn)), 'Colombia')
+    assert after['carnets_cantidad'] == 14
+    assert after['carnets']['pendiente'] == Decimal('4')
+    assert after['inscripcion']['pendiente'] == Decimal('25')
+    conn.execute("UPDATE copa_inscripciones_equipos SET carnets_cantidad=16 WHERE equipo='Colombia'")
+    conn.execute(correction)
+    assert _team(ci.resumen(conn, _admin(conn)), 'Colombia')['carnets_cantidad'] == 16

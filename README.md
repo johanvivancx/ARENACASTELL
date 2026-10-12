@@ -89,6 +89,8 @@ Los resultados de Copa Castell publicados desde el panel se guardan en PostgreSQ
 
 **Administración → Copa Castell · Movimientos → Inscripciones y carnets** lleva por separado la inscripción de $25 por equipo y los carnets de $0,50 por jugador. La migración `sql/migrations/020_inscripciones_copa.sql` importa los estados legibles de la hoja facilitada por el organizador una sola vez; `sql/pgadmin/24_inscripciones_copa.sql` es su equivalente manual. Los abonos anteriores conocidos y los equipos marcados como completos no reciben una fecha ni un medio de pago inventados. Solo los cobros nuevos, anotados por el administrador, se suman a los totales de efectivo y transferencia de esta sección. Se pueden registrar abonos parciales mixtos, ajustar la cantidad de carnets, filtrar equipos y anular cobros nuevos conservando el historial. Esta sección no modifica bar, entradas, vocalías ni la contabilidad de pagos web.
 
+Colombia tiene 14 carnets a $0,50: el total es $7, de los cuales $3 figuran como abonados y $4 quedan pendientes. Su inscripción de $25 sigue pendiente. La migración idempotente `sql/migrations/021_corregir_carnets_colombia.sql` corrige la importación ya publicada si el registro aún conserva el valor erróneo de 20 carnets y los cobros nuevos no superarían el total corregido; `sql/pgadmin/25_corregir_carnets_colombia.sql` permite aplicarla manualmente.
+
 Separé la información para no repetirla. Por ejemplo, los datos del cliente se guardan una sola vez en `usuarios`. Después, cada orden se relaciona con ese usuario y con el servicio correspondiente. Los jugadores también se guardan por separado y se conectan con su equipo.
 
 Para cuidar la información se utilizan:
