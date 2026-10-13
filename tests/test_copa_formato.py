@@ -36,9 +36,9 @@ def test_semifinalistas_aparecen_solo_cuando_terminan_ambos_grupos():
     rules = copa.base()["format"]["groups"]
     a = [game("GRUPO_A", home, away, home_goals=1)
          for home, away in combinations(rules["A"], 2)]
-    b_pairs = list(combinations(rules["B"], 2))[:7] + [("Colombia", "Marruecos")]
+    b_pairs = list(combinations(rules["B"], 2))
     b = [game("GRUPO_B", home, away, home_goals=1) for home, away in b_pairs]
-    assert len(a) == 6 and len(b) == 8
+    assert len(a) == 6 and len(b) == 10
     assert not copa.formato_actual(a + b[:-1])["semifinalistsConfirmed"]
     complete = copa.formato_actual(a + b)
     assert complete["semifinalistsConfirmed"]

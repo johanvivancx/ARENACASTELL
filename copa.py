@@ -69,7 +69,7 @@ def catalogo():
 
 
 ETAPAS = {"FASE1", "GRUPO_A", "GRUPO_B", "BRONCE", "ORO", "PLATA"}
-PARTIDOS_GRUPO = {"A": 6, "B": 8}
+PARTIDOS_GRUPO = {"A": 6, "B": 10}
 
 
 def formato_actual(matches):

@@ -216,7 +216,7 @@
       });
       card.append(list);
       card.append(element('p', code === 'A' ? 'Todos contra todos · 3 fechas.'
-        : code === 'B' ? '4 jornadas · cruces según calendario.'
+        : code === 'B' ? 'Todos contra todos · 4 partidos por equipo en 4 jornadas.'
           : 'Cruces por confirmar.'));
       groupHost.append(card);
       if (!Array.isArray(group) && group.standings && group.finished) {

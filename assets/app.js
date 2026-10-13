@@ -1049,7 +1049,7 @@ async function initCopaResults() {
     if (teams.includes(previous[1])) $("#copa-schedule-away").value = previous[1];
     const hints = {
       GRUPO_A: "Grupo A: 4 equipos, todos contra todos en 3 fechas. Noruega inicia con 2 puntos de bonificación.",
-      GRUPO_B: "Grupo B: 5 equipos y 4 jornadas. Programa solo los cruces confirmados; Francia inicia con 2 puntos de bonificación.",
+      GRUPO_B: "Grupo B: 5 equipos, todos contra todos (10 partidos en total) en 4 jornadas. Francia inicia con 2 puntos de bonificación.",
       BRONCE: "Bronce: estos equipos están identificados, pero programa los cruces solo cuando la organización los confirme.",
       ORO: "Oro: los equipos estarán disponibles después de finalizar las tablas de ambos grupos.",
       PLATA: "Plata: los equipos estarán disponibles después de finalizar las tablas de ambos grupos.",
