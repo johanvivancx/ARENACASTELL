@@ -151,7 +151,7 @@ def programar_partido(conn, admin_uid, data):
         raise ErrorValidacion("La fecha u hora del partido no es válida.") from None
     if any({f["home"], f["away"]} == {home, away} and
            (f["round"] == round_number or
-            (stage in {"GRUPO_A", "GRUPO_B"} and f.get("stage") == stage))
+            (stage in {"GRUPO_A", "GRUPO_B", "BRONCE"} and f.get("stage") == stage))
            for f in partidos(conn).values()):
         raise ErrorValidacion("Ese encuentro ya está programado en la fecha seleccionada.")
     created = conn.execute(

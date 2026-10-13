@@ -14,10 +14,13 @@ def game(stage, home, away, status="final", home_goals=0, away_goals=0):
             "homeGoals": home_goals, "awayGoals": away_goals}
 
 
-def test_sin_grupos_confirmados_no_se_publican_equipos_ni_semifinalistas():
+def test_grupos_confirmados_no_anuncian_semifinalistas_antes_de_jugar():
     state = copa.formato_actual([])
-    assert not state["groupsConfirmed"]
-    assert all(not group["teams"] for group in state["groups"].values())
+    assert state["groupsConfirmed"]
+    assert state["groups"]["A"]["teams"] == ["Noruega", "Cabo Verde", "Portugal", "Japón"]
+    assert state["groups"]["B"]["teams"] == ["Francia", "Ecuador", "Egipto", "Colombia", "Marruecos"]
+    assert state["groups"]["BRONCE"]["teams"] == ["Venezuela", "Alemania", "Uruguay", "España", "Argentina", "Brasil"]
+    assert copa.base()["format"]["bonuses"] == {"Noruega": 2, "Francia": 2}
     assert not state["semifinalistsConfirmed"]
     assert state["qualified"] == {"ORO": [], "PLATA": []}
 
@@ -46,9 +49,17 @@ def test_semifinalistas_aparecen_solo_cuando_terminan_ambos_grupos(monkeypatch):
     assert set(complete["qualified"]["ORO"]).isdisjoint(complete["qualified"]["PLATA"])
 
 
-def test_no_se_programa_nueva_fase_sin_confirmar_grupos(conn):
+def test_resultado_de_nueva_fase_no_modifica_primera_fase(conn):
     admin = conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()["id"]
     proposed = {"round": 8, "stage": "GRUPO_A", "date": "2026-10-16",
                 "time": "20:00", "home": "Noruega", "away": "Cabo Verde"}
-    with pytest.raises(ErrorValidacion, match="confirma"):
-        copa.programar_partido(conn, admin, proposed)
+    with pytest.raises(ErrorValidacion, match="grupo"):
+        copa.programar_partido(conn, admin, {**proposed, "away": "Brasil"})
+    before = copa.estado_publico(conn)
+    fixture_id = copa.programar_partido(conn, admin, proposed)["fixture_id"]
+    copa.guardar_resultado(conn, admin, {"fixture_id": fixture_id, "homeGoals": 2,
+        "awayGoals": 0, "estado": "FINALIZADO", "revision": 0, "goals": []})
+    after = copa.estado_publico(conn)
+    assert after["standings"] == before["standings"]
+    assert {row[0]: row for row in after["format"]["groups"]["A"]["standings"]}["Noruega"][1:3] == [5, 1]
+    assert not after["format"]["semifinalistsConfirmed"]

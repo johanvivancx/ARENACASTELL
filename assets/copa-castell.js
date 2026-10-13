@@ -14,8 +14,8 @@
     ? name.toLocaleLowerCase('es').replace(/(^|\s)(\p{L})/gu, (_, space, letter) => space + letter.toLocaleUpperCase('es'))
     : name;
   const flags = {'Argentina':'ar','Brasil':'br','Cabo Verde':'cv','Colombia':'co','Ecuador':'ec','Egipto':'eg','Francia':'fr','Alemania':'de','Japón':'jp','Marruecos':'ma','Noruega':'no','Portugal':'pt','España':'es','Uruguay':'uy','Venezuela':'ve'};
-  const stageLabels = {FASE1: 'Primera fase', GRUPO_A: 'Grupo A · nueva fase',
-    GRUPO_B: 'Grupo B · nueva fase', BRONCE: 'Copa Bronce', ORO: 'Copa Oro', PLATA: 'Copa Plata'};
+  const stageLabels = {FASE1: 'Primera fase', GRUPO_A: 'Fase 2 · Grupo 1',
+    GRUPO_B: 'Fase 2 · Grupo 2', BRONCE: 'Copa Bronce · grupo único', ORO: 'Copa Oro', PLATA: 'Copa Plata'};
   const flag = country => {
     const image = element('img');
     image.src = `../assets/banderas/${flags[country]}.png`;
@@ -188,7 +188,7 @@
   const renderFormat = () => {
     const format = data.format;
     if (!format?.groups) return;
-    const labels = {A: 'Grupo A', B: 'Grupo B', BRONCE: 'Copa Bronce'};
+    const labels = {A: 'Fase 2 · Grupo 1', B: 'Fase 2 · Grupo 2', BRONCE: 'Copa Bronce · grupo único'};
     const codes = {A: ['A1', 'B2', 'A3', 'B4'],
       B: ['B1', 'A2', 'B3', 'A4', 'B5'],
       BRONCE: ['A5', 'A6', 'A7', 'B6', 'B7', 'B8']};
@@ -219,7 +219,7 @@
       });
       card.append(list);
       card.append(element('p', code === 'A' ? 'Todos contra todos · 3 fechas.'
-        : code === 'B' ? 'Todos contra todos · 4 partidos por equipo.'
+        : code === 'B' ? 'Todos contra todos · 4 partidos por equipo en 4 jornadas.'
           : 'Todos contra todos · 5 fechas.'));
       groupHost.append(card);
       if (!Array.isArray(group) && group.standings && group.finished) {
@@ -256,7 +256,9 @@
       ? 'La nueva fase terminó: los clasificados para Oro y Plata ya se pueden anunciar.'
       : format.tiePendingReview
         ? 'La nueva fase terminó con un empate que requiere revisión de la organización antes de anunciar semifinalistas.'
-        : 'Tablas provisionales: solo suman partidos finalizados. Los semifinalistas de Oro y Plata aún no están definidos.';
+        : Object.values(format.groups).every(group => !group.finished)
+          ? 'Los equipos ya están asignados. Las tablas comenzarán con los partidos finalizados; los semifinalistas de Oro y Plata aún no están definidos.'
+          : 'Tablas provisionales: solo suman partidos finalizados. Los semifinalistas de Oro y Plata aún no están definidos.';
     for (const cup of ['ORO', 'PLATA']) {
       const card = element('article');
       card.className = `copa-format-cup copa-format-${cup.toLowerCase()}`;

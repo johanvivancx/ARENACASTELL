@@ -1049,9 +1049,9 @@ async function initCopaResults() {
     if (teams.includes(previous[0])) $("#copa-schedule-home").value = previous[0];
     if (teams.includes(previous[1])) $("#copa-schedule-away").value = previous[1];
     const hints = {
-      GRUPO_A: "Grupo 1: 4 equipos, todos contra todos en 3 fechas. El A1 inicia con 2 puntos de bonificación.",
-      GRUPO_B: "Grupo 2: 5 equipos, todos contra todos; 4 partidos por equipo. El B1 inicia con 2 puntos de bonificación.",
-      BRONCE: "Bronce: 6 equipos en un grupo, todos contra todos en 5 fechas. B5 entra directamente a la final de la Copa Bronce.",
+      GRUPO_A: "Grupo 1: Noruega, Cabo Verde, Portugal y Japón. Todos contra todos en 3 fechas; Noruega inicia con 2 puntos de bonificación.",
+      GRUPO_B: "Grupo 2: Francia, Ecuador, Egipto, Colombia y Marruecos. Todos contra todos; Francia inicia con 2 puntos de bonificación.",
+      BRONCE: "Bronce: Venezuela, Alemania, Uruguay, España, Argentina y Brasil juegan todos contra todos en 5 fechas. El quinto del Grupo 2 de la fase 2 irá directo a la final.",
       ORO: "Oro: los equipos estarán disponibles después de finalizar las tablas de ambos grupos.",
       PLATA: "Plata: los equipos estarán disponibles después de finalizar las tablas de ambos grupos.",
       FASE1: "Usa Primera fase únicamente para un encuentro histórico reprogramado."
