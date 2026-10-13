@@ -236,7 +236,7 @@
         table.append(element('caption', `${labels[code]} · ${finished} partido${finished === 1 ? '' : 's'} finalizado${finished === 1 ? '' : 's'}${!initial && group.complete ? ' · fase completa' : ''}`));
         const thead = element('thead');
         const headers = element('tr');
-        ['Puesto', 'Equipo', 'Pts', 'Bono', 'PJ', 'DG', 'GF', 'GC'].forEach(label => { const th = element('th', label); th.scope = 'col'; headers.append(th); });
+        ['Puesto', 'Equipo', 'Pts', 'PJ', 'DG', 'GF', 'GC'].forEach(label => { const th = element('th', label); th.scope = 'col'; headers.append(th); });
         thead.append(headers);
         table.append(thead);
         const tbody = element('tbody');
@@ -246,8 +246,7 @@
           const identity = element('td');
           identity.append(flag(row[0]), element('span', `${row[0]} · ${teams.get(row[0])?.club || ''}`));
           const bonus = Number(format.bonuses?.[row[0]] || 0);
-          tr.append(identity, element('td', row[1]), element('td', bonus ? `+${bonus}` : '—'),
-            element('td', row[2]), element('td', row[8] > 0 ? `+${row[8]}` : row[8]),
+          tr.append(identity, element('td', row[1]), element('td', row[2]), element('td', row[8] > 0 ? `+${row[8]}` : row[8]),
             element('td', row[6]), element('td', row[7]));
           if (bonus) tr.classList.add('has-bonus');
           tbody.append(tr);
@@ -260,13 +259,14 @@
     const confirmed = format.semifinalistsConfirmed;
     cupsHost.hidden = !confirmed;
     const status = document.getElementById('copa-format-status');
-    if (status) status.textContent = confirmed
-      ? 'La nueva fase terminó: los clasificados para Oro y Plata ya se pueden anunciar.'
-      : format.tiePendingReview
-        ? 'La nueva fase terminó con un empate que requiere revisión de la organización antes de anunciar semifinalistas.'
-        : Object.values(format.groups).every(group => !group.finished)
-          ? 'Tablas oficiales al inicio de la fase: Noruega y Francia tienen +2 puntos; los demás aún no suman. Los semifinalistas de Oro y Plata se definirán en la cancha.'
-          : 'Tablas provisionales: solo suman partidos finalizados. Los semifinalistas de Oro y Plata aún no están definidos.';
+    if (status) {
+      status.textContent = confirmed
+        ? 'La nueva fase terminó: los clasificados para Oro y Plata ya se pueden anunciar.'
+        : format.tiePendingReview
+          ? 'La nueva fase terminó con un empate que requiere revisión de la organización antes de anunciar semifinalistas.'
+          : '';
+      status.hidden = !status.textContent;
+    }
     for (const cup of ['ORO', 'PLATA']) {
       const card = element('article');
       card.className = `copa-format-cup copa-format-${cup.toLowerCase()}`;
