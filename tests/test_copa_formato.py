@@ -21,6 +21,10 @@ def test_grupos_confirmados_no_anuncian_semifinalistas_antes_de_jugar():
     assert state["groups"]["B"]["teams"] == ["Francia", "Ecuador", "Egipto", "Colombia", "Marruecos"]
     assert state["groups"]["BRONCE"]["teams"] == ["Venezuela", "Alemania", "Uruguay", "España", "Argentina", "Brasil"]
     assert copa.base()["format"]["bonuses"] == {"Noruega": 2, "Francia": 2}
+    assert state["bonuses"] == {"Noruega": 2, "Francia": 2}
+    assert {row[0]: (row[1], row[2]) for row in state["groups"]["A"]["standings"]}["Noruega"] == (2, 0)
+    assert {row[0]: (row[1], row[2]) for row in state["groups"]["B"]["standings"]}["Francia"] == (2, 0)
+    assert all(row[1:3] == [0, 0] for row in state["groups"]["BRONCE"]["standings"])
     assert not state["semifinalistsConfirmed"]
     assert state["qualified"] == {"ORO": [], "PLATA": []}
 

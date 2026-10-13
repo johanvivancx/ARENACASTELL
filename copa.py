@@ -99,7 +99,8 @@ def formato_actual(matches):
         for cup, positions in rules["qualification"].items():
             qualified[cup] = [groups[code]["standings"][position - 1][0]
                               for code in ("A", "B") for position in positions]
-    return {"groups": groups, "groupsConfirmed": bool(rules.get("groupsConfirmed")), "qualified": qualified,
+    return {"groups": groups, "groupsConfirmed": bool(rules.get("groupsConfirmed")),
+            "bonuses": rules["bonuses"], "qualified": qualified,
             "semifinalistsConfirmed": bool(qualified["ORO"] and qualified["PLATA"]),
             "tiePendingReview": bool(ties and groups["A"]["complete"] and groups["B"]["complete"]),
             "expectedMatches": PARTIDOS_GRUPO}

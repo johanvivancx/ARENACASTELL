@@ -19,9 +19,9 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-claridad" />
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-tablas" />
     <script src="../assets/copa-castell-datos.js?v=20261012-clasificados" defer></script>
-    <script src="../assets/copa-castell.js?v=20261012-claridad" defer></script>
+    <script src="../assets/copa-castell.js?v=20261012-tablas" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20261012-clasificados" defer></script>
     <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
@@ -143,13 +143,7 @@
               <div class="copa-format-block-heading"><span>01 · EQUIPOS CONFIRMADOS</span><h4>Estos son los grupos</h4><p>A indica el Grupo 1 de la primera fase; B, el Grupo 2. El número es la posición en que terminó el equipo.</p></div>
               <div id="copa-format-groups" class="copa-format-groups"></div>
               <p class="copa-format-bonus"><strong>+2 puntos de bonificación</strong><span>A1 y B1, ganadores de sus grupos en la primera fase, empiezan esta fase con dos puntos.</span></p>
-              <p id="copa-format-awaiting" class="copa-format-awaiting">Las tablas de esta fase aparecerán aquí cuando termine el primer partido. Solo los marcadores finalizados suman puntos.</p>
-              <div id="copa-format-progress" hidden>
-                <div class="copa-format-block-heading"><span>02 · CLASIFICACIÓN</span><h4>Las tablas se definen en la cancha</h4><p>Solo cuentan los partidos finalizados. Los puestos de Oro y Plata aparecerán al terminar la fase.</p></div>
-                <p id="copa-format-status" class="small-text muted" role="status"></p>
-                <div id="copa-format-standings" class="copa-format-standings"></div>
-                <div id="copa-format-cups" class="copa-format-cups"></div>
-              </div>
+              <a class="copa-format-position-link" href="#mundial-posiciones">Consultar las tablas oficiales de la fase 2 y Bronce →</a>
             </div>
             <details class="copa-format-details"><summary>Cómo se juega la fase 2 y las copas <span>Ver reglas</span></summary><div class="copa-format-detail-body">
             <p>En el Grupo 1 de la fase 2 juegan cuatro equipos, todos contra todos una vez: tres partidos por equipo. En el Grupo 2 juegan cinco equipos, todos contra todos una vez: cuatro partidos por equipo. Los cruces y horarios se publicarán en el calendario.</p>
@@ -186,9 +180,16 @@
           </section>
           <section id="mundial-posiciones" aria-labelledby="posiciones-title">
             <p class="eyebrow">CLASIFICACIÓN DEL TORNEO</p>
-            <h3 id="posiciones-title">Tabla de posiciones · Fecha 6</h3>
-            <p id="posiciones-actualizacion">Clasificación actualizada con los partidos finalizados del 2 y 3 de octubre de 2026. Alemania–Venezuela no suma puntos ni goles hasta que se juegue.</p>
-            <div id="mundial-grupos"></div>
+            <h3 id="posiciones-title">Tablas oficiales · Fase 2</h3>
+            <p class="copa-standings-intro">Noruega y Francia comienzan con <strong>+2 puntos de bonificación</strong> por haber ganado sus grupos de la primera fase. Los partidos en juego muestran el marcador en Resultados, pero solo suman a estas tablas cuando finalizan.</p>
+            <p id="copa-format-status" class="small-text muted" role="status"></p>
+            <div id="copa-format-standings" class="copa-format-standings" aria-live="polite"></div>
+            <div id="copa-format-cups" class="copa-format-cups"></div>
+            <p class="copa-plata-note"><strong>Copa Plata:</strong> no tiene un grupo aparte. Los equipos que terminen 3.º y 4.º en los Grupos 1 y 2 de esta fase jugarán sus semifinales; sus nombres aparecerán cuando se complete la fase.</p>
+            <details class="copa-format-details copa-first-phase"><summary>Ver tablas de la primera fase <span>Histórico</span></summary><div class="copa-format-detail-body">
+              <p id="posiciones-actualizacion">Clasificación de la primera fase hasta la fecha 7.</p>
+              <div id="mundial-grupos"></div>
+            </div></details>
             <p class="mundial-legend">Pts: puntos · PJ: partidos jugados · PG: ganados · PE: empatados · PP: perdidos · GF: goles a favor · GC: goles en contra · DG: diferencia de goles.</p>
           </section>
           <section id="mundial-goleadores" aria-labelledby="goleadores-title">

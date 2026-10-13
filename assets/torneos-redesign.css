@@ -121,14 +121,22 @@ body[data-page="torneos"] .mundial-section > section > h3 { margin-top: 0; }
 .copa-format-posters a:focus-visible { outline: 3px solid #f5deb2; outline-offset: 3px; }
 .copa-format-posters img { display: block; width: 100%; height: auto; }
 .copa-format-posters figcaption { margin-top: 8px; color: #c8d1d3; font-size: 13px; }
-.copa-format-standings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.copa-format-standings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 22px; }
+.copa-format-standings .copa-format-table:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .copa-format-table { min-width: 0; overflow-x: auto; }
-.copa-format-table table { width: 100%; min-width: 420px; }
+.copa-format-table table { width: 100%; min-width: 560px; }
 .copa-format-table caption { padding: 10px; color: #f5deb2; text-align: left; }
 .copa-format-table th, .copa-format-table td { padding: 9px 7px; font-size: 12px; }
 .copa-format-table td:nth-child(n+3) { text-align: center; }
 .copa-format-table td:nth-child(2) { white-space: nowrap; }
 .copa-format-table td:nth-child(2) .mundial-flag { width: 25px; height: 17px; margin-right: 5px; vertical-align: middle; }
+.copa-format-table .has-bonus { background: #2c281d; }
+.copa-format-table .has-bonus td:nth-child(4) { color: #f6d78d; font-weight: 800; }
+.copa-format-position-link { display: inline-flex; margin-top: 12px; padding: 13px 0; color: #f4d58d; font-weight: 750; text-decoration: underline; text-underline-offset: 4px; }
+.copa-standings-intro { max-width: 850px; line-height: 1.65; color: #d1dbdd; }
+.copa-standings-intro strong { color: #f4d58d; }
+.copa-plata-note { margin: 25px 0; padding: 17px 20px; border-left: 4px solid #bccbd2; background: #20272a; color: #dbe3e5; line-height: 1.6; }
+.copa-first-phase { margin-top: 25px; }
 .copa-format-cups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .copa-more-info { margin-top: 28px; border-top: 1px solid #394246; }
 .copa-more-info summary { cursor: pointer; padding: 18px 4px 0; color: #c5d2d5; font-size: 13px; font-weight: 700; }
@@ -210,5 +218,4 @@ body[data-page="torneos"] .pasochoa-intro .pasochoa-photo img { aspect-ratio: 3 
 .copa-format-art .copa-format-posters { margin: 0; padding: 0 22px 22px; border-top: 1px solid #394448; }
 .copa-format-art .copa-format-posters figure { padding-top: 20px; }
 @media (max-width: 600px) { .copa-format-bonus { display: block; } .copa-format-bonus span { display: block; margin-top: 8px; } .copa-format-details summary { padding: 17px; } }
-.copa-format-awaiting { margin: 28px 0 0; padding: 16px 20px; border: 1px dashed #657074; border-radius: 8px; color: #cbd4d5; background: #1c2325; line-height: 1.55; }
-.copa-format-awaiting[hidden], #copa-format-progress[hidden], #copa-format-cups[hidden] { display: none; }
+#copa-format-cups[hidden] { display: none; }

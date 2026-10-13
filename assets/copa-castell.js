@@ -219,30 +219,37 @@
       });
       card.append(list);
       card.append(element('p', code === 'A' ? 'Todos contra todos · 3 fechas.'
-        : code === 'B' ? 'Todos contra todos · 4 partidos por equipo en 4 jornadas.'
+        : code === 'B' ? 'Todos contra todos · 4 partidos por equipo; calendario por anunciar.'
           : 'Todos contra todos · 5 fechas.'));
       groupHost.append(card);
-      if (!Array.isArray(group) && group.standings && group.finished) {
+      if (Array.isArray(group) || group.standings) {
+        const initial = Array.isArray(group);
+        const rows = initial ? group.map(country => [country, Number(format.bonuses?.[country] || 0), 0, 0, 0, 0, 0, 0, 0, 0]) : group.standings;
+        if (initial) rows.sort((a, b) => b[1] - a[1]).forEach((row, index) => { row[9] = index + 1; });
+        const finished = initial ? 0 : group.finished;
         const wrap = element('div');
         wrap.className = 'table-wrap copa-format-table';
         wrap.tabIndex = 0;
         wrap.setAttribute('role', 'region');
         wrap.setAttribute('aria-label', `Tabla de ${labels[code]}`);
         const table = element('table');
-        table.append(element('caption', `${labels[code]} · ${group.finished} de ${group.scheduled} partidos finalizados${group.complete ? ' · fase completa' : ' · provisional'}`));
+        table.append(element('caption', `${labels[code]} · ${finished} partido${finished === 1 ? '' : 's'} finalizado${finished === 1 ? '' : 's'}${!initial && group.complete ? ' · fase completa' : ''}`));
         const thead = element('thead');
         const headers = element('tr');
-        ['Puesto', 'Equipo', 'Pts', 'PJ', 'DG'].forEach(label => { const th = element('th', label); th.scope = 'col'; headers.append(th); });
+        ['Puesto', 'Equipo', 'Pts', 'Bono', 'PJ', 'DG', 'GF', 'GC'].forEach(label => { const th = element('th', label); th.scope = 'col'; headers.append(th); });
         thead.append(headers);
         table.append(thead);
         const tbody = element('tbody');
-        group.standings.forEach(row => {
+        rows.forEach(row => {
           const tr = element('tr');
-          tr.append(element('td', row[9]));
+          tr.append(element('td', row[2] === 0 && row[1] === 0 ? '—' : row[9] || '—'));
           const identity = element('td');
           identity.append(flag(row[0]), element('span', `${row[0]} · ${teams.get(row[0])?.club || ''}`));
-          tr.append(identity, element('td', row[1]), element('td', row[2]),
-            element('td', row[8] > 0 ? `+${row[8]}` : row[8]));
+          const bonus = Number(format.bonuses?.[row[0]] || 0);
+          tr.append(identity, element('td', row[1]), element('td', bonus ? `+${bonus}` : '—'),
+            element('td', row[2]), element('td', row[8] > 0 ? `+${row[8]}` : row[8]),
+            element('td', row[6]), element('td', row[7]));
+          if (bonus) tr.classList.add('has-bonus');
           tbody.append(tr);
         });
         table.append(tbody);
@@ -251,11 +258,6 @@
       }
     }
     const confirmed = format.semifinalistsConfirmed;
-    const hasResults = Object.values(format.groups).some(group => !Array.isArray(group) && group.finished > 0);
-    const progress = document.getElementById('copa-format-progress');
-    const awaiting = document.getElementById('copa-format-awaiting');
-    if (progress) progress.hidden = !hasResults;
-    if (awaiting) awaiting.hidden = hasResults;
     cupsHost.hidden = !confirmed;
     const status = document.getElementById('copa-format-status');
     if (status) status.textContent = confirmed
@@ -263,7 +265,7 @@
       : format.tiePendingReview
         ? 'La nueva fase terminó con un empate que requiere revisión de la organización antes de anunciar semifinalistas.'
         : Object.values(format.groups).every(group => !group.finished)
-          ? 'Los equipos ya están asignados. Las tablas comenzarán con los partidos finalizados; los semifinalistas de Oro y Plata aún no están definidos.'
+          ? 'Tablas oficiales al inicio de la fase: Noruega y Francia tienen +2 puntos; los demás aún no suman. Los semifinalistas de Oro y Plata se definirán en la cancha.'
           : 'Tablas provisionales: solo suman partidos finalizados. Los semifinalistas de Oro y Plata aún no están definidos.';
     for (const cup of ['ORO', 'PLATA']) {
       const card = element('article');
@@ -405,8 +407,7 @@
           round.append(new Option(`Fecha ${value}`, String(value)));
       }
       if (!round.dataset.touched) round.value = String(Math.max(...rounds));
-      document.getElementById('posiciones-title').textContent = `Primera fase · Fecha ${live.firstPhaseRound}`;
-      document.getElementById('posiciones-actualizacion').textContent = `Tabla de la primera fase: ${live.firstPhaseNote}. La nueva fase tiene tablas separadas en «Formato y copas».`;
+      document.getElementById('posiciones-actualizacion').textContent = `Primera fase: ${live.firstPhaseNote}. Estas tablas se conservan como historial; arriba está la clasificación vigente de la fase 2.`;
       document.getElementById('goleadores-actualizacion').textContent = live.goleadoresPendientes
         ? `Top 20 actualizado. Hay ${live.goleadoresPendientes} goles de partidos publicados aún sin atribuir a jugadores.`
         : 'Top 20 actualizado con los goleadores registrados de todos los partidos publicados.';
