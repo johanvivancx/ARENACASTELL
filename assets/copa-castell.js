@@ -251,6 +251,12 @@
       }
     }
     const confirmed = format.semifinalistsConfirmed;
+    const hasResults = Object.values(format.groups).some(group => !Array.isArray(group) && group.finished > 0);
+    const progress = document.getElementById('copa-format-progress');
+    const awaiting = document.getElementById('copa-format-awaiting');
+    if (progress) progress.hidden = !hasResults;
+    if (awaiting) awaiting.hidden = hasResults;
+    cupsHost.hidden = !confirmed;
     const status = document.getElementById('copa-format-status');
     if (status) status.textContent = confirmed
       ? 'La nueva fase terminó: los clasificados para Oro y Plata ya se pueden anunciar.'

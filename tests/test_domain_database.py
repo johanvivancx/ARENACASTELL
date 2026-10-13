@@ -15,7 +15,10 @@ from conftest import confirmar_transferencia
 
 
 def reservation(hour="10:00",hours=1):
-    return {"cancha_id":1,"tipo_evento":"HORA","fecha":str(datetime.now(s.TZ).date()+timedelta(days=3)),"hora":hour,"horas":hours}
+    day = datetime.now(s.TZ).date() + timedelta(days=3)
+    if s.OCTOBER_PROMO_START <= day <= s.OCTOBER_PROMO_END:
+        day = date(2026, 11, 1)
+    return {"cancha_id":1,"tipo_evento":"HORA","fecha":str(day),"hora":hour,"horas":hours}
 
 
 def school(index=200):

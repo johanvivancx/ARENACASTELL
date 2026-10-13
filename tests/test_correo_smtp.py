@@ -29,9 +29,12 @@ def smtp(monkeypatch):
 
 
 def reservation(conn, user):
+    day = (datetime.now(s.TZ)+timedelta(days=3)).date()
+    if s.OCTOBER_PROMO_START <= day <= s.OCTOBER_PROMO_END:
+        day = s.OCTOBER_PROMO_END + timedelta(days=1)
     return s.reservar(conn, user['id'], {
         'cancha_id':conn.execute('SELECT id FROM canchas LIMIT 1').fetchone()['id'],
-        'fecha':(datetime.now(s.TZ)+timedelta(days=3)).date().isoformat(),
+        'fecha':day.isoformat(),
         'hora':'10:00', 'horas':1, 'tipo_evento':'HORA'})
 
 

@@ -1,7 +1,7 @@
 # Prueba tarifas de reserva
 
 """Precios, duración de cumpleaños y conservación de reservas anteriores."""
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -16,8 +16,39 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def datos(tipo, horas):
+    today = datetime.now(s.TZ).date()
+    day = today + timedelta(days=12)
+    if s.OCTOBER_PROMO_START <= day <= s.OCTOBER_PROMO_END:
+        day = date(2026, 11, 1)
     return {'cancha_id': 1, 'tipo_evento': tipo, 'horas': horas,
-            'fecha': str(datetime.now(s.TZ).date() + timedelta(days=12)), 'hora': '10:00'}
+            'fecha': str(day), 'hora': '10:00'}
+
+
+@pytest.mark.parametrize('day,tipo,expected', [
+    (date(2026, 9, 30), 'HORA', '27.00'),
+    (date(2026, 10, 1), 'HORA', '20.00'),
+    (date(2026, 10, 31), 'HORA', '20.00'),
+    (date(2026, 11, 1), 'HORA', '27.00'),
+    (date(2026, 10, 15), 'EVENTO', '30.00'),
+    (date(2026, 10, 15), 'CUMPLEANOS', '25.00'),
+])
+def test_promocion_octubre_solo_cancha_por_hora(day, tipo, expected):
+    court = {'tarifa_hora': Decimal('27'), 'tarifa_evento': Decimal('30'),
+             'tarifa_cumpleanos': Decimal('25')}
+    priced = s.tarifa_reserva(court, tipo, day)
+    key = {'HORA': 'tarifa_hora', 'EVENTO': 'tarifa_evento',
+           'CUMPLEANOS': 'tarifa_cumpleanos'}[tipo]
+    assert priced[key] == Decimal(expected)
+    assert court['tarifa_hora'] == Decimal('27')
+
+
+def test_reserva_octubre_guarda_monto_promocional(conn, user):
+    today = datetime.now(s.TZ).date()
+    if today >= s.OCTOBER_PROMO_END:
+        pytest.skip('No queda un día futuro dentro de la promoción de octubre de 2026.')
+    day = max(today + timedelta(days=1), s.OCTOBER_PROMO_START)
+    order = s.reservar(conn, user['id'], {**datos('HORA', 2), 'fecha': str(day)})
+    assert s.detalle_orden(conn, user['id'], order['id'])['monto'] == Decimal('40.00')
 
 
 @pytest.mark.parametrize('tipo,horas,total', [

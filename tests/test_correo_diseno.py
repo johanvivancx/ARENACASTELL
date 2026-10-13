@@ -38,7 +38,10 @@ def mensaje_de_orden(conn, user, orden):
 def test_html_y_pdf_reflejan_el_pago_de_cada_servicio(conn,user,pay_data,tipo,total):
     hoy = datetime.now(s.TZ).date()
     if tipo in {'HORA','CUMPLEANOS'}:
-        orden = s.reservar(conn,user['id'], {'cancha_id':1,'tipo_evento':tipo,'fecha':str(hoy+timedelta(days=2)),
+        day = hoy + timedelta(days=2)
+        if tipo == 'HORA' and s.OCTOBER_PROMO_START <= day <= s.OCTOBER_PROMO_END:
+            day = date(2026, 11, 1)
+        orden = s.reservar(conn,user['id'], {'cancha_id':1,'tipo_evento':tipo,'fecha':str(day),
                                             'hora':'12:00','horas':3 if tipo=='CUMPLEANOS' else 1})
     elif tipo == 'TORNEO':
         torneo = conn.execute("SELECT id FROM torneos WHERE nombre='Pasochoa Cup · Sexta edición'").fetchone()['id']

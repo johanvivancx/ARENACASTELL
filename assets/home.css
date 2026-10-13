@@ -164,3 +164,10 @@ body[data-page="home"] .map-frame iframe { height: 300px; }
   body[data-page="home"] .home-programs-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   body[data-page="home"] .home-feature-photo { height: 205px; }
 }
+body[data-page="home"] .home-october-promo { max-width: 570px; margin: -10px 0 27px; padding: 19px 22px; border: 1px solid #d6a443; border-radius: 12px; background: linear-gradient(120deg, #352817, #171b1b 80%); box-shadow: 0 12px 30px #0004; }
+body[data-page="home"] .home-october-promo[hidden] { display: none; }
+body[data-page="home"] .home-october-kicker { color: #f2cc7d; font-size: 11px; font-weight: 800; letter-spacing: .15em; }
+body[data-page="home"] .home-october-promo p { margin: 8px 0; color: #fff; font-size: 16px; line-height: 1.5; }
+body[data-page="home"] .home-october-promo strong { color: #ffd66d; font-size: 1.25em; }
+body[data-page="home"] .home-october-promo s { color: #bbc0bd; }
+body[data-page="home"] .home-october-promo a { color: #f9dd9a; font-weight: 700; text-underline-offset: 4px; }

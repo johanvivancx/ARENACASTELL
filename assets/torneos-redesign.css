@@ -190,3 +190,25 @@ body[data-page="torneos"] .pasochoa-intro .pasochoa-photo img { aspect-ratio: 3 
 @media (prefers-reduced-motion: reduce) {
   .tournament-index a { transition: none; }
 }
+.copa-format-intro { max-width: 850px; color: #d2dcdd; line-height: 1.7; }
+.copa-format-block-heading { margin: 34px 0 14px; padding-top: 24px; border-top: 1px solid #465053; }
+.copa-format-block-heading span { color: #efc77e; font-size: 11px; font-weight: 800; letter-spacing: .14em; }
+.copa-format-block-heading h4 { margin: 8px 0 6px; color: #fff; font-size: clamp(21px, 2vw, 28px); }
+.copa-format-block-heading p { max-width: 750px; margin: 0; color: #bfcace; line-height: 1.6; }
+.copa-format-bonus { display: flex; gap: 22px; align-items: center; margin: 24px 0; padding: 18px 21px; border: 1px solid #ac8346; border-left: 5px solid #e8bc65; border-radius: 8px; background: #302819; }
+.copa-format-bonus strong { flex: 0 0 auto; color: #f7d183; font-size: 19px; }
+.copa-format-bonus span { color: #f0e9dc; line-height: 1.5; }
+.copa-format-details { margin: 30px 0 0; border: 1px solid #586367; border-radius: 10px; background: #1a2123; }
+.copa-format-details summary { display: flex; justify-content: space-between; gap: 15px; align-items: center; padding: 20px 22px; cursor: pointer; color: #fff; font-weight: 750; list-style: none; }
+.copa-format-details summary::-webkit-details-marker { display: none; }
+.copa-format-details summary::before { content: '+'; color: #f0c878; font-size: 24px; line-height: 1; }
+.copa-format-details[open] summary::before { content: '−'; }
+.copa-format-details summary span { margin-left: auto; color: #efc77e; font-size: 12px; }
+.copa-format-details summary:focus-visible { outline: 3px solid #f0c878; outline-offset: 2px; }
+.copa-format-detail-body { padding: 0 22px 24px; border-top: 1px solid #394448; }
+.copa-format-detail-body > p { max-width: 800px; color: #d5dddf; line-height: 1.65; }
+.copa-format-art .copa-format-posters { margin: 0; padding: 0 22px 22px; border-top: 1px solid #394448; }
+.copa-format-art .copa-format-posters figure { padding-top: 20px; }
+@media (max-width: 600px) { .copa-format-bonus { display: block; } .copa-format-bonus span { display: block; margin-top: 8px; } .copa-format-details summary { padding: 17px; } }
+.copa-format-awaiting { margin: 28px 0 0; padding: 16px 20px; border: 1px dashed #657074; border-radius: 8px; color: #cbd4d5; background: #1c2325; line-height: 1.55; }
+.copa-format-awaiting[hidden], #copa-format-progress[hidden], #copa-format-cups[hidden] { display: none; }

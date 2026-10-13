@@ -19,9 +19,9 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-fase2" />
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-claridad" />
     <script src="../assets/copa-castell-datos.js?v=20261012-clasificados" defer></script>
-    <script src="../assets/copa-castell.js?v=20261012-clasificados" defer></script>
+    <script src="../assets/copa-castell.js?v=20261012-claridad" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20261012-clasificados" defer></script>
     <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
@@ -137,21 +137,22 @@
           </nav>
           <section id="mundial-formato" aria-labelledby="copa-formato-title">
             <p class="eyebrow">COPA CASTELL · EDICIÓN MUNDIALISTA</p>
-            <h3 id="copa-formato-title">Formato de la fase 2</h3>
-            <p>Los equipos de la fase 2 ya están definidos según la tabla de posiciones publicada. <strong>Los horarios todavía no están anunciados.</strong> La letra A o B indica el grupo de la primera fase y el número, el puesto que ocupó: A1 significa 1.º del Grupo 1; B2, 2.º del Grupo 2.</p>
-            <div class="copa-format-explainer">
-              <article><h4>Grupo 1 de la fase 2</h4><p><strong>A1 · B2 · A3 · B4</strong></p><p>Cuatro equipos. Todos contra todos una vez: tres partidos por equipo en tres fechas.</p></article>
-              <article><h4>Grupo 2 de la fase 2</h4><p><strong>B1 · A2 · B3 · A4 · B5</strong></p><p>Cinco equipos. Todos contra todos una vez: cuatro partidos por equipo en cuatro jornadas. El calendario se anunciará cuando esté listo.</p></article>
-            </div>
-            <p class="copa-format-bonus"><strong>+2 puntos de bonificación:</strong> A1 y B1, los ganadores de los grupos de la primera fase, comienzan la fase 2 con dos puntos adicionales.</p>
+            <h3 id="copa-formato-title">Así sigue la Copa Castell</h3>
+            <p class="copa-format-intro">Los equipos ya están asignados a la fase 2 y a Bronce según la clasificación de la primera fase. <strong>Los horarios aún no están anunciados.</strong> Las semifinales se definirán jugando; aquí no se adelanta ningún clasificado.</p>
             <div id="copa-format-live" hidden>
-              <h4>Equipos de la fase 2 y Copa Bronce</h4>
+              <div class="copa-format-block-heading"><span>01 · EQUIPOS CONFIRMADOS</span><h4>Estos son los grupos</h4><p>A indica el Grupo 1 de la primera fase; B, el Grupo 2. El número es la posición en que terminó el equipo.</p></div>
               <div id="copa-format-groups" class="copa-format-groups"></div>
-              <h4>Tablas de la fase 2</h4>
-              <p id="copa-format-status" class="small-text muted" role="status"></p>
-              <div id="copa-format-standings" class="copa-format-standings"></div>
-              <div id="copa-format-cups" class="copa-format-cups"></div>
+              <p class="copa-format-bonus"><strong>+2 puntos de bonificación</strong><span>A1 y B1, ganadores de sus grupos en la primera fase, empiezan esta fase con dos puntos.</span></p>
+              <p id="copa-format-awaiting" class="copa-format-awaiting">Las tablas de esta fase aparecerán aquí cuando termine el primer partido. Solo los marcadores finalizados suman puntos.</p>
+              <div id="copa-format-progress" hidden>
+                <div class="copa-format-block-heading"><span>02 · CLASIFICACIÓN</span><h4>Las tablas se definen en la cancha</h4><p>Solo cuentan los partidos finalizados. Los puestos de Oro y Plata aparecerán al terminar la fase.</p></div>
+                <p id="copa-format-status" class="small-text muted" role="status"></p>
+                <div id="copa-format-standings" class="copa-format-standings"></div>
+                <div id="copa-format-cups" class="copa-format-cups"></div>
+              </div>
             </div>
+            <details class="copa-format-details"><summary>Cómo se juega la fase 2 y las copas <span>Ver reglas</span></summary><div class="copa-format-detail-body">
+            <p>En el Grupo 1 de la fase 2 juegan cuatro equipos, todos contra todos una vez: tres partidos por equipo. En el Grupo 2 juegan cinco equipos, todos contra todos una vez: cuatro partidos por equipo. Los cruces y horarios se publicarán en el calendario.</p>
             <div class="copa-format-rules">
               <article><h4>Copa Oro</h4><p>Los puestos 1.º y 2.º de cada grupo de la fase 2 juegan semifinales: <strong>1.º Grupo 1 vs 2.º Grupo 2</strong> y <strong>1.º Grupo 2 vs 2.º Grupo 1</strong>.</p></article>
               <article><h4>Copa Plata</h4><p>Los puestos 3.º y 4.º de cada grupo de la fase 2 juegan semifinales: <strong>3.º Grupo 1 vs 4.º Grupo 2</strong> y <strong>3.º Grupo 2 vs 4.º Grupo 1</strong>.</p></article>
@@ -163,10 +164,11 @@
               <p><strong>B5</strong> es el equipo que termina 5.º en el Grupo 2 de la fase 2. Clasifica directamente a la final de la Copa Bronce.</p>
               <ul><li><strong>Final Bronce:</strong> 1.º del grupo Bronce vs B5.</li><li><strong>Tercer puesto:</strong> 2.º vs 3.º del grupo Bronce.</li><li><strong>Copa Castell Mundial:</strong> 4.º vs 5.º del grupo Bronce.</li><li><strong>6.º del grupo:</strong> partido de exhibición.</li></ul>
             </section>
-            <div class="copa-format-posters">
+            </div></details>
+            <details class="copa-format-details copa-format-art"><summary>Láminas del formato y premios <span>Ver imágenes</span></summary><div class="copa-format-posters">
               <figure><a href="../assets/copa-formato-fase2.png" target="_blank" rel="noopener noreferrer"><img src="../assets/copa-formato-fase2.png" alt="Lámina explicativa de la fase 2: códigos, grupos, bonificación y semifinales de Oro y Plata" width="1024" height="1536" loading="lazy" /></a><figcaption>Fase 2 y camino a Oro y Plata · Toca para ampliar</figcaption></figure>
               <figure><a href="../assets/copa-formato-bronce-premios.png" target="_blank" rel="noopener noreferrer"><img src="../assets/copa-formato-bronce-premios.png" alt="Lámina de Copa Bronce: grupo único, final, partidos de clasificación y premios de las tres copas" width="1024" height="1536" loading="lazy" /></a><figcaption>Copa Bronce y premios · Toca para ampliar</figcaption></figure>
-            </div>
+            </div></details>
           </section>
           <section id="mundial-resultados" aria-labelledby="resultados-title">
             <h3 id="resultados-title">Resultados del torneo</h3>

@@ -132,3 +132,9 @@ body[data-page="reserva-form"] legend { letter-spacing: -.045em; }
   .reservation-form-panel .time-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .reservation-form-panel .form-actions .btn { width: 100%; }
 }
+.reservation-october-promo, .reservation-promo-note { padding: 15px 18px; border: 1px solid #d0a659; border-radius: 9px; background: #312819; color: #fff4d7; line-height: 1.5; }
+.reservation-october-promo[hidden], .reservation-promo-note[hidden] { display: none; }
+.reservation-october-promo strong, .reservation-promo-note strong { color: #ffd36e; }
+.reservation-option-card [data-october-promo] { display: block; margin-top: 5px; color: #ffdc8c; }
+.reservation-option-card [data-october-promo][hidden] { display: none; }
+.reservation-promo-note { margin: 0 0 18px; font-size: 13px; font-weight: 700; }

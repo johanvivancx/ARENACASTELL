@@ -34,6 +34,23 @@ const money = (value) =>
     Number(value || 0),
   );
 
+// Mantiene la vista previa alineada con la tarifa que calcula el servidor.
+function hourlyPromoApplies(day, type = "HORA") {
+  const promo = catalog?.promocion_octubre;
+  return type === "HORA" && Boolean(day && promo && day >= promo.desde && day <= promo.hasta);
+}
+
+function reservationRate(court, type, day) {
+  if (hourlyPromoApplies(day, type)) return Number(catalog.promocion_octubre.tarifa_hora);
+  return Number(court?.[{ HORA: "tarifa_hora", EVENTO: "tarifa_evento", CUMPLEANOS: "tarifa_cumpleanos" }[type]]);
+}
+
+function showOctoberPromo() {
+  if (!catalog) return;
+  const campaignIsCurrent = hourlyPromoApplies(catalog.hoy);
+  $$("[data-october-promo]").forEach((el) => { el.hidden = !campaignIsCurrent; });
+}
+
 // Escapa texto peligroso
 const esc = (value) =>
   String(value ?? "").replace(
@@ -396,14 +413,9 @@ function reservationSummary() {
     (c) => String(c.id) === $("#cancha_id").value,
   );
   const type = $("#tipo_evento").value;
-  const rate =
-    court?.[
-      {
-        HORA: "tarifa_hora",
-        EVENTO: "tarifa_evento",
-        CUMPLEANOS: "tarifa_cumpleanos",
-      }[type]
-    ];
+  const rate = reservationRate(court, type, $("#fecha").value);
+  const promoNote = $("#reservation-promo-note");
+  if (promoNote) promoNote.hidden = !hourlyPromoApplies($("#fecha").value, type);
   const hour = $("input[name=hora]:checked")?.value;
   $("#summary-total").textContent = money(
     Number(rate) * Number($("#horas").value),
@@ -916,12 +928,7 @@ function initManualReservation() {
   $("#manual-fecha").value = catalog.hoy;
   const suggestAmount = () => {
     const court = catalog.canchas.find((item) => String(item.id) === $("#manual-cancha").value);
-    const rateKey = {
-      HORA: "tarifa_hora",
-      EVENTO: "tarifa_evento",
-      CUMPLEANOS: "tarifa_cumpleanos",
-    }[$("#manual-tipo").value];
-    const total = Number(court?.[rateKey]) * Number($("#manual-horas").value);
+    const total = reservationRate(court, $("#manual-tipo").value, $("#manual-fecha").value) * Number($("#manual-horas").value);
     $("#manual-monto").value = Number.isFinite(total) && total > 0 ? total.toFixed(2) : "";
   };
   suggestAmount();
@@ -933,7 +940,7 @@ function initManualReservation() {
       loadManualSlots();
     }
   });
-  $("#manual-fecha").addEventListener("change", loadManualSlots);
+  $("#manual-fecha").addEventListener("change", () => { suggestAmount(); loadManualSlots(); });
   ["manual-cancha", "manual-horas"].forEach((id) =>
     $(`#${id}`).addEventListener("change", () => {
       suggestAmount();
@@ -1925,8 +1932,10 @@ async function initialize() {
   if (results[1].status === "fulfilled") catalog = results[1].value;
   const failure = results.find((r) => r.status === "rejected");
   if (failure) return;
+  showOctoberPromo();
   $$("[data-price]").forEach((el) => {
-    const value = catalog.canchas[0]?.[el.dataset.price];
+    const value = el.dataset.price === "tarifa_hora" && hourlyPromoApplies(catalog.hoy)
+      ? catalog.promocion_octubre.tarifa_hora : catalog.canchas[0]?.[el.dataset.price];
     if (value) el.innerHTML = `${esc(money(value))}<small> / hora</small>`;
   });
   if ($("#birthday-package-total") && catalog.canchas[0])

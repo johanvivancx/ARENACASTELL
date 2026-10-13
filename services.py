@@ -24,6 +24,9 @@ from models import (
 )
 
 TZ = ZoneInfo("America/Guayaquil")
+OCTOBER_PROMO_START = date(2026, 10, 1)
+OCTOBER_PROMO_END = date(2026, 10, 31)
+OCTOBER_PROMO_HOURLY_RATE = Decimal("20.00")
 METHODS = {"TRANSFERENCIA", "EFECTIVO"}
 EXPENSE_CATEGORIES = {"RESERVAS", "TORNEOS", "SUPER_CHACA"}
 
@@ -257,6 +260,11 @@ def catalogo(conn):
         "mensualidad": str(InscripcionSuperChaca.MENSUALIDAD),
         "hoy": datetime.now(TZ).date(),
         "limite": datetime.now(TZ).date() + timedelta(days=89),
+        "promocion_octubre": {
+            "desde": OCTOBER_PROMO_START,
+            "hasta": OCTOBER_PROMO_END,
+            "tarifa_hora": str(OCTOBER_PROMO_HOURLY_RATE),
+        },
     }
 
 
@@ -295,6 +303,13 @@ def crear_orden(conn, uid, kind, description, service):
 
 
 # Crea una reserva pendiente
+def tarifa_reserva(court, tipo, day):
+    """La promoción se aplica a la fecha de juego, solo para cancha por hora."""
+    if tipo == "HORA" and OCTOBER_PROMO_START <= day <= OCTOBER_PROMO_END:
+        return {**dict(court), "tarifa_hora": OCTOBER_PROMO_HOURLY_RATE}
+    return court
+
+
 def reservar(conn, uid, data, *, descripcion_manual=None):
     court = conn.execute(
         "SELECT * FROM canchas WHERE id=%s", (numero(data.get("cancha_id", 1), "Cancha"),)
@@ -302,8 +317,8 @@ def reservar(conn, uid, data, *, descripcion_manual=None):
     if not court:
         raise ErrorValidacion("La cancha seleccionada no existe.")
     duration = numero(data.get("horas"), "Duración", 1, 6)
-    service = ReservaCancha(duration, data.get("tipo_evento"), court)
     day = fecha(data.get("fecha"))
+    service = ReservaCancha(duration, data.get("tipo_evento"), tarifa_reserva(court, data.get("tipo_evento"), day))
     hour = str(data.get("hora", ""))
     if hour not in [f"{h:02}:00" for h in range(8, 23)]:
         raise ErrorValidacion("Selecciona una hora de inicio.")

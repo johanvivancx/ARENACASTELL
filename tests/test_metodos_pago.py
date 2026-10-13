@@ -19,8 +19,11 @@ check = TestCase()
 
 
 def reserva(conn, user, dias=3):
+    day = datetime.now(s.TZ).date() + timedelta(days=dias)
+    if s.OCTOBER_PROMO_START <= day <= s.OCTOBER_PROMO_END:
+        day = date(2026, 11, 1) + timedelta(days=dias)
     return s.reservar(conn, user['id'], {'cancha_id': 1, 'tipo_evento': 'HORA',
-        'fecha': str(datetime.now(s.TZ).date() + timedelta(days=dias)), 'hora': '12:00', 'horas': 1})
+        'fecha': str(day), 'hora': '12:00', 'horas': 1})
 
 
 def administrador(conn):
