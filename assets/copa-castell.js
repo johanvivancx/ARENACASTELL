@@ -147,7 +147,7 @@
     wrapper.setAttribute('role', 'region');
     wrapper.setAttribute('aria-label', `${group}: tabla de posiciones`);
     const table = element('table');
-    table.append(element('caption', `${group} · Primera fase hasta fecha ${data.firstPhaseRound || data.throughRound}${data.firstPhaseNote ? ` · ${data.firstPhaseNote}` : ""}`));
+    table.append(element('caption', `${group.toUpperCase()} - FASE 1 FINALIZADA · GRUPOS DEFINIDOS`));
     const head = element('thead');
     const titles = element('tr');
     ['#', 'Selección / equipo', 'Pts', 'PJ', 'DG', 'PG', 'PE', 'PP', 'GF', 'GC'].forEach((label, index) => {
