@@ -36,7 +36,8 @@ ORIGIN = os.environ.get("APP_ORIGIN", "http://127.0.0.1:8765").rstrip("/")
 # Protege archivos privados
 PUBLIC_FILES = {"/index.html": ROOT / "index.html",
                 "/robots.txt": ROOT / "robots.txt",
-                "/sitemap.xml": ROOT / "sitemap.xml"}
+                "/sitemap.xml": ROOT / "sitemap.xml",
+                "/.well-known/security.txt": ROOT / ".well-known" / "security.txt"}
 for page in (ROOT / "pages").glob("*.html"):
     if page.resolve().parent == (ROOT / "pages").resolve():
         PUBLIC_FILES["/pages/" + page.name] = page

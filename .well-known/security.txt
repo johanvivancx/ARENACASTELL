@@ -1,0 +1,4 @@
+Contact: mailto:johanviv21@gmail.com
+Expires: 2027-10-13T23:59:59Z
+Canonical: https://arenacastell.com/.well-known/security.txt
+Preferred-Languages: es

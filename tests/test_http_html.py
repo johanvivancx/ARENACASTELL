@@ -130,6 +130,11 @@ def test_http_archivos_privados_y_html(conn):
             assert request('/pages/'+page.stem,method='HEAD')[0]==200
         assert request('/assets/styles.css')[0]==200
         assert request('/assets/app.js')[0]==200
+        status, body, headers = request('/.well-known/security.txt')
+        assert status == 200
+        assert b'Contact: mailto:johanviv21@gmail.com' in body
+        assert b'Expires: 2027-10-13T23:59:59Z' in body
+        assert headers['Content-Type'].startswith('text/plain')
         assert request('/reservas.html')[1]==(STATIC/'pages/reservas.html').read_bytes()
         assert request('/api/catalog')[0]==200
 
