@@ -230,7 +230,7 @@
 
           <section class="admin-workspace-section" id="admin-copa-mvp" aria-labelledby="copa-mvp-admin-title" hidden>
             <h2 id="copa-mvp-admin-title">Jugadores del partido</h2>
-            <p class="small-text muted">Publica la foto después de registrar el resultado final. Elige el partido, la selección y un jugador de su plantilla. Si ya hay un destacado, podrás corregirlo con una nueva foto.</p>
+            <p class="small-text muted">Publica la foto después de registrar el resultado final. Antes de tomarla, explica al jugador dónde se difundirá: web y, si corresponde, Facebook o TikTok. Pregunta si acepta, conserva respaldo y verifica la autorización que corresponda si es menor. Si ya hay un destacado, podrás corregirlo con una nueva foto.</p>
             <p id="copa-mvp-empty" class="small-text muted" role="status" hidden>Finaliza primero un partido para publicar a su jugador destacado.</p>
             <form method="post" id="copa-mvp-form" class="panel" hidden>
               <div class="field"><label for="copa-mvp-fixture">Partido</label><select id="copa-mvp-fixture" required></select></div>
@@ -239,7 +239,7 @@
                 <div class="field"><label for="copa-mvp-player">Jugador</label><select id="copa-mvp-player" required></select></div>
               </div>
               <div class="field"><label for="copa-mvp-image">Foto del jugador (JPG, PNG o WebP, máximo 5 MB)</label><input id="copa-mvp-image" type="file" accept="image/jpeg,image/png,image/webp" required /></div>
-              <label class="checkbox"><input id="copa-mvp-permission" type="checkbox" required /><span>He comprobado la autorización para publicar el nombre y la foto de este jugador en una página pública. Si es menor, he comprobado la autorización de su representante. Conservaré el respaldo de esta autorización.</span></label>
+              <label class="checkbox"><input id="copa-mvp-permission" type="checkbox" required /><span>He informado al jugador y comprobado su aceptación para publicar nombre y foto en la web; si también se compartirá en Facebook o TikTok, esa autorización incluye esos canales. Si corresponde por su edad, he comprobado la intervención de su representante. Conservaré el respaldo.</span></label>
               <div class="copa-mvp-preview"><img id="copa-mvp-preview" alt="Vista previa de la foto del jugador del partido" hidden /><p id="copa-mvp-status" class="small-text muted" role="status"></p></div>
               <div class="form-actions"><button class="btn" type="submit">Publicar jugador del partido</button></div>
             </form>
