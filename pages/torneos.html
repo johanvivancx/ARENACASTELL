@@ -19,12 +19,12 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-formato-pausado" />
-    <script src="../assets/copa-castell-datos.js?v=20261012-formato" defer></script>
-    <script src="../assets/copa-castell.js?v=20261012-grupo-b-todos" defer></script>
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-fase2" />
+    <script src="../assets/copa-castell-datos.js?v=20261012-fase2" defer></script>
+    <script src="../assets/copa-castell.js?v=20261012-fase2" defer></script>
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20260930-pagos" defer></script>
-    <script src="../assets/torneos-ui.js?v=20261012-formato-pausado" defer></script>
+    <script src="../assets/app.js?v=20261012-fase2" defer></script>
+    <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
   </head>
 
   <body data-page="torneos">
@@ -128,31 +128,44 @@
           <div class="copa-section-heading"><div><p class="eyebrow">COPA CASTELL · EN JUEGO</p><h2 id="mundial-title">Sigue el torneo</h2></div><p>Consulta marcadores en vivo. Las posiciones y los goleadores se actualizan al finalizar cada partido.</p></div>
           <nav class="copa-section-nav" aria-label="Información del Mundial de Campeones">
             <a href="#mundial-resultados" data-copa-tab="mundial-resultados" class="is-active" aria-current="page">Resultados</a>
-            <a href="#mundial-formato" data-copa-tab="mundial-formato" hidden>Formato y copas</a>
+            <a href="#mundial-formato" data-copa-tab="mundial-formato">Formato y copas</a>
             <a href="#mundial-posiciones" data-copa-tab="mundial-posiciones">Posiciones</a>
             <a href="#mundial-goleadores" data-copa-tab="mundial-goleadores">Goleadores</a>
             <a href="#mundial-proxima-fecha" data-copa-tab="mundial-proxima-fecha">Calendario</a>
             <a href="#mundial-premiados" data-copa-tab="mundial-premiados">Destacados</a>
             <a href="#mundial-equipos" data-copa-tab="mundial-equipos">Equipos y jugadores</a>
           </nav>
-          <!-- Apartado temporalmente oculto mientras se confirma el formato; conservar para reactivarlo. -->
-          <section id="mundial-formato" aria-labelledby="copa-formato-title" hidden>
-            <p class="eyebrow">NUEVA FASE · COPA CASTELL</p>
-            <h3 id="copa-formato-title">Clasificados y camino a las copas</h3>
-            <p>El Grupo 1 de la primera fase se identifica con A y el Grupo 2 con B. Los equipos de la nueva fase ya están definidos; <strong>las semifinales todavía no tienen protagonistas</strong>. Las posiciones se decidirán en la cancha.</p>
-            <div id="copa-format-groups" class="copa-format-groups"></div>
-            <h4 class="copa-format-destinations-title">¿A qué copa clasifica cada puesto?</h4>
-            <div id="copa-format-cups" class="copa-format-cups"></div>
-            <p class="copa-format-bonus"><strong>Bonificación:</strong> Noruega (A1) y Francia (B1) empiezan esta fase con 2 puntos.</p>
-            <h4>Tablas de la nueva fase</h4>
-            <p id="copa-format-status" class="small-text muted" role="status">Las tablas comenzarán con los partidos que finalicen en esta fase; los marcadores en vivo no suman.</p>
-            <div id="copa-format-standings" class="copa-format-standings"></div>
-            <div class="copa-format-rules">
-              <article><h4>Copa Oro</h4><p>Los puestos 1.º y 2.º de cada grupo disputarán las semifinales: 1.º A–2.º B y 1.º B–2.º A. Aún no se conocen esos equipos.</p></article>
-              <article><h4>Copa Plata</h4><p>Los puestos 3.º y 4.º de cada grupo disputarán las semifinales: 3.º A–4.º B y 3.º B–4.º A. Aún no se conocen esos equipos.</p></article>
-              <article><h4>Copa Bronce</h4><p>Los equipos de Bronce aparecen en la parte superior. Sus cruces y calendario se anunciarán cuando la organización los confirme.</p></article>
+          <section id="mundial-formato" aria-labelledby="copa-formato-title">
+            <p class="eyebrow">COPA CASTELL · EDICIÓN MUNDIALISTA</p>
+            <h3 id="copa-formato-title">Formato de la fase 2</h3>
+            <p>Este es el sistema de juego confirmado. <strong>Los equipos de cada grupo y los horarios aún no están publicados.</strong> La letra A o B indica el grupo de la primera fase y el número, el puesto que ocupó: A1 significa 1.º del Grupo 1; B2, 2.º del Grupo 2.</p>
+            <div class="copa-format-explainer">
+              <article><h4>Grupo 1 de la fase 2</h4><p><strong>A1 · B2 · A3 · B4</strong></p><p>Cuatro equipos. Todos contra todos una vez: tres partidos por equipo en tres fechas.</p></article>
+              <article><h4>Grupo 2 de la fase 2</h4><p><strong>B1 · A2 · B3 · A4 · B5</strong></p><p>Cinco equipos. Todos contra todos una vez: cuatro partidos por equipo en cuatro jornadas. El calendario se anunciará cuando esté listo.</p></article>
             </div>
-            <p class="mundial-legend">Al finalizar los partidos de los grupos se actualizarán las clasificaciones. Los ganadores de semifinales jugarán la final; los perdedores, por el tercer puesto.</p>
+            <p class="copa-format-bonus"><strong>+2 puntos de bonificación:</strong> A1 y B1, los ganadores de los grupos de la primera fase, comienzan la fase 2 con dos puntos adicionales.</p>
+            <div class="copa-format-rules">
+              <article><h4>Copa Oro</h4><p>Los puestos 1.º y 2.º de cada grupo de la fase 2 juegan semifinales: <strong>1.º Grupo 1 vs 2.º Grupo 2</strong> y <strong>1.º Grupo 2 vs 2.º Grupo 1</strong>.</p></article>
+              <article><h4>Copa Plata</h4><p>Los puestos 3.º y 4.º de cada grupo de la fase 2 juegan semifinales: <strong>3.º Grupo 1 vs 4.º Grupo 2</strong> y <strong>3.º Grupo 2 vs 4.º Grupo 1</strong>.</p></article>
+              <article><h4>Después de las semifinales</h4><p>En Oro y Plata, los ganadores disputan la final y los perdedores se enfrentan por el tercer puesto. Los semifinalistas se conocerán después de jugar la fase 2.</p></article>
+            </div>
+            <section class="copa-bronze-rules" aria-labelledby="copa-bronze-title">
+              <h4 id="copa-bronze-title">Copa Bronce</h4>
+              <p><strong>Un solo grupo:</strong> A5, A6, A7, B6, B7 y B8. Son seis equipos; todos se enfrentan una vez durante cinco fechas y se ordenan por puntos.</p>
+              <p><strong>B5</strong> es el equipo que termina 5.º en el Grupo 2 de la fase 2. Clasifica directamente a la final de la Copa Bronce.</p>
+              <ul><li><strong>Final Bronce:</strong> 1.º del grupo Bronce vs B5.</li><li><strong>Tercer puesto:</strong> 2.º vs 3.º del grupo Bronce.</li><li><strong>Copa Castell Mundial:</strong> 4.º vs 5.º del grupo Bronce.</li><li><strong>6.º del grupo:</strong> partido de exhibición.</li></ul>
+            </section>
+            <div class="copa-format-posters">
+              <figure><a href="../assets/copa-formato-fase2.png" target="_blank" rel="noopener noreferrer"><img src="../assets/copa-formato-fase2.png" alt="Lámina explicativa de la fase 2: códigos, grupos, bonificación y semifinales de Oro y Plata" width="1024" height="1536" loading="lazy" /></a><figcaption>Fase 2 y camino a Oro y Plata · Toca para ampliar</figcaption></figure>
+              <figure><a href="../assets/copa-formato-bronce-premios.png" target="_blank" rel="noopener noreferrer"><img src="../assets/copa-formato-bronce-premios.png" alt="Lámina de Copa Bronce: grupo único, final, partidos de clasificación y premios de las tres copas" width="1024" height="1536" loading="lazy" /></a><figcaption>Copa Bronce y premios · Toca para ampliar</figcaption></figure>
+            </div>
+            <div id="copa-format-live" hidden>
+              <h4>Tablas de la fase 2</h4>
+              <p id="copa-format-status" class="small-text muted" role="status"></p>
+              <div id="copa-format-groups" class="copa-format-groups"></div>
+              <div id="copa-format-standings" class="copa-format-standings"></div>
+              <div id="copa-format-cups" class="copa-format-cups"></div>
+            </div>
           </section>
           <section id="mundial-resultados" aria-labelledby="resultados-title">
             <h3 id="resultados-title">Resultados del torneo</h3>

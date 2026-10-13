@@ -23,7 +23,7 @@
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-inscripciones-admin.js?v=20261012-inscripciones" defer></script>
     <script src="../assets/copa-caja-admin.js?v=20261012-fiados" defer></script>
-    <script src="../assets/app.js?v=20261012-grupo-b-todos" defer></script>
+    <script src="../assets/app.js?v=20261012-fase2" defer></script>
   </head>
 
   <body data-page="admin">
@@ -186,7 +186,7 @@
             <p class="small-text muted">Inicia un partido, actualiza su marcador en vivo y finalízalo cuando termine. La página pública consulta cambios aproximadamente cada 15 segundos. Solo los partidos finalizados suman en posiciones y goleadores.</p>
             <details class="panel copa-schedule-panel" id="copa-schedule-details">
               <summary>Programar partido de una nueva fecha</summary>
-              <p class="small-text muted">Elige la etapa antes de los equipos. Los partidos de Grupo A, Grupo B y Bronce alimentan tablas separadas; los cruces de Oro y Plata solo se habilitan cuando termine la nueva fase. Ningún semifinalista está definido todavía.</p>
+              <p class="small-text muted">El formato ya está preparado. Los equipos de los grupos de la fase 2 y los horarios siguen pendientes de confirmación; hasta entonces no se pueden programar sus partidos. Cuando estén confirmados, elige la etapa y después los equipos. Los resultados finalizados alimentarán tablas separadas.</p>
               <form id="copa-schedule-form" method="post">
                 <div class="form-grid">
                   <div class="field"><label for="copa-schedule-stage">Etapa del partido</label><select id="copa-schedule-stage" name="stage" required><option value="GRUPO_A">Nueva fase · Grupo A</option><option value="GRUPO_B">Nueva fase · Grupo B</option><option value="BRONCE">Copa Bronce</option><option value="ORO">Copa Oro · después de clasificar</option><option value="PLATA">Copa Plata · después de clasificar</option><option value="FASE1">Primera fase · reprogramado</option></select></div>
@@ -196,7 +196,7 @@
                   <div class="field"><label for="copa-schedule-home">Selección local</label><select id="copa-schedule-home" name="home" required></select></div>
                   <div class="field"><label for="copa-schedule-away">Selección visitante</label><select id="copa-schedule-away" name="away" required></select></div>
                 </div>
-                <p id="copa-schedule-hint" class="small-text muted" role="status">Grupo A: Noruega, Cabo Verde, Portugal y Japón. Tres jornadas; todos contra todos.</p>
+                <p id="copa-schedule-hint" class="small-text muted" role="status">Pendiente de confirmar los equipos de la fase 2.</p>
                 <div class="form-actions"><button class="btn" type="submit">Guardar partido programado</button></div>
               </form>
             </details>

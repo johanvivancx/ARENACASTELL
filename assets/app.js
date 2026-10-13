@@ -1041,6 +1041,7 @@ async function initCopaResults() {
     const stage = stageSelect.value;
     const previous = [$("#copa-schedule-home").value, $("#copa-schedule-away").value];
     const teams = scheduleTeams(stage);
+    const waitingForGroups = stage !== "FASE1" && !schedule.format?.groupsConfirmed;
     const options = '<option value="">Selecciona una selección</option>' + teams
       .map((country) => `<option value="${esc(country)}">${esc(country)}</option>`).join("");
     $("#copa-schedule-home").innerHTML = options;
@@ -1048,14 +1049,17 @@ async function initCopaResults() {
     if (teams.includes(previous[0])) $("#copa-schedule-home").value = previous[0];
     if (teams.includes(previous[1])) $("#copa-schedule-away").value = previous[1];
     const hints = {
-      GRUPO_A: "Grupo A: 4 equipos, todos contra todos en 3 fechas. Noruega inicia con 2 puntos de bonificación.",
-      GRUPO_B: "Grupo B: 5 equipos, todos contra todos (10 partidos en total) en 4 jornadas. Francia inicia con 2 puntos de bonificación.",
-      BRONCE: "Bronce: estos equipos están identificados, pero programa los cruces solo cuando la organización los confirme.",
+      GRUPO_A: "Grupo 1: 4 equipos, todos contra todos en 3 fechas. El A1 inicia con 2 puntos de bonificación.",
+      GRUPO_B: "Grupo 2: 5 equipos, todos contra todos; 4 partidos por equipo. El B1 inicia con 2 puntos de bonificación.",
+      BRONCE: "Bronce: 6 equipos en un grupo, todos contra todos en 5 fechas. B5 entra directamente a la final de la Copa Bronce.",
       ORO: "Oro: los equipos estarán disponibles después de finalizar las tablas de ambos grupos.",
       PLATA: "Plata: los equipos estarán disponibles después de finalizar las tablas de ambos grupos.",
       FASE1: "Usa Primera fase únicamente para un encuentro histórico reprogramado."
     };
-    $("#copa-schedule-hint").textContent = hints[stage];
+    $("#copa-schedule-hint").textContent = waitingForGroups
+      ? "Aún no se han confirmado los equipos de la fase 2. Podrás programar partidos cuando la organización registre los grupos."
+      : hints[stage];
+    $("#copa-schedule-form button[type=submit]").disabled = waitingForGroups || teams.length < 2;
   };
   stageSelect.addEventListener("change", updateScheduleTeams);
   updateScheduleTeams();

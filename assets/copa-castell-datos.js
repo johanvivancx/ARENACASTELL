@@ -1,11 +1,12 @@
 window.CopaCastellData = {
   "format": {
+    "groupsConfirmed": false,
     "groups": {
-      "A": ["Noruega", "Cabo Verde", "Portugal", "Japón"],
-      "B": ["Francia", "Ecuador", "Egipto", "Colombia", "Marruecos"],
-      "BRONCE": ["Venezuela", "Alemania", "Uruguay", "España", "Argentina", "Brasil"]
+      "A": [],
+      "B": [],
+      "BRONCE": []
     },
-    "bonuses": {"Noruega": 2, "Francia": 2},
+    "bonuses": {},
     "qualification": {"ORO": [1, 2], "PLATA": [3, 4]}
   },
   "throughRound": 6,

@@ -69,7 +69,7 @@ def catalogo():
 
 
 ETAPAS = {"FASE1", "GRUPO_A", "GRUPO_B", "BRONCE", "ORO", "PLATA"}
-PARTIDOS_GRUPO = {"A": 6, "B": 10}
+PARTIDOS_GRUPO = {"A": 6, "B": 10, "BRONCE": 15}
 
 
 def formato_actual(matches):
@@ -83,21 +83,23 @@ def formato_actual(matches):
         bonus = rules["bonuses"] if code != "BRONCE" else {}
         rows = calcular_posiciones(final, {code: [[team] for team in rules["groups"][code]]}, bonus)[code]
         needed = PARTIDOS_GRUPO.get(code)
-        complete = bool(needed and len(games) >= needed and len(final) == len(games))
+        complete = bool(rules.get("groupsConfirmed") and needed and len(games) == needed and len(final) == needed)
         groups[code] = {"teams": rules["groups"][code], "standings": rows,
                         "finished": len(final), "scheduled": len(games), "complete": complete}
     qualified = {"ORO": [], "PLATA": []}
     def unresolved_boundary(rows, left, right):
         # Un empate deportivo completo no se decide por orden alfabético.
         return all(rows[left][index] == rows[right][index] for index in (1, 8, 6, 7))
-    ties = (unresolved_boundary(groups["A"]["standings"], 1, 2)
-            or unresolved_boundary(groups["B"]["standings"], 1, 2)
-            or unresolved_boundary(groups["B"]["standings"], 3, 4))
+    ties = False
+    if groups["A"]["complete"] and groups["B"]["complete"]:
+        ties = (unresolved_boundary(groups["A"]["standings"], 1, 2)
+                or unresolved_boundary(groups["B"]["standings"], 1, 2)
+                or unresolved_boundary(groups["B"]["standings"], 3, 4))
     if groups["A"]["complete"] and groups["B"]["complete"] and not ties:
         for cup, positions in rules["qualification"].items():
             qualified[cup] = [groups[code]["standings"][position - 1][0]
                               for code in ("A", "B") for position in positions]
-    return {"groups": groups, "qualified": qualified,
+    return {"groups": groups, "groupsConfirmed": bool(rules.get("groupsConfirmed")), "qualified": qualified,
             "semifinalistsConfirmed": bool(qualified["ORO"] and qualified["PLATA"]),
             "tiePendingReview": bool(ties and groups["A"]["complete"] and groups["B"]["complete"]),
             "expectedMatches": PARTIDOS_GRUPO}
@@ -129,6 +131,8 @@ def programar_partido(conn, admin_uid, data):
         raise ErrorValidacion("Selecciona dos selecciones distintas de la Copa Castell.")
     pools = base()["format"]["groups"]
     if stage in {"GRUPO_A", "GRUPO_B", "BRONCE"}:
+        if not base()["format"].get("groupsConfirmed"):
+            raise ErrorValidacion("Primero confirma y registra los grupos de la fase 2 antes de programar sus partidos.")
         pool = pools["BRONCE" if stage == "BRONCE" else stage[-1]]
         if home not in pool or away not in pool:
             raise ErrorValidacion("Los dos equipos deben pertenecer al grupo de la etapa seleccionada.")

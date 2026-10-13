@@ -196,9 +196,12 @@
     const tablesHost = document.getElementById('copa-format-standings');
     const cupsHost = document.getElementById('copa-format-cups');
     if (!groupHost || !tablesHost || !cupsHost) return;
+    const liveHost = document.getElementById('copa-format-live');
+    if (liveHost) liveHost.hidden = !format.groupsConfirmed;
     groupHost.replaceChildren();
     tablesHost.replaceChildren();
     cupsHost.replaceChildren();
+    if (!format.groupsConfirmed) return;
     for (const code of ['A', 'B', 'BRONCE']) {
       const group = format.groups[code];
       const countries = Array.isArray(group) ? group : group.teams;
@@ -216,8 +219,8 @@
       });
       card.append(list);
       card.append(element('p', code === 'A' ? 'Todos contra todos · 3 fechas.'
-        : code === 'B' ? 'Todos contra todos · 4 partidos por equipo en 4 jornadas.'
-          : 'Cruces por confirmar.'));
+        : code === 'B' ? 'Todos contra todos · 4 partidos por equipo.'
+          : 'Todos contra todos · 5 fechas.'));
       groupHost.append(card);
       if (!Array.isArray(group) && group.standings && group.finished) {
         const wrap = element('div');
@@ -258,13 +261,10 @@
       const card = element('article');
       card.className = `copa-format-cup copa-format-${cup.toLowerCase()}`;
       card.append(element('h4', `Copa ${cup === 'ORO' ? 'Oro' : 'Plata'}`));
-      card.append(element('p', cup === 'ORO'
-        ? 'Clasifican los puestos 1.º y 2.º de los grupos A y B.'
-        : 'Clasifican los puestos 3.º y 4.º de los grupos A y B.'));
       const qualified = confirmed ? format.qualified[cup] : [];
       card.append(element('p', qualified.length
         ? `Clasificados: ${qualified.join(' · ')}`
-        : 'Equipos por definir después de jugar la nueva fase.'));
+        : 'Clasificados por definir después de jugar la nueva fase.'));
       cupsHost.append(card);
     }
   };
