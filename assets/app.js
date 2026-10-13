@@ -1217,6 +1217,7 @@ async function initCopaMvp() {
   const countrySelect = $("#copa-mvp-country");
   const playerSelect = $("#copa-mvp-player");
   const imageInput = $("#copa-mvp-image");
+  const publicationPermission = $("#copa-mvp-permission");
   const preview = $("#copa-mvp-preview");
   const status = $("#copa-mvp-status");
   const currentFixture = () => schedule.fixtures.find((fixture) => fixture.id === fixtureSelect.value);
@@ -1277,6 +1278,7 @@ async function initCopaMvp() {
     event.preventDefault();
     const file = imageInput.files[0];
     if (!file || !playerSelect.value) return showMessage("Elige el jugador y su foto.");
+    if (!publicationPermission.checked) return showMessage("Confirma que comprobaste la autorización para publicar esta foto.");
     if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5_000_000)
       return showMessage("Usa una foto JPG, PNG o WebP de hasta 5 MB.");
     if (!confirm(`¿Publicar a ${playerSelect.selectedOptions[0].textContent} de ${countrySelect.value} como jugador del partido?`)) return;
@@ -1291,10 +1293,11 @@ async function initCopaMvp() {
       });
       const result = await api("/admin/copa-mvp", {
         fixture_id: fixtureSelect.value, country: countrySelect.value,
-        player_id: playerSelect.value, image,
+        player_id: playerSelect.value, image, autorizacion_publicacion: publicationPermission.checked,
       });
       schedule = await api("/admin/copa-fixtures");
       fillMvpFixtures();
+      publicationPermission.checked = false;
       showMessage(result.message, "success");
     } catch (error) { showMessage(error.message); }
     finally { button.disabled = false; }

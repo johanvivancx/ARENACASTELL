@@ -22,7 +22,7 @@ def test_fotos_fecha_siete_y_publicacion_privada(conn, user):
     assert len(initial["mvps"]) == 6
     fixture = next(row for row in copa.panel_admin(conn, admin)["fixtures"] if row["home"] == "Argentina")
     player = next(row for row in copa.panel_admin(conn, admin)["players"]["Japón"] if row["number"] == "13")
-    request = {"fixture_id": fixture["id"], "country": "Japón", "player_id": player["id"], "image": _foto()}
+    request = {"fixture_id": fixture["id"], "country": "Japón", "player_id": player["id"], "image": _foto(), "autorizacion_publicacion": True}
     with pytest.raises(s.HTTPError) as unauthorized:
         copa.guardar_jugador_del_partido(conn, user["id"], request)
     assert unauthorized.value.status == 403
@@ -31,6 +31,8 @@ def test_fotos_fecha_siete_y_publicacion_privada(conn, user):
     copa.guardar_resultado(conn, admin, {"fixture_id": fixture["id"], "homeGoals": 1,
                                      "awayGoals": 2, "revision": 0, "goals": []})
     before = copa.estado_publico(conn)
+    with pytest.raises(s.ErrorValidacion, match="autorización"):
+        copa.guardar_jugador_del_partido(conn, admin, {**request, "autorizacion_publicacion": False})
     with pytest.raises(s.ErrorValidacion, match="plantilla"):
         copa.guardar_jugador_del_partido(conn, admin, {**request, "player_id": "s:0"})
     with pytest.raises(s.ErrorValidacion, match="foto"):

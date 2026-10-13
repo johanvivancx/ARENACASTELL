@@ -360,7 +360,7 @@ class InspectHTML(HTMLParser):
 
 def test_html_semantica_et_enlaces():
     files=[STATIC/'index.html', *(STATIC/'pages').glob('*.html')]
-    assert len(files)==19
+    assert len(files)==21
     assert not (STATIC/'pages/index.html').exists()
     for path in files:
         text=path.read_text(encoding='utf8');document=InspectHTML();document.feed(text)

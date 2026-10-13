@@ -217,6 +217,8 @@ def guardar_jugador_del_partido(conn, admin_uid, data):
         raise ErrorValidacion("Selecciona un partido programado.")
     if not conn.execute("SELECT 1 FROM copa_resultados WHERE fixture_id=%s AND estado='FINALIZADO'", (fixture["id"],)).fetchone():
         raise ErrorValidacion("Publica primero el resultado final de este partido.")
+    if data.get("autorizacion_publicacion") is not True:
+        raise ErrorValidacion("Confirma que verificaste la autorización para publicar el nombre y la foto del jugador.")
     country = str(data.get("country", ""))
     if country not in (fixture["home"], fixture["away"]):
         raise ErrorValidacion("Selecciona una de las dos selecciones del partido.")
