@@ -49,6 +49,40 @@ function showOctoberPromo() {
   if (!catalog) return;
   const campaignIsCurrent = hourlyPromoApplies(catalog.hoy);
   $$("[data-october-promo]").forEach((el) => { el.hidden = !campaignIsCurrent; });
+  if (campaignIsCurrent) {
+    const days = Math.round((Date.parse(`${catalog.promocion_octubre.hasta}T12:00:00-05:00`) - Date.parse(`${catalog.hoy}T12:00:00-05:00`)) / 86400000);
+    $$("[data-promo-days]").forEach((el) => {
+      el.textContent = days === 0 ? "Último día de promoción." : `Quedan ${days + 1} días, contando hoy.`;
+    });
+  }
+}
+
+function initHome() {
+  if (page !== "home" || !catalog) return;
+  const next = new Date(`${catalog.hoy}T12:00:00-05:00`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  const tomorrow = next.toISOString().slice(0, 10);
+  $$("[data-reservation-day]").forEach((link) => {
+    const date = link.dataset.reservationDay === "tomorrow" ? tomorrow : catalog.hoy;
+    if (date > catalog.limite) { link.hidden = true; return; }
+    link.href = `pages/informacion_reservas.html?tipo=HORA&fecha=${encodeURIComponent(date)}`;
+  });
+  const host = $("#home-cup-preview");
+  if (!host) return;
+  api("/copa-castell").then((data) => {
+    const upcoming = (data.matches || []).filter((match) =>
+      match.date && (match.date >= catalog.hoy || match.status === "live") &&
+      ["scheduled", "rescheduled", "live"].includes(match.status))
+      .sort((a, b) => `${a.date} ${a.time || ""}`.localeCompare(`${b.date} ${b.time || ""}`)).slice(0, 2);
+    const recent = (data.matches || []).filter((match) => match.status === "final")
+      .sort((a, b) => `${b.date || ""} ${b.time || ""}`.localeCompare(`${a.date || ""} ${a.time || ""}`)).slice(0, 2);
+    const matches = upcoming.length ? upcoming : recent;
+    const title = upcoming.length ? "Próximos partidos" : "Últimos resultados";
+    const games = matches.length ? `<ul>${matches.map((match) => `<li><span>${esc(match.home)} <strong>${match.status === "live" || match.status === "final" ? `${esc(match.homeGoals)}–${esc(match.awayGoals)}` : "vs."}</strong> ${esc(match.away)}</span><small>${esc(match.date || "")}${match.time ? ` · ${esc(match.time)}` : ""}</small></li>`).join("")}</ul>` : "<p>Los próximos partidos se anunciarán en la página del torneo.</p>";
+    const leaders = (data.scorers || []).filter((player) => Number(player.goals) > 0).slice(0, 3);
+    const scorers = leaders.length ? `<div class="home-cup-scorers"><strong>Goleadores</strong><ol>${leaders.map((player) => `<li><span>${esc(player.name)} · ${esc(player.country)}</span><b>${esc(player.goals)}</b></li>`).join("")}</ol></div>` : "";
+    host.innerHTML = `<strong>${title}</strong>${games}${scorers}`;
+  }).catch(() => {});
 }
 
 // Escapa texto peligroso
@@ -488,7 +522,9 @@ function initReservation() {
   if (events[query.get("tipo")]) $("#tipo_evento").value = query.get("tipo");
   $("#fecha").min = catalog.hoy;
   $("#fecha").max = catalog.limite;
-  $("#fecha").value = catalog.hoy;
+  const requestedDate = query.get("fecha");
+  $("#fecha").value = requestedDate && requestedDate >= catalog.hoy && requestedDate <= catalog.limite
+    ? requestedDate : catalog.hoy;
   ["fecha", "cancha_id", "horas"].forEach((name) =>
     $(`#${name}`).addEventListener("change", loadSlots),
   );
@@ -1936,6 +1972,7 @@ async function initialize() {
   const failure = results.find((r) => r.status === "rejected");
   if (failure) return;
   showOctoberPromo();
+  initHome();
   $$("[data-price]").forEach((el) => {
     const value = el.dataset.price === "tarifa_hora" && hourlyPromoApplies(catalog.hoy)
       ? catalog.promocion_octubre.tarifa_hora : catalog.canchas[0]?.[el.dataset.price];
