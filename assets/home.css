@@ -208,18 +208,6 @@ body[data-page="home"] .home-amenities-grid li { min-width: 0; padding: 22px; bo
 body[data-page="home"] .home-amenities-grid strong, body[data-page="home"] .home-amenities-grid span { display: block; }
 body[data-page="home"] .home-amenities-grid strong { margin-bottom: 8px; color: #f3f6ee; font-size: 15px; }
 body[data-page="home"] .home-amenities-grid span { color: #c5cfca; font-size: 13px; line-height: 1.55; }
-body[data-page="home"] .home-cup-preview { width: 100%; margin: 0 0 17px; padding: 17px; border: 1px solid #53635b; border-radius: 9px; background: #121b19; font-size: 13px; }
-body[data-page="home"] .home-cup-preview > strong, body[data-page="home"] .home-cup-scorers > strong { display: block; margin-bottom: 8px; color: #e5efe5; font-size: 13px; }
-body[data-page="home"] .home-cup-preview ul, body[data-page="home"] .home-cup-preview ol { margin: 0; padding: 0; list-style: none; }
-body[data-page="home"] .home-cup-preview li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 7px 0; border-top: 1px solid #33433c; line-height: 1.45; }
-body[data-page="home"] .home-cup-preview li span { min-width: 0; }
-body[data-page="home"] .home-cup-preview li small { color: #b9c9bf; }
-body[data-page="home"] .home-cup-preview li b { color: #f3d684; }
-body[data-page="home"] .home-cup-preview p { margin: 0; color: #c9d2cc; line-height: 1.5; }
-body[data-page="home"] .home-cup-scorers { margin-top: 13px; }
-body[data-page="home"] .home-school-points { margin: -10px 0 19px; padding-left: 20px; color: #dce4dd; font-size: 13px; line-height: 1.7; }
-body[data-page="home"] .home-feature-actions { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: auto; }
-body[data-page="home"] .home-feature-actions .home-feature-link { margin-top: 0; }
 body[data-page="home"] .home-whatsapp-shortcut { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 20; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 8px 13px; border: 1px solid #78b78a; border-radius: 999px; background: #153d27; color: #fff; box-shadow: 0 9px 24px #0009; font-size: 13px; font-weight: 700; text-decoration: none; }
 body[data-page="home"] .home-whatsapp-shortcut:hover { background: #206237; }
 body[data-page="home"] .home-whatsapp-shortcut img { display: block; width: 27px; height: 27px; object-fit: contain; }

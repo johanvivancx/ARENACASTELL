@@ -67,22 +67,6 @@ function initHome() {
     if (date > catalog.limite) { link.hidden = true; return; }
     link.href = `pages/informacion_reservas.html?tipo=HORA&fecha=${encodeURIComponent(date)}`;
   });
-  const host = $("#home-cup-preview");
-  if (!host) return;
-  api("/copa-castell").then((data) => {
-    const upcoming = (data.matches || []).filter((match) =>
-      match.date && (match.date >= catalog.hoy || match.status === "live") &&
-      ["scheduled", "rescheduled", "live"].includes(match.status))
-      .sort((a, b) => `${a.date} ${a.time || ""}`.localeCompare(`${b.date} ${b.time || ""}`)).slice(0, 2);
-    const recent = (data.matches || []).filter((match) => match.status === "final")
-      .sort((a, b) => `${b.date || ""} ${b.time || ""}`.localeCompare(`${a.date || ""} ${a.time || ""}`)).slice(0, 2);
-    const matches = upcoming.length ? upcoming : recent;
-    const title = upcoming.length ? "Próximos partidos" : "Últimos resultados";
-    const games = matches.length ? `<ul>${matches.map((match) => `<li><span>${esc(match.home)} <strong>${match.status === "live" || match.status === "final" ? `${esc(match.homeGoals)}–${esc(match.awayGoals)}` : "vs."}</strong> ${esc(match.away)}</span><small>${esc(match.date || "")}${match.time ? ` · ${esc(match.time)}` : ""}</small></li>`).join("")}</ul>` : "<p>Los próximos partidos se anunciarán en la página del torneo.</p>";
-    const leaders = (data.scorers || []).filter((player) => Number(player.goals) > 0).slice(0, 3);
-    const scorers = leaders.length ? `<div class="home-cup-scorers"><strong>Goleadores</strong><ol>${leaders.map((player) => `<li><span>${esc(player.name)} · ${esc(player.country)}</span><b>${esc(player.goals)}</b></li>`).join("")}</ol></div>` : "";
-    host.innerHTML = `<strong>${title}</strong>${games}${scorers}`;
-  }).catch(() => {});
 }
 
 // Escapa texto peligroso
