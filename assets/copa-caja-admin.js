@@ -152,6 +152,8 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
             ["Cobrado por transferencia", current.cobrado_transferencia],
             ...(Number(current.cobrado_sin_desglose) ? [["Cobros sin medio clasificado", current.cobrado_sin_desglose]] : []),
             ["Total cobrado", current.cobrado], ["Gastos de la semana", current.gastado],
+            ["Efectivo restante de la semana", Number(current.cobrado_efectivo) - Number(current.gastado_efectivo)],
+            ["Transferencias restantes de la semana", Number(current.cobrado_transferencia) - Number(current.gastado_transferencia)],
             ["Resultado de la semana", current.neto]]) +
         card("Todas las semanas", "Acumulado histórico; no cambia al elegir otra semana.", [
             ["Cobrado en efectivo", all.cobrado_efectivo],

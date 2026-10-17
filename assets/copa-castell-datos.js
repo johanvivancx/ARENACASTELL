@@ -301,7 +301,7 @@ window.CopaCastellData = {
         },
         {
           "name": "ALAN MATEO GUILLEN GUASPUD",
-          "number": "5"
+          "number": "19"
         },
         {
           "name": "JOSE DAVID DONOSO TINIZARAY",
@@ -1496,7 +1496,7 @@ window.CopaCastellData = {
       "name": "Alan Mateo Guillén Guaspud",
       "goals": 9,
       "country": "Egipto",
-      "number": "5"
+      "number": "19"
     },
     {
       "name": "Andrés Gavilanes",
