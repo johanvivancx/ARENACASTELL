@@ -1,5 +1,5 @@
 """Escenarios de caja que evitan ingresos duplicados y pagos de vocalía inflados."""
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -82,6 +82,56 @@ def test_vocalia_dividida_cuenta_un_solo_cobro(conn):
     with pytest.raises(ErrorValidacion):
         _save(conn, admin, "INGRESO", "VOCALIAS", "10", fixture_id=fixture["id"],
               equipo=fixture["away"], monto_efectivo="4", monto_transferencia="5")
+
+
+def test_vocalias_pendientes_por_semana_y_resumen_acumulado(conn):
+    admin = _admin(conn)
+    fixture = next(iter(copa.catalogo()[0].values()))
+    current = datetime.now(TZ).date()
+    prior = current - timedelta(days=7)
+    previous_week = caja.resumen(conn, admin, fixture["date"])
+    assert {row["equipo"] for row in previous_week["vocalias_pendientes_lista"]
+            if row["fixture_id"] == fixture["id"]} == {fixture["home"], fixture["away"]}
+
+    first = _save(conn, admin, "INGRESO", "VOCALIAS", "6", fecha=prior.isoformat(),
+                  fixture_id=fixture["id"], equipo=fixture["home"],
+                  monto_efectivo="0", monto_transferencia="6")
+    _save(conn, admin, "INGRESO", "VOCALIAS", "4", fixture_id=fixture["id"],
+          equipo=fixture["home"], monto_efectivo="4", monto_transferencia="0")
+    after_one = caja.resumen(conn, admin, fixture["date"])
+    assert {row["equipo"] for row in after_one["vocalias_pendientes_lista"]
+            if row["fixture_id"] == fixture["id"]} == {fixture["away"]}
+    assert next(row for row in after_one["vocalias"]
+                if row["fixture_id"] == fixture["id"] and row["equipo"] == fixture["home"])["pendiente"] == 0
+
+    _save(conn, admin, "INGRESO", "VOCALIAS", "10", fixture_id=fixture["id"],
+          equipo=fixture["away"], monto_efectivo="10", monto_transferencia="0")
+    _save(conn, admin, "GASTO", "VOCALIAS", "5", area="VOCALIAS",
+          monto_efectivo="5", monto_transferencia="0")
+    complete = caja.resumen(conn, admin, fixture["date"])
+    assert not [row for row in complete["vocalias_pendientes_lista"]
+                if row["fixture_id"] == fixture["id"]]
+    assert complete["vocalias_esperadas"] >= Decimal("20")
+    assert complete["vocalias_pendientes"] == complete["vocalias_esperadas"] - Decimal("20")
+
+    this_week = caja.resumen(conn, admin, current.isoformat())
+    last_week = caja.resumen(conn, admin, prior.isoformat())
+    assert (this_week["vocalias_semana"]["cobrado_efectivo"],
+            this_week["vocalias_semana"]["cobrado_transferencia"],
+            this_week["vocalias_semana"]["gastado"],
+            this_week["vocalias_semana"]["neto"]) == (14, 0, 5, 9)
+    assert (last_week["vocalias_semana"]["cobrado"],
+            last_week["vocalias_semana"]["neto"]) == (6, 6)
+    assert this_week["vocalias_general"] == last_week["vocalias_general"]
+    assert (this_week["vocalias_general"]["cobrado"],
+            this_week["vocalias_general"]["gastado"],
+            this_week["vocalias_general"]["neto"]) == (20, 5, 15)
+    assert this_week["vocalias_saldos"]["total"] == 15
+
+    caja.anular(conn, admin, first, {"motivo": "Pago de prueba anulado"})
+    reopened = caja.resumen(conn, admin, fixture["date"])
+    assert next(row for row in reopened["vocalias_pendientes_lista"]
+                if row["fixture_id"] == fixture["id"])["equipo"] == fixture["home"]
 
 
 def test_vocalia_saldos_por_medio_y_clasificacion_de_gasto_anterior(conn):

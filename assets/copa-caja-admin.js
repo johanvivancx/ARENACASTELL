@@ -36,11 +36,14 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
   };
 
   const fillFixtures = () => {
+    const pendingIds = new Set(state.vocalias_pendientes_lista.map((item) => item.fixture_id));
+    const thisWeek = state.partidos.filter((item) => item.date >= state.semana && item.date <= state.hasta);
     $$('[data-vocalia-fixture]', root).forEach((select) => {
       const old = select.value;
+      const items = select.required ? thisWeek.filter((item) => pendingIds.has(item.id)) : thisWeek;
       select.innerHTML = `<option value="">${select.required ? "Selecciona un partido" : "Sin partido específico"}</option>` +
-        state.partidos.map((item) => `<option value="${esc(item.id)}">${esc(dates(item.date))} · Fecha ${esc(item.round)} · ${esc(item.home)} vs. ${esc(item.away)}</option>`).join("");
-      if (state.partidos.some((item) => item.id === old)) select.value = old;
+        items.map((item) => `<option value="${esc(item.id)}">${esc(dates(item.date))} · Fecha ${esc(item.round)} · ${esc(item.home)} vs. ${esc(item.away)}</option>`).join("");
+      if (items.some((item) => item.id === old)) select.value = old;
     });
     fillTeams();
   };
@@ -49,7 +52,8 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
     const fixtureId = $('[data-vocalia-fixture]', $("#caja-vocalia-ingreso-form", root)).value;
     const match = state?.partidos.find((item) => item.id === fixtureId);
     $("#caja-vocalia-equipo", root).innerHTML = match
-      ? `<option value="">Selecciona el equipo</option>` + [match.home, match.away]
+      ? `<option value="">Selecciona el equipo</option>` + state.vocalias_pendientes_lista
+          .filter((item) => item.fixture_id === fixtureId).map((item) => item.equipo)
           .map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join("")
       : '<option value="">Primero selecciona un partido</option>';
     updateVocaliaDue();
@@ -118,6 +122,8 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
 
   const renderArea = () => {
     const summary = $('[data-area-summary="' + active + '"]', root);
+    summary.hidden = active === "VOCALIAS";
+    $("#copa-vocalia-resumen", root).hidden = active !== "VOCALIAS";
     let facts;
     if (active === "DISPONIBLE") {
       const rows = state.movimientos.filter((item) => item.cuenta === "DISPONIBLE" && !item.anulado_en);
@@ -126,23 +132,36 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       facts = [["Saldo actual", state.saldos.DISPONIBLE], ["Saldo inicial esta semana", sum("APERTURA")],
         ["Caja entregada esta semana", sum("TRASPASO")], ["Gastos pagados esta semana", sum("GASTO")]];
     } else {
-      facts = [...(active === "VOCALIAS" ? [
-          [state.vocalias_saldos.movimientos_sin_desglose ? "Efectivo identificado" : "Disponible en efectivo", state.vocalias_saldos.efectivo],
-          [state.vocalias_saldos.movimientos_sin_desglose ? "Transferencias identificadas" : "Disponible por transferencia", state.vocalias_saldos.transferencia],
-          ["Total disponible en vocalías", state.vocalias_saldos.total],
-          ...(state.vocalias_saldos.movimientos_sin_desglose ? [["Saldo histórico sin clasificar", state.vocalias_saldos.sin_desglose]] : []),
-          ["Esperado esta semana", state.vocalias_esperadas],
-          ["Pendiente de cobrar", state.vocalias_pendientes],
-          ["Cobrado en efectivo", state.vocalias_efectivo],
-          ["Cobrado por transferencia", state.vocalias_transferencia],
-          ...(Number(state.vocalias_sin_desglose) ? [["Cobros anteriores sin desglose", state.vocalias_sin_desglose]] : [])]
-          : [["Saldo actual en esta caja", state.saldos[active]],
-            ["Caja entregada esta semana", state.caja_entregada[active]]]),
-        ["Cobrado esta semana", state.ingresos[active]], ["Gastos atribuidos esta semana", state.gastos[active]]];
+      facts = active === "VOCALIAS" ? [] : [
+        ["Saldo actual en esta caja", state.saldos[active]],
+        ["Caja entregada esta semana", state.caja_entregada[active]],
+        ["Cobrado esta semana", state.ingresos[active]],
+        ["Gastos atribuidos esta semana", state.gastos[active]]];
     }
     summary.innerHTML = facts.map(([label, value]) =>
       `<div><span>${esc(label)}</span><strong>${esc(money(value))}</strong></div>`).join("");
     if (active === "VOCALIAS") {
+      const card = (title, subtitle, facts) => `<section class="copa-week-card"><h4>${esc(title)}</h4><p>${esc(subtitle)}</p><dl>${facts.map(([label, value]) =>
+        `<div><dt>${esc(label)}</dt><dd>${esc(money(value))}</dd></div>`).join("")}</dl></section>`;
+      const current = state.vocalias_semana;
+      const all = state.vocalias_general;
+      $("#copa-vocalia-resumen", root).innerHTML =
+        card(`Semana del ${dates(state.semana)} al ${dates(state.hasta)}`,
+          "Cobros y gastos según la fecha en que se registraron.", [
+            ["Cobrado en efectivo", current.cobrado_efectivo],
+            ["Cobrado por transferencia", current.cobrado_transferencia],
+            ...(Number(current.cobrado_sin_desglose) ? [["Cobros sin medio clasificado", current.cobrado_sin_desglose]] : []),
+            ["Total cobrado", current.cobrado], ["Gastos de la semana", current.gastado],
+            ["Resultado de la semana", current.neto]]) +
+        card("Todas las semanas", "Acumulado histórico; no cambia al elegir otra semana.", [
+            ["Cobrado en efectivo", all.cobrado_efectivo],
+            ["Cobrado por transferencia", all.cobrado_transferencia],
+            ...(Number(all.cobrado_sin_desglose) ? [["Cobros sin medio clasificado", all.cobrado_sin_desglose]] : []),
+            ["Total cobrado", all.cobrado], ["Gastos acumulados", all.gastado],
+            ["Disponible en efectivo", state.vocalias_saldos.efectivo],
+            ["Disponible en transferencias", state.vocalias_saldos.transferencia],
+            ...(Number(state.vocalias_saldos.sin_desglose) ? [["Saldo sin medio clasificado", state.vocalias_saldos.sin_desglose]] : []),
+            ["Saldo total actual", all.neto]]);
       const notice = $("#copa-vocalia-desglose-aviso", root);
       notice.hidden = !state.vocalias_saldos.movimientos_sin_desglose;
       notice.textContent = "Hay movimientos anteriores sin medio de pago. Los importes de efectivo y transferencia son solo los identificados; clasifica esos movimientos en el historial para conocer los saldos exactos. El total sí incluye todos los movimientos.";
@@ -183,10 +202,13 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       item.textContent = `Saldo actual ${money(state.saldos[item.dataset.areaBalance])}`);
     $("#caja-apertura-form", root).hidden = state.saldo_inicial_registrado;
     fillFixtures();
-    $("#copa-vocalias", root).innerHTML = state.vocalias.length
-      ? `<table class="copa-ledger-table"><thead><tr><th>Partido</th><th>Equipo</th><th>Esperado</th><th>Pagado</th><th>Pendiente</th></tr></thead><tbody>${state.vocalias.map((item) =>
-          `<tr><td>${esc(item.fixture_id)}</td><td>${esc(item.equipo)}</td><td>${esc(money(item.esperado))}</td><td>${esc(money(item.pagado))}</td><td>${esc(money(item.pendiente))}</td></tr>`).join("")}</tbody></table>`
-      : '<p class="small-text muted">No hay partidos programados en esta semana.</p>';
+    $("#copa-vocalias-pendiente-total", root).textContent = `Por cobrar de los partidos de esta semana: ${money(state.vocalias_pendientes)}.`;
+    $("#copa-vocalias", root).innerHTML = state.vocalias_pendientes_lista.length
+      ? `<table class="copa-ledger-table"><thead><tr><th>Partido</th><th>Equipo pendiente</th><th>Pagado</th><th>Falta cobrar</th></tr></thead><tbody>${state.vocalias_pendientes_lista.map((item) => {
+          const fixture = state.partidos.find((match) => match.id === item.fixture_id);
+          return `<tr><td>${fixture ? `${esc(dates(fixture.date))} · ${esc(fixture.home)} vs. ${esc(fixture.away)}` : esc(item.fixture_id)}</td><td>${esc(item.equipo)}</td><td>${esc(money(item.pagado))}</td><td><strong>${esc(money(item.pendiente))}</strong></td></tr>`;
+        }).join("")}</tbody></table>`
+      : '<p class="small-text muted">No hay vocalías pendientes de los partidos de esta semana. Los cobros anteriores siguen en el historial.</p>';
     renderBarDebts();
     if (active !== "INSCRIPCIONES") renderArea();
   }
@@ -238,6 +260,16 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
   });
   week.addEventListener("change", async () => {
     try { await refresh(); } catch (error) { showMessage(error.message); }
+  });
+  $$('[data-copa-week-shift]', root).forEach((button) => button.addEventListener("click", () => {
+    const date = new Date(`${week.value || today}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + Number(button.dataset.copaWeekShift));
+    week.value = date.toISOString().slice(0, 10);
+    week.dispatchEvent(new Event("change"));
+  }));
+  $("#copa-week-current", root).addEventListener("click", () => {
+    week.value = today;
+    week.dispatchEvent(new Event("change"));
   });
   $("#copa-caja-history", root).addEventListener("click", async (event) => {
     const splitButton = event.target.closest("[data-caja-split]");

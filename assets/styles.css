@@ -1680,7 +1680,16 @@ td small {
 .finance-grid .stat .finance-negative {
   color: #ff8d8d;
 }
-.copa-week-picker { max-width: 320px; margin: 22px 0 8px; }
+.copa-week-picker { margin: 22px 0 8px; }
+.copa-week-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.copa-week-controls input[type="date"] { max-width: 190px; }
+.copa-week-controls .btn { min-height: 44px; }
+.copa-vocalia-resumen { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 22px 0 28px; }
+.copa-vocalia-resumen .copa-week-card { margin: 0; }
+.copa-vocalia-resumen .copa-week-card h4 { margin: 0 0 6px; font-size: 18px; }
+.copa-vocalia-resumen .copa-week-card p { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+.copa-vocalia-resumen .copa-week-card dl > div:last-child { color: var(--accent-soft); font-weight: 700; }
+.copa-vocalia-resumen[hidden], .copa-area-summary[hidden] { display: none; }
 .copa-caja-balances { margin-top: 24px; }
 .copa-caja-weekly { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 22px 0 34px; }
 .copa-week-card { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface2); }
@@ -1734,7 +1743,7 @@ td small {
 .copa-debt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 160px; }
 .copa-void { opacity: .58; }
 @media (max-width: 960px) { .copa-area-nav, .copa-area-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 720px) { .copa-caja-weekly, .copa-form-grid { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .copa-caja-weekly, .copa-form-grid, .copa-vocalia-resumen { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .copa-area-nav, .copa-area-summary { grid-template-columns: 1fr; } .copa-area-nav button { min-height: auto; } }
 @media (max-width: 700px) { .copa-inscripciones-grid { grid-template-columns: 1fr; } .copa-inscripcion-card-head { flex-direction: column; } }
 .copa-goal-rows {

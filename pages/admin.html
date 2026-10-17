@@ -17,12 +17,12 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261012-fiados" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261017-vocalias" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-inscripciones-admin.js?v=20261012-inscripciones" defer></script>
-    <script src="../assets/copa-caja-admin.js?v=20261012-fiados" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261017-vocalias" defer></script>
     <script src="../assets/app.js?v=20261012-legal" defer></script>
   </head>
 
@@ -248,7 +248,7 @@
           <section class="admin-workspace-section" id="admin-copa-caja" aria-labelledby="copa-caja-title" hidden>
             <h2 id="copa-caja-title">Copa Castell · Movimientos</h2>
             <p class="small-text muted">Control de la Copa separado por actividad. Las inscripciones y carnets de equipos tienen su propio registro; no se mezclan con bar, entradas, vocalías ni Súper Chaca.</p>
-            <div class="field copa-week-picker"><label for="copa-week">Semana que quieres revisar</label><input id="copa-week" type="date" /></div>
+            <div class="field copa-week-picker"><label for="copa-week">Semana que quieres revisar</label><div class="copa-week-controls"><button class="btn secondary" type="button" data-copa-week-shift="-7">Anterior</button><input id="copa-week" type="date" /><button class="btn secondary" type="button" data-copa-week-shift="7">Siguiente</button><button class="btn secondary" id="copa-week-current" type="button">Esta semana</button></div><small>Elige cualquier día; se mostrará la semana de lunes a domingo.</small></div>
             <p id="copa-week-caption" class="small-text muted" role="status"></p>
             <p id="copa-caja-total" class="copa-total-line" role="status"></p>
             <nav class="copa-area-nav" aria-label="Cajas de Copa Castell">
@@ -352,6 +352,7 @@
             <div class="copa-area-panel" data-copa-panel="VOCALIAS" hidden>
               <h3>Vocalías</h3><p class="small-text muted">Registra lo que pagó cada equipo por su partido. La referencia es $10 por equipo. Los pagos al árbitro o al vocal se registran como gastos cuando se entreguen.</p>
               <div class="copa-area-summary" data-area-summary="VOCALIAS"></div>
+              <div id="copa-vocalia-resumen" class="copa-vocalia-resumen" aria-live="polite"></div>
               <p id="copa-vocalia-desglose-aviso" class="small-text muted" role="status" hidden></p>
               <div class="copa-form-grid">
                 <form id="caja-vocalia-ingreso-form" class="panel copa-caja-form" data-caja-kind="INGRESO" data-caja-account="VOCALIAS" method="post">
@@ -377,7 +378,9 @@
                   <div class="form-actions"><button class="btn" type="submit">Guardar gasto de vocalías</button></div>
                 </form>
               </div>
-              <h4>Pago de cada equipo · semana seleccionada</h4>
+              <h4>Vocalías pendientes · semana seleccionada</h4>
+              <p class="small-text muted">Un partido permanece mientras alguno de los dos equipos deba su vocalía. Cuando ambos completan el pago, desaparece de esta lista. El historial de cobros sigue guardado abajo.</p>
+              <p id="copa-vocalias-pendiente-total" class="copa-total-line" role="status"></p>
               <div id="copa-vocalias" class="copa-ledger-scroll"></div>
               <details id="copa-vocalias-limpieza" class="panel" hidden>
                 <summary>Vaciar historial de vocalías</summary>

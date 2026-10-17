@@ -89,6 +89,25 @@ def _saldos_vocalia(rows):
             "total": cash + transfer + unknown}
 
 
+def _resumen_vocalias(rows):
+    """Entradas, gastos y saldo de vocalías para cualquier período."""
+    result = {key: CERO for key in (
+        "cobrado", "cobrado_efectivo", "cobrado_transferencia", "cobrado_sin_desglose",
+        "gastado", "gastado_efectivo", "gastado_transferencia", "gastado_sin_desglose")}
+    for row in rows:
+        if row["anulado_en"] or row["cuenta"] != "VOCALIAS" or row["tipo"] not in ("INGRESO", "GASTO"):
+            continue
+        prefix = "cobrado" if row["tipo"] == "INGRESO" else "gastado"
+        result[prefix] += row["monto"]
+        if row["monto_efectivo"] is None:
+            result[f"{prefix}_sin_desglose"] += row["monto"]
+        else:
+            result[f"{prefix}_efectivo"] += row["monto_efectivo"]
+            result[f"{prefix}_transferencia"] += row["monto_transferencia"]
+    result["neto"] = result["cobrado"] - result["gastado"]
+    return result
+
+
 def resumen(conn, admin_uid, semana=None):
     exigir_administrador(conn, admin_uid)
     start = fecha(semana) if semana else datetime.now(TZ).date()
@@ -98,6 +117,8 @@ def resumen(conn, admin_uid, semana=None):
     balances = _saldos(rows)
     vocalia_balances = _saldos_vocalia(rows)
     weekly = [r for r in rows if start <= r["fecha"] < end]
+    vocalias_semana = _resumen_vocalias(weekly)
+    vocalias_general = _resumen_vocalias(rows)
     income = {area: CERO for area in ("BAR", "ENTRADAS", "VOCALIAS")}
     expenses = {area: CERO for area in ("BAR", "ENTRADAS", "VOCALIAS", "GENERAL")}
     transfers = {area: CERO for area in ("BAR", "ENTRADAS")}
@@ -121,19 +142,10 @@ def resumen(conn, admin_uid, semana=None):
             day[row["destino"]]["caja"] += row["monto"]
     fixtures = partidos(conn)
     payments = {}
-    vocalia_efectivo = CERO
-    vocalia_transferencia = CERO
-    vocalia_sin_desglose = CERO
     for row in rows:
         if not row["anulado_en"] and row["tipo"] == "INGRESO" and row["cuenta"] == "VOCALIAS":
             key = (row["fixture_id"], row["equipo"])
             payments[key] = payments.get(key, CERO) + row["monto"]
-            if start <= row["fecha"] < end:
-                if row["monto_efectivo"] is None:
-                    vocalia_sin_desglose += row["monto"]
-                else:
-                    vocalia_efectivo += row["monto_efectivo"]
-                    vocalia_transferencia += row["monto_transferencia"]
     debts = conn.execute("""SELECT d.id,d.fecha,d.nombre,d.monto,d.concepto,d.creado_en,d.cobrada_en,
         autor.nombre AS registrado_por_nombre,cobrador.nombre AS cobrada_por_nombre
         FROM copa_bar_deudas d JOIN usuarios autor ON autor.id=d.registrado_por
@@ -164,9 +176,12 @@ def resumen(conn, admin_uid, semana=None):
             "ingresos": income, "gastos": expenses, "caja_entregada": transfers,
             "dias": [{"fecha": day, **daily[day]} for day in sorted(daily, reverse=True)],
             "movimientos": list(reversed(weekly)), "vocalias": due,
-            "vocalias_efectivo": vocalia_efectivo,
-            "vocalias_transferencia": vocalia_transferencia,
-            "vocalias_sin_desglose": vocalia_sin_desglose,
+            "vocalias_pendientes_lista": [r for r in due if r["pendiente"] > 0],
+            "vocalias_semana": vocalias_semana,
+            "vocalias_general": vocalias_general,
+            "vocalias_efectivo": vocalias_semana["cobrado_efectivo"],
+            "vocalias_transferencia": vocalias_semana["cobrado_transferencia"],
+            "vocalias_sin_desglose": vocalias_semana["cobrado_sin_desglose"],
             "vocalias_saldos": vocalia_balances,
             "bar_deudas": debts,
             "bar_deudores": sorted(debtors.values(), key=lambda item: item["nombre"].casefold()),
