@@ -1334,8 +1334,9 @@ async function initCopaCaja() {
 function initAdminWorkspace() {
   const menu = $(".admin-section-nav");
   if (!menu) return;
-  const intro = $("#admin-menu-heading");
-  const moreTools = $(".admin-more-tools");
+  const shell = $("#admin-shell");
+  const sidebarToggle = $("#admin-sidebar-toggle");
+  const sidebarHome = $("#admin-sidebar-home");
   const toolbar = $("#admin-panel-toolbar");
   const groupNav = $("#admin-group-nav");
   const overview = $("#admin-resumen");
@@ -1351,15 +1352,26 @@ function initAdminWorkspace() {
     "admin-correos": {title: "Envío de correos", tabs: [["admin-correos", "Correos"]]},
     "admin-limpieza": {title: "Vaciar datos de prueba", tabs: [["admin-limpieza", "Limpieza"]]},
   };
+  const setSidebarOpen = (open) => {
+    shell.dataset.sidebarOpen = String(open);
+    sidebarToggle.setAttribute("aria-expanded", String(open));
+  };
+  const markActive = (groupId) => {
+    sidebarHome.setAttribute("aria-pressed", String(!groupId));
+    $$('[data-admin-target]', $("#admin-sidebar")).forEach((button) => {
+      const group = groups[button.dataset.adminTarget];
+      button.setAttribute("aria-pressed", String(Boolean(group && groupId === button.dataset.adminTarget)));
+    });
+  };
   const openPanel = (id) => {
     if (id === "admin-administradores" && !session.usuario?.puede_crear_admins) return;
     const panel = panels.find((section) => section.id === id);
     if (!panel) return;
-    const group = Object.values(groups).find(({tabs}) => tabs.some(([tabId]) => tabId === id));
+    const groupEntry = Object.entries(groups).find(([, {tabs}]) => tabs.some(([tabId]) => tabId === id));
+    const group = groupEntry?.[1];
     if (!group) return;
-    intro.hidden = true;
-    menu.hidden = true;
-    moreTools.hidden = true;
+    markActive(groupEntry[0]);
+    setSidebarOpen(false);
     overview.hidden = true;
     toolbar.hidden = false;
     panels.forEach((section) => { section.hidden = section !== panel; });
@@ -1377,16 +1389,17 @@ function initAdminWorkspace() {
     toolbar.scrollIntoView({behavior: "smooth", block: "start"});
   };
   const showMenu = () => {
-    intro.hidden = false;
-    menu.hidden = false;
-    moreTools.hidden = false;
+    markActive(null);
+    setSidebarOpen(false);
     overview.hidden = false;
     toolbar.hidden = true;
     groupNav.hidden = true;
     panels.forEach((section) => { section.hidden = true; });
     loadReports().catch((error) => showMessage(error.message));
-    intro.scrollIntoView({behavior: "smooth", block: "start"});
+    overview.scrollIntoView({behavior: "smooth", block: "start"});
   };
+  sidebarToggle.addEventListener("click", () => setSidebarOpen(shell.dataset.sidebarOpen !== "true"));
+  sidebarHome.addEventListener("click", showMenu);
   $$('[data-admin-target]', $("#admin-content")).forEach((button) => {
     button.addEventListener("click", () => openPanel(button.dataset.adminTarget));
   });
