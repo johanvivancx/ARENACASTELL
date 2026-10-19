@@ -1,0 +1,161 @@
+/* Área privada clara. No modifica las páginas públicas ni sus colores. */
+body[data-page="admin"] main {
+  --bg: #f3f5f6;
+  --surface: #ffffff;
+  --surface2: #f7f9fa;
+  --line: #d7dfe2;
+  --text: #202c35;
+  --muted: #53636e;
+  --accent: #8b5e22;
+  --accent-soft: #76501c;
+  color-scheme: light;
+  min-height: calc(100vh - 88px);
+  color: var(--text);
+  background: linear-gradient(180deg, #fafbfb 0, var(--bg) 320px);
+}
+
+body[data-page="admin"] main a { color: #315c74; }
+body[data-page="admin"] main a:hover { color: #173f56; }
+body[data-page="admin"] main .page-intro { border-bottom: 1px solid var(--line); }
+body[data-page="admin"] main .page-intro h1 { color: #182a35; }
+body[data-page="admin"] main .page-intro p,
+body[data-page="admin"] main .breadcrumb { color: var(--muted); }
+body[data-page="admin"] main .eyebrow { color: #76501c; }
+
+body[data-page="admin"] .admin-sidebar {
+  border-color: #d3dde0;
+  background: #ffffff;
+  box-shadow: 0 14px 38px rgba(26, 48, 59, .08);
+}
+body[data-page="admin"] .admin-sidebar .admin-menu-heading h2 { color: #263640; }
+body[data-page="admin"] .admin-side-group { color: #60717b; }
+body[data-page="admin"] .admin-sidebar .admin-home-icon,
+body[data-page="admin"] .admin-sidebar .admin-nav-top { color: #7a6441; }
+body[data-page="admin"] .admin-sidebar .admin-section-nav button { color: #2c3b45; }
+body[data-page="admin"] .admin-sidebar .admin-section-nav button:hover,
+body[data-page="admin"] .admin-sidebar .admin-section-nav button:focus-visible {
+  border-color: #c7d3d8;
+  background: #f1f5f6;
+  color: #172b37;
+}
+body[data-page="admin"] .admin-sidebar .admin-section-nav button[aria-pressed="true"] {
+  border-color: #d4bd8e;
+  background: #f8f0df;
+  color: #47330f;
+  box-shadow: inset 3px 0 #ab7b31;
+}
+body[data-page="admin"] .admin-sidebar .admin-more-tools-links button[aria-pressed="true"] { background: #f8f0df; }
+body[data-page="admin"] .admin-sidebar .admin-more-tools-links .admin-nav-danger { color: #a82424; }
+
+body[data-page="admin"] .admin-workspace-section,
+body[data-page="admin"] main .panel,
+body[data-page="admin"] main .stat,
+body[data-page="admin"] main .cash-item,
+body[data-page="admin"] main .mail-item {
+  border-color: var(--line);
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(27, 49, 60, .045);
+}
+body[data-page="admin"] .admin-workspace-section { border-radius: 12px; }
+body[data-page="admin"] .admin-workspace-section h2 { color: #1c303c; }
+body[data-page="admin"] .admin-panel-toolbar { color: var(--muted); }
+body[data-page="admin"] .admin-group-nav button,
+body[data-page="admin"] .admin-more-tools-links button,
+body[data-page="admin"] #admin-sidebar-toggle {
+  border-color: #cbd6da;
+  background: #ffffff;
+  color: #253541;
+}
+body[data-page="admin"] .admin-group-nav button[aria-pressed="true"] {
+  border-color: #a78751;
+  background: #f8f0df;
+  color: #47330f;
+}
+
+body[data-page="admin"] main .btn {
+  border-color: #223b49;
+  background: #223b49;
+  color: #ffffff;
+  box-shadow: none;
+}
+body[data-page="admin"] main .btn:hover { border-color: #132a37; background: #132a37; color: #ffffff; }
+body[data-page="admin"] main .btn.secondary,
+body[data-page="admin"] main .btn.quiet {
+  border-color: #b7c5cb;
+  background: #ffffff;
+  color: #263b49;
+  box-shadow: none;
+}
+body[data-page="admin"] main .btn.secondary:hover,
+body[data-page="admin"] main .btn.quiet:hover { border-color: #7893a0; background: #eff4f5; color: #162e3b; }
+body[data-page="admin"] main .btn.danger { border-color: #ad3030; background: #ad3030; color: #ffffff; }
+body[data-page="admin"] main .btn.danger:hover { background: #8f2424; }
+
+body[data-page="admin"] main .field input,
+body[data-page="admin"] main .field select,
+body[data-page="admin"] main .field textarea {
+  border-color: #aebdc4;
+  background: #ffffff;
+  color: #1d303b;
+}
+body[data-page="admin"] main .field input::placeholder,
+body[data-page="admin"] main .field textarea::placeholder { color: #62727b; }
+body[data-page="admin"] main .field input:focus,
+body[data-page="admin"] main .field select:focus,
+body[data-page="admin"] main .field textarea:focus { border-color: #8b5e22; background: #fffdfa; }
+body[data-page="admin"] main .field input[readonly] { background: #eef2f3; color: #41545e; }
+body[data-page="admin"] main .field small,
+body[data-page="admin"] main .small-text { font-size: 12px; line-height: 1.55; }
+body[data-page="admin"] main input[type="checkbox"],
+body[data-page="admin"] main input[type="radio"] { accent-color: #806028; }
+
+body[data-page="admin"] main .table-wrap,
+body[data-page="admin"] main .copa-ledger-scroll { border-color: var(--line); background: #ffffff; }
+body[data-page="admin"] main table { color: #243541; font-size: 13px; }
+body[data-page="admin"] main caption,
+body[data-page="admin"] main th {
+  background: #eef2f4;
+  color: #374e5b;
+}
+body[data-page="admin"] main td { color: #263743; }
+body[data-page="admin"] main tbody tr:hover { background: #f8faf9; }
+body[data-page="admin"] main td small { color: var(--muted); }
+body[data-page="admin"] main .stat strong { color: #263f4d; }
+body[data-page="admin"] main .finance-grid .finance-negative { color: #a52828; }
+
+body[data-page="admin"] main .copa-week-card,
+body[data-page="admin"] main .copa-area-summary > div,
+body[data-page="admin"] main .copa-inscripcion-card,
+body[data-page="admin"] main .copa-area-nav button {
+  border-color: var(--line);
+  background: #f9fbfb;
+  color: var(--text);
+}
+body[data-page="admin"] main .copa-area-nav button:hover { border-color: #96adb6; background: #f1f6f7; }
+body[data-page="admin"] main .copa-area-nav button[aria-pressed="true"] {
+  border-color: #b99760;
+  background: #fcf5e7;
+  box-shadow: inset 3px 0 #a8752d;
+}
+body[data-page="admin"] main .copa-inscripcion-estados strong.good { color: #176648; }
+
+body[data-page="admin"] #admin-escuela { border-color: var(--line); background: #ffffff; }
+body[data-page="admin"] #admin-escuela .school-admin-hero { border-color: var(--line); }
+body[data-page="admin"] #admin-escuela .school-admin-hero p:not(.school-kicker) { color: var(--muted); }
+body[data-page="admin"] #admin-escuela .school-admin-link { color: #9e3240; }
+body[data-page="admin"] #admin-escuela .school-admin-link:hover { color: #76202c; }
+body[data-page="admin"] #admin-escuela .school-admin-form,
+body[data-page="admin"] #admin-escuela .school-admin-filters,
+body[data-page="admin"] #admin-escuela .school-admin-stats > div {
+  border-color: #e2d7d9;
+  background: #fdfafb;
+}
+body[data-page="admin"] #admin-escuela .school-admin-stats span { color: #5d5c62; }
+body[data-page="admin"] #admin-escuela .school-admin-stats strong { color: #76333c; }
+body[data-page="admin"] #admin-escuela th { background: #f5ebed; }
+
+body[data-page="admin"] main .notice { border-color: #cbd5d9; background: #eef3f5; color: #304450; }
+body[data-page="admin"] main .notice.warning { border-color: #d9bc77; background: #fff7e8; color: #644910; }
+body[data-page="admin"] main .notice.error { border-color: #e2a3a3; background: #fff0f0; color: #802424; }
+body[data-page="admin"] main .notice.success { border-color: #95c8b0; background: #eaf8f1; color: #195b3d; }
+body[data-page="admin"] main :focus-visible { outline-color: #93682a; }
