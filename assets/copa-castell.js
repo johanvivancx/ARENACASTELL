@@ -345,14 +345,6 @@
     }
     document.getElementById('mundial-busqueda-estado').textContent = visible === 1 ? '1 selección disponible' : visible ? `${visible} selecciones disponibles` : 'No se encontraron equipos o jugadores con ese nombre.';
   });
-  const awards = [
-    ['Marruecos','9','Juan Diego Bustillos Paucar','marruecos'],
-    ['Japón','13','Sebastián Taipe','japon'],
-    ['Ecuador','9','Elvis Loachamin','ecuador'],
-    ['Noruega','9','Romario Betancourt','noruega'],
-    ['Egipto','88','Kleber Sebastián Aulestia Ramos','egipto'],
-    ['Francia','7','Abdías Méndez','francia']
-  ];
   const renderAward = (container, {country, number, name, photo_url, round}) => {
     const card = element('figure');
     card.className = 'mundial-mvp-card';
@@ -379,29 +371,11 @@
   };
   const renderAwards = () => {
     const current = document.getElementById('mundial-mvp');
-    const history = document.getElementById('mundial-mvp-recent-history');
     current.replaceChildren();
-    history.replaceChildren();
-    const published = data.mvps || [];
-    const latest = Math.max(7, ...published.map(award => Number(award.round) || 0));
-    document.getElementById('premiados-title').textContent = `Jugadores del partido · Fecha ${latest}`;
-    for (const award of published.filter(award => Number(award.round) === latest)) renderAward(current, award);
-    const previous = [...new Set(published.map(award => Number(award.round)))].filter(value => value > 6 && value < latest).sort((a, b) => b - a);
-    for (const previousRound of previous) {
-      const details = element('details');
-      details.className = 'copa-more-info mundial-mvp-history';
-      details.append(element('summary', `Ver jugadores del partido · Fecha ${previousRound}`));
-      const grid = element('div');
-      grid.className = 'mundial-mvp-grid';
-      for (const award of published.filter(value => Number(value.round) === previousRound)) renderAward(grid, award);
-      details.append(grid);
-      history.append(details);
+    for (const award of data.mvps || []) {
+      if (Number(award.round) === 8) renderAward(current, award);
     }
   };
-  for (const [country, number, name, file] of awards) {
-    renderAward(document.getElementById('mundial-mvp-history'),
-      {country, number, name, photo_url: `../assets/mvp-fecha6/${file}.jpeg`, round: 6});
-  }
   renderAwards();
   round.addEventListener('change', matches);
   round.addEventListener('change', () => { round.dataset.touched = 'true'; });
