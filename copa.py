@@ -35,10 +35,11 @@ def catalogo():
     fixtures = {}
     postponed = {}
     for match in data["matches"]:
-        if match.get("status") in {"rescheduled", "suspended"}:
+        if match.get("status") in {"rescheduled", "suspended", "scheduled"}:
             key = f'{match["round"]}:{match["home"]}:{match["away"]}'
             fixtures[key] = {"id": key, **match}
-            postponed[(match["home"], match["away"])] = key
+            if match.get("status") in {"rescheduled", "suspended"}:
+                postponed[(match["home"], match["away"])] = key
     for day in data["upcoming"]["days"]:
         for time, home, away in day["matches"]:
             key = postponed.get((home, away)) or f'{data["upcoming"]["round"]}:{home}:{away}'

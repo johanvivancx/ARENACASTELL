@@ -63,9 +63,9 @@ window.CopaCastellData = {
         ]
       }
     ],
+    "byeRound": 9,
     "bye": [
-      "Noruega",
-      "Colombia"
+      "Marruecos"
     ]
   },
   "teams": [
@@ -1447,7 +1447,14 @@ window.CopaCastellData = {
       "awayGoals": 14,
       "date": "2026-10-03",
       "time": "20:30"
-    }
+    },
+    {"round": 9, "stage": "GRUPO_A", "home": "Noruega", "away": "Portugal", "status": "scheduled", "date": "2026-10-23", "time": "19:00"},
+    {"round": 9, "stage": "BRONCE", "home": "Brasil", "away": "Venezuela", "status": "scheduled", "date": "2026-10-23", "time": "20:00"},
+    {"round": 9, "stage": "GRUPO_B", "home": "Egipto", "away": "Colombia", "status": "scheduled", "date": "2026-10-23", "time": "21:00"},
+    {"round": 9, "stage": "GRUPO_A", "home": "Cabo Verde", "away": "Japón", "status": "scheduled", "date": "2026-10-23", "time": "22:00"},
+    {"round": 9, "stage": "GRUPO_B", "home": "Francia", "away": "Ecuador", "status": "scheduled", "date": "2026-10-24", "time": "18:30"},
+    {"round": 9, "stage": "BRONCE", "home": "Argentina", "away": "España", "status": "scheduled", "date": "2026-10-24", "time": "19:30"},
+    {"round": 9, "stage": "BRONCE", "home": "Uruguay", "away": "Alemania", "status": "scheduled", "date": "2026-10-24", "time": "20:30"}
   ],
   "scorers": [
     {

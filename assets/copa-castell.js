@@ -89,7 +89,7 @@
     }
     if (!future.length) upcomingContainer.append(element('p', 'No hay partidos pendientes programados. Consulta los marcadores en Resultados.'));
     const rest = document.getElementById('mundial-proxima-descanso');
-    if (rest) rest.hidden = !future.length || !upcoming?.bye || future.some(match => match.round !== upcoming.round);
+    if (rest) rest.hidden = !future.length || !upcoming?.bye || future.some(match => match.round !== (upcoming.byeRound || upcoming.round));
     if (rest && upcoming.bye && !rest.children.length) {
       const byes = Array.isArray(upcoming.bye) ? upcoming.bye : [upcoming.bye];
       rest.append(element('strong', byes.length > 1 ? 'Descansan:' : 'Descansa:'));

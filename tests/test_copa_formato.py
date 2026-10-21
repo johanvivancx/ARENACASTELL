@@ -14,6 +14,25 @@ def game(stage, home, away, status="final", home_goals=0, away_goals=0):
             "homeGoals": home_goals, "awayGoals": away_goals}
 
 
+def test_fecha_9_publicada_en_el_calendario_y_disponible_para_resultados():
+    expected = [
+        ("2026-10-23", "19:00", "GRUPO_A", "Noruega", "Portugal"),
+        ("2026-10-23", "20:00", "BRONCE", "Brasil", "Venezuela"),
+        ("2026-10-23", "21:00", "GRUPO_B", "Egipto", "Colombia"),
+        ("2026-10-23", "22:00", "GRUPO_A", "Cabo Verde", "Japón"),
+        ("2026-10-24", "18:30", "GRUPO_B", "Francia", "Ecuador"),
+        ("2026-10-24", "19:30", "BRONCE", "Argentina", "España"),
+        ("2026-10-24", "20:30", "BRONCE", "Uruguay", "Alemania"),
+    ]
+    matches = [match for match in copa.base()["matches"] if match["round"] == 9]
+    actual = [(m["date"], m["time"], m["stage"], m["home"], m["away"]) for m in matches]
+    assert actual == expected
+    assert all(m["status"] == "scheduled" for m in matches)
+    assert copa.base()["upcoming"]["bye"] == ["Marruecos"]
+    assert copa.base()["upcoming"]["byeRound"] == 9
+    assert all(f"9:{home}:{away}" in copa.catalogo()[0] for _, _, _, home, away in expected)
+
+
 def test_grupos_confirmados_no_anuncian_semifinalistas_antes_de_jugar():
     state = copa.formato_actual([])
     assert state["groupsConfirmed"]
