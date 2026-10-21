@@ -20,8 +20,8 @@
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-tablas" />
-    <script src="../assets/copa-castell-datos.js?v=20261020-fecha9" defer></script>
-    <script src="../assets/copa-castell.js?v=20261020-fecha9b" defer></script>
+    <script src="../assets/copa-castell-datos.js?v=20261020-mvp8" defer></script>
+    <script src="../assets/copa-castell.js?v=20261020-mvp8" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20261012-clasificados" defer></script>
     <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
@@ -128,17 +128,17 @@
           <div class="copa-section-heading"><div><p class="eyebrow">COPA CASTELL · EN JUEGO</p><h2 id="mundial-title">Sigue el torneo</h2></div><p>Consulta marcadores en vivo. Las posiciones y los goleadores se actualizan al finalizar cada partido.</p></div>
           <nav class="copa-section-nav" aria-label="Información del Mundial de Campeones">
             <a href="#mundial-resultados" data-copa-tab="mundial-resultados" class="is-active" aria-current="page">Resultados</a>
-            <a href="#mundial-formato" data-copa-tab="mundial-formato">Formato y copas</a>
             <a href="#mundial-posiciones" data-copa-tab="mundial-posiciones">Posiciones</a>
             <a href="#mundial-goleadores" data-copa-tab="mundial-goleadores">Goleadores</a>
             <a href="#mundial-proxima-fecha" data-copa-tab="mundial-proxima-fecha">Calendario</a>
             <a href="#mundial-premiados" data-copa-tab="mundial-premiados">Destacados</a>
+            <a href="#mundial-formato" data-copa-tab="mundial-formato">Formato y copas</a>
             <a href="#mundial-equipos" data-copa-tab="mundial-equipos">Equipos y jugadores</a>
           </nav>
           <section id="mundial-formato" aria-labelledby="copa-formato-title">
             <p class="eyebrow">COPA CASTELL · EDICIÓN MUNDIALISTA</p>
             <h3 id="copa-formato-title">Así sigue la Copa Castell</h3>
-            <p class="copa-format-intro">Los equipos ya están asignados a la fase 2 y a Bronce según la clasificación de la primera fase. <strong>Los horarios aún no están anunciados.</strong> Las semifinales se definirán jugando; aquí no se adelanta ningún clasificado.</p>
+            <p class="copa-format-intro">Los equipos ya están asignados a la fase 2 y a Bronce según la clasificación de la primera fase. <strong>Consulta los horarios en Calendario.</strong> Las semifinales se definirán jugando; aquí no se adelanta ningún clasificado.</p>
             <div id="copa-format-live" hidden>
               <div class="copa-format-block-heading"><span>01 · EQUIPOS CONFIRMADOS</span><h4>Estos son los grupos</h4><p>A indica el Grupo 1 de la primera fase; B, el Grupo 2. El número es la posición en que terminó el equipo.</p></div>
               <div id="copa-format-groups" class="copa-format-groups"></div>
@@ -214,9 +214,10 @@
           </section>
           <section id="mundial-premiados" aria-labelledby="premiados-title">
             <p class="eyebrow">LOS DESTACADOS DE LA JORNADA</p>
-            <h3 id="premiados-title">Jugadores del partido · Fecha 7</h3>
+            <h3 id="premiados-title">Jugadores del partido · Fecha 8</h3>
             <p>Los destacados de la jornada. Toca una foto para verla completa.</p>
             <div id="mundial-mvp" class="mundial-mvp-grid"></div>
+            <div id="mundial-mvp-recent-history"></div>
             <details class="copa-more-info mundial-mvp-history">
               <summary>Ver jugadores del partido · Fecha 6</summary>
               <div id="mundial-mvp-history" class="mundial-mvp-grid"></div>

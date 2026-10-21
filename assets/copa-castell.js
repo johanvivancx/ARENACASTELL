@@ -379,8 +379,24 @@
   };
   const renderAwards = () => {
     const current = document.getElementById('mundial-mvp');
+    const history = document.getElementById('mundial-mvp-recent-history');
     current.replaceChildren();
-    for (const award of data.mvps || []) renderAward(current, award);
+    history.replaceChildren();
+    const published = data.mvps || [];
+    const latest = Math.max(7, ...published.map(award => Number(award.round) || 0));
+    document.getElementById('premiados-title').textContent = `Jugadores del partido · Fecha ${latest}`;
+    for (const award of published.filter(award => Number(award.round) === latest)) renderAward(current, award);
+    const previous = [...new Set(published.map(award => Number(award.round)))].filter(value => value > 6 && value < latest).sort((a, b) => b - a);
+    for (const previousRound of previous) {
+      const details = element('details');
+      details.className = 'copa-more-info mundial-mvp-history';
+      details.append(element('summary', `Ver jugadores del partido · Fecha ${previousRound}`));
+      const grid = element('div');
+      grid.className = 'mundial-mvp-grid';
+      for (const award of published.filter(value => Number(value.round) === previousRound)) renderAward(grid, award);
+      details.append(grid);
+      history.append(details);
+    }
   };
   for (const [country, number, name, file] of awards) {
     renderAward(document.getElementById('mundial-mvp-history'),

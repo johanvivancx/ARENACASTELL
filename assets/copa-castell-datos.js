@@ -16,7 +16,14 @@ window.CopaCastellData = {
     {"fixture_id":"7:Ecuador:Uruguay","round":7,"country":"Ecuador","player_id":"s:0","name":"Elvis Loachamin","number":"9","photo_url":"/assets/mvp-fecha7/ecuador-9.jpeg"},
     {"fixture_id":"7:Brasil:Egipto","round":7,"country":"Egipto","player_id":"s:31","name":"Kleber Sebastián Aulestia Ramos","number":"88","photo_url":"/assets/mvp-fecha7/egipto-88.jpeg"},
     {"fixture_id":"7:Cabo Verde:Marruecos","round":7,"country":"Cabo Verde","player_id":"s:1","name":"Cristopher Sebastián Domínguez Casco","number":"10","photo_url":"/assets/mvp-fecha7/cabo-verde-10.jpeg"},
-    {"fixture_id":"7:Francia:España","round":7,"country":"Francia","player_id":"s:2","name":"Abdías Méndez","number":"7","photo_url":"/assets/mvp-fecha7/francia-7.jpeg"}
+    {"fixture_id":"7:Francia:España","round":7,"country":"Francia","player_id":"s:2","name":"Abdías Méndez","number":"7","photo_url":"/assets/mvp-fecha7/francia-7.jpeg"},
+    {"fixture_id":"admin:1","round":8,"country":"Brasil","player_id":"r:Brasil:11","name":"Ailla David","number":"30","photo_url":"/assets/mvp-fecha8/brasil-30.jpeg"},
+    {"fixture_id":"admin:2","round":8,"country":"Noruega","player_id":"s:99","name":"Kevin Ochoa","number":"7","photo_url":"/assets/mvp-fecha8/noruega-7.jpeg"},
+    {"fixture_id":"admin:3","round":8,"country":"Portugal","player_id":"s:11","name":"Juan Cerón","number":"106","photo_url":"/assets/mvp-fecha8/portugal-106.jpeg"},
+    {"fixture_id":"admin:4","round":8,"country":"Venezuela","player_id":"s:55","name":"Daniel Sebastián Morejón Aguirre","number":"7","photo_url":"/assets/mvp-fecha8/venezuela-7.jpeg"},
+    {"fixture_id":"admin:5","round":8,"country":"España","player_id":"s:84","name":"Erick Paccha","number":"7","photo_url":"/assets/mvp-fecha8/espana-7.jpeg"},
+    {"fixture_id":"admin:6","round":8,"country":"Egipto","player_id":"s:7","name":"Alan Mateo Guillén Guaspud","number":"19","photo_url":"/assets/mvp-fecha8/egipto-19.jpeg"},
+    {"fixture_id":"admin:7","round":8,"country":"Francia","player_id":"s:10","name":"Anyer Méndez","number":"10","photo_url":"/assets/mvp-fecha8/francia-10.jpeg"}
   ],
   "upcoming": {
     "round": 7,
