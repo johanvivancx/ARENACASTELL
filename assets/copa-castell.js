@@ -30,8 +30,10 @@
   const renderUpcoming = () => {
     if (!upcomingContainer) return;
     upcomingContainer.replaceChildren();
+    const now = Date.now();
     const future = (data.matches || []).filter(match =>
-      match.date && match.time && ['scheduled', 'rescheduled', 'live'].includes(match.status));
+      match.date && match.time && ['scheduled', 'rescheduled', 'live'].includes(match.status) &&
+      Date.parse(`${match.date}T23:59:59-05:00`) >= now);
     future.sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
     const days = [];
     for (const match of future) {
