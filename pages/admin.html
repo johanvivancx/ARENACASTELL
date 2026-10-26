@@ -17,14 +17,15 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261025-abonos-bar" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261026-restaurante" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <link rel="stylesheet" href="../assets/admin-sidebar.css?v=20261018-2" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-inscripciones-admin.js?v=20261025-acuerdo-colombia" defer></script>
     <script src="../assets/copa-caja-admin.js?v=20261025-abonos-bar" defer></script>
-    <script src="../assets/app.js?v=20261018-admin-sidebar" defer></script>
+    <script src="../assets/restaurante-admin.js?v=20261026-restaurante" defer></script>
+    <script src="../assets/app.js?v=20261026-restaurante" defer></script>
   </head>
 
   <body data-page="admin">
@@ -159,6 +160,13 @@
               <span class="admin-nav-top"><span>05 / ESCUELA</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-5 9 5-9 5-9-5Zm4 2v5c3 2 7 2 10 0v-5m4-2v7" /></svg></span>
               <strong>Súper Chaca</strong>
               <small>Inscripciones y mensualidades</small>
+              <span class="admin-nav-arrow" aria-hidden="true">↗</span>
+            </button>
+            <p class="admin-side-group">RESTAURANTE</p>
+            <button type="button" data-admin-target="admin-restaurante">
+              <span class="admin-nav-top"><span>06 / DEUDORES</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4V7Zm0 4h16M8 4v3m8-3v3m-7 8h6" /></svg></span>
+              <strong>Asadero BJ</strong>
+              <small>Deudores, abonos y total pendiente</small>
               <span class="admin-nav-arrow" aria-hidden="true">↗</span>
             </button>
           </nav>
@@ -706,6 +714,60 @@
               <div><h3>Alumnos y mensualidades</h3><p class="small-text muted">Estado del mes seleccionado. Los pendientes aparecen primero.</p></div>
             </div>
             <div id="school-report"></div>
+          </section>
+
+          <section class="admin-workspace-section" id="admin-restaurante" aria-labelledby="admin-restaurante-title" hidden>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">RESTAURANTE / CONTROL INTERNO</p>
+                <h2 id="admin-restaurante-title">Restaurante Asadero BJ · Deudores</h2>
+                <p>Registra únicamente las cuentas pendientes del restaurante y sus abonos. Esta información no se mezcla con la caja de Copa Castell.</p>
+              </div>
+            </div>
+            <div class="restaurant-summary" aria-label="Resumen de deudas del restaurante">
+              <article><span>Total deudas</span><strong id="restaurante-total-deudas">$0,00</strong></article>
+              <article><span>Abonado en efectivo</span><strong id="restaurante-total-efectivo">$0,00</strong></article>
+              <article><span>Abonado por transferencia</span><strong id="restaurante-total-transferencia">$0,00</strong></article>
+            </div>
+            <div class="restaurant-form-grid">
+              <details class="panel restaurant-form-card" open>
+                <summary>Registrar nueva deuda</summary>
+                <form id="restaurante-deuda-form" method="post">
+                  <p class="small-text muted">La deuda se suma al total pendiente, pero no cuenta como dinero recibido.</p>
+                  <div class="field"><label for="restaurante-deuda-fecha">Fecha</label><input id="restaurante-deuda-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="restaurante-deuda-nombre">Nombre del deudor</label><input id="restaurante-deuda-nombre" name="nombre" type="text" list="restaurante-nombres" minlength="2" maxlength="120" autocomplete="off" required /><datalist id="restaurante-nombres"></datalist><p id="restaurante-deuda-aviso" class="small-text muted" role="status">Si la persona ya debe, usa el mismo nombre para reunir sus cuentas.</p></div>
+                  <div class="field"><label for="restaurante-deuda-monto">Cuánto debe (USD)</label><input id="restaurante-deuda-monto" name="monto" type="number" min="0.01" max="9999999.99" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="restaurante-deuda-concepto">Qué consumió o por qué debe</label><input id="restaurante-deuda-concepto" name="concepto" type="text" minlength="3" maxlength="180" required /></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar deuda</button></div>
+                </form>
+              </details>
+              <details class="panel restaurant-form-card" open>
+                <summary>Registrar abono</summary>
+                <form id="restaurante-abono-form" method="post">
+                  <p class="small-text muted">Elige a la persona, cuánto pagó y si entregó efectivo o hizo transferencia.</p>
+                  <div class="field"><label for="restaurante-abono-fecha">Fecha del abono</label><input id="restaurante-abono-fecha" name="fecha" type="date" required /></div>
+                  <div class="field"><label for="restaurante-abono-nombre">Persona que paga</label><select id="restaurante-abono-nombre" name="nombre" required><option value="">Selecciona una persona</option></select><p id="restaurante-abono-aviso" class="small-text muted" role="status">Selecciona una persona para ver cuánto debe.</p></div>
+                  <div class="field"><label for="restaurante-abono-monto">Monto recibido (USD)</label><input id="restaurante-abono-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                  <div class="field"><label for="restaurante-abono-metodo">Forma de pago</label><select id="restaurante-abono-metodo" name="metodo" required><option value="">Selecciona una forma</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option></select></div>
+                  <div class="form-actions"><button class="btn" type="submit">Guardar abono</button></div>
+                </form>
+              </details>
+            </div>
+            <div class="panel restaurant-debt-panel">
+              <div class="restaurant-list-heading">
+                <div><h3>Deudores</h3><p class="small-text muted">El total muestra solo lo que todavía falta cobrar.</p></div>
+                <div class="field"><label for="restaurante-buscar">Buscar persona</label><input id="restaurante-buscar" type="search" placeholder="Nombre del deudor" /></div>
+              </div>
+              <div id="restaurante-deudores" class="copa-ledger-scroll"></div>
+              <p id="restaurante-total-pie" class="restaurant-total-debt">TOTAL DEUDAS: $0,00</p>
+            </div>
+            <details class="panel restaurant-history" open>
+              <summary>Detalle de deudas y abonos</summary>
+              <h3>Deudas registradas</h3>
+              <div id="restaurante-deudas" class="copa-ledger-scroll"></div>
+              <h3>Abonos recibidos</h3>
+              <div id="restaurante-abonos" class="copa-ledger-scroll"></div>
+            </details>
           </section>
 
           <section class="admin-workspace-section" id="admin-ocupacion" aria-labelledby="admin-ocupacion-title" hidden>

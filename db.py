@@ -51,6 +51,12 @@ def preparar_movimientos_copa():
         conn.execute((ROOT / "sql/migrations/026_acuerdo_colombia.sql").read_text(encoding="utf8"))
 
 
+def preparar_deudores_restaurante():
+    """Crea el registro independiente del restaurante sin tocar cajas existentes."""
+    with conectar() as conn:
+        conn.execute((ROOT / "sql/migrations/027_deudores_restaurante.sql").read_text(encoding="utf8"))
+
+
 def preparar_escuela_manual():
     """Crea el registro privado de alumnos y pagos manuales sin tocar cobros web."""
     with conectar() as conn:

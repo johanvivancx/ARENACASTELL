@@ -883,6 +883,66 @@ svg.icon {
 .admin-workspace-section .stats-grid:last-child {
   margin-bottom: 0;
 }
+
+.restaurant-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+.restaurant-summary article {
+  display: grid;
+  gap: .35rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.restaurant-summary span { color: var(--muted); }
+.restaurant-summary strong { font-size: clamp(1.25rem, 2vw, 1.75rem); }
+.restaurant-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.restaurant-form-card > summary,
+.restaurant-history > summary {
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+.restaurant-form-card > form { margin-top: 1rem; }
+.restaurant-debt-panel,
+.restaurant-history { margin-top: 1rem; }
+.restaurant-list-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.restaurant-list-heading h3,
+.restaurant-history h3 { margin-bottom: .25rem; }
+.restaurant-list-heading .field { width: min(100%, 22rem); }
+.restaurant-total-debt {
+  margin: 1rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 1.1rem;
+  font-weight: 900;
+  text-align: right;
+}
+.restaurant-history h3 { margin-top: 1.25rem; }
+
+@media (max-width: 720px) {
+  .restaurant-summary,
+  .restaurant-form-grid { grid-template-columns: 1fr; }
+  .restaurant-list-heading { align-items: stretch; flex-direction: column; }
+  .restaurant-list-heading .field { width: 100%; }
+  .restaurant-total-debt { text-align: left; }
+}
 .admin-activity summary { cursor: pointer; font-weight: 700; }
 .admin-activity summary:focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
 .admin-activity .table-wrap { margin-top: 16px; }

@@ -20,12 +20,13 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_escuela_manual, preparar_actividad_administrativa, ROOT
+from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_deudores_restaurante, preparar_escuela_manual, preparar_actividad_administrativa, ROOT
 from models import ErrorValidacion
 import services as s
 import copa
 import copa_caja
 import copa_inscripciones
+import restaurante_deudores
 import escuela_admin
 import correos
 
@@ -415,6 +416,12 @@ class Handler(SimpleHTTPRequestHandler):
         if match := re.fullmatch(r"/api/admin/copa-caja/(\d+)/split", path):
             if method == "POST":
                 return copa_caja.desglosar_vocalia(conn, uid, match[1], data)
+        if path == "/api/admin/restaurante-deudas" and method == "GET":
+            return restaurante_deudores.resumen(conn, uid)
+        if path == "/api/admin/restaurante-deudas" and method == "POST":
+            return restaurante_deudores.registrar_deuda(conn, uid, data)
+        if path == "/api/admin/restaurante-deudas/abonos" and method == "POST":
+            return restaurante_deudores.registrar_abono(conn, uid, data)
         if path == "/api/admin/copa-results" and method == "POST":
             return copa.guardar_resultado(conn, uid, data)
         if path == "/api/admin/copa-mvp" and method == "POST":
@@ -473,6 +480,7 @@ def main():
     preparar_control_financiero()
     preparar_resultados_copa()
     preparar_movimientos_copa()
+    preparar_deudores_restaurante()
     preparar_escuela_manual()
     preparar_actividad_administrativa()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)

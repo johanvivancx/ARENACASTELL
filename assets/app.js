@@ -1330,6 +1330,10 @@ async function initCopaCaja() {
     canResetVocalias: Boolean(session.usuario?.puede_crear_admins)});
 }
 
+async function initRestaurante() {
+  await window.RestauranteAdmin({$, $$, api, bindForm, esc, money, dates, showMessage, today: catalog.hoy});
+}
+
 // Agrupa las tareas relacionadas sin alterar sus formularios ni reportes.
 function initAdminWorkspace() {
   const menu = $(".admin-section-nav");
@@ -1348,6 +1352,7 @@ function initAdminWorkspace() {
     "admin-reservas": {title: "Reservas", tabs: [["admin-reservas", "Reservas realizadas"], ["admin-cobros", "Pendientes por cobrar"], ["admin-ocupacion", "Ocupación"]]},
     "admin-finanzas": {title: "Ingresos y gastos", tabs: [["admin-finanzas", "Saldos y gastos"], ["admin-reportes", "Operaciones"], ["admin-pagos", "Auditoría de pagos"]]},
     "admin-escuela": {title: "Súper Chaca", tabs: [["admin-escuela", "Mensualidades"]]},
+    "admin-restaurante": {title: "Restaurante Asadero BJ", tabs: [["admin-restaurante", "Deudores"]]},
     "admin-administradores": {title: "Agregar administrador", tabs: [["admin-administradores", "Nueva cuenta"]]},
     "admin-correos": {title: "Envío de correos", tabs: [["admin-correos", "Correos"]]},
     "admin-limpieza": {title: "Vaciar datos de prueba", tabs: [["admin-limpieza", "Limpieza"]]},
@@ -1998,6 +2003,7 @@ async function initialize() {
       await initCopaResults();
       await initCopaMvp();
       await initCopaCaja();
+      await initRestaurante();
     }
   } catch (error) {
     showMessage(error.message);
