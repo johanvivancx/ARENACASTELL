@@ -1,9 +1,37 @@
 // Formularios separados por actividad para la caja operativa de Copa Castell.
 "use strict";
+function setupCopaFormDisclosures(root, $, $$) {
+  const mobileForms = window.matchMedia("(max-width: 720px)");
+  const disclosures = $$(".copa-area-panel form.panel", root).map((form) => {
+    if (form.parentElement.classList.contains("copa-form-disclosure")) return form.parentElement;
+    const disclosure = document.createElement("details");
+    const summary = document.createElement("summary");
+    disclosure.className = "copa-form-disclosure";
+    summary.textContent = $("h4", form).textContent;
+    form.before(disclosure);
+    disclosure.append(summary, form);
+    return disclosure;
+  });
+  const syncDisclosures = () => disclosures.forEach((disclosure) => {
+    disclosure.open = !mobileForms.matches;
+  });
+  syncDisclosures();
+  mobileForms.addEventListener("change", syncDisclosures);
+  const closeMobileForm = (form) => {
+    if (!mobileForms.matches) return;
+    const disclosure = form.closest(".copa-form-disclosure");
+    if (!disclosure) return;
+    disclosure.open = false;
+    $("summary", disclosure).focus();
+  };
+  return closeMobileForm;
+}
+
 window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates, showMessage, today, canResetVocalias}) {
   const root = $("#admin-copa-caja");
   if (!root) return;
-  const inscriptions = window.CopaInscripcionesAdmin({$, $$, api, bindForm, esc, money, dates, showMessage, today});
+  const closeMobileForm = setupCopaFormDisclosures(root, $, $$);
+  const inscriptions = window.CopaInscripcionesAdmin({$, $$, api, bindForm, esc, money, dates, showMessage, today, closeMobileForm});
   const week = $("#copa-week", root);
   const names = {DISPONIBLE: "Dinero disponible", BAR: "Bar", ENTRADAS: "Entradas", VOCALIAS: "Vocalías"};
   const descriptions = {APERTURA: "Saldo inicial", TRASPASO: "Caja entregada", INGRESO: "Ingreso", GASTO: "Gasto"};
@@ -370,6 +398,7 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
       if (account === "VOCALIAS" && ["INGRESO", "GASTO"].includes(kind)) syncVocaliaTotal(form);
       await refresh();
       showMessage(result.message, "success");
+      closeMobileForm(form);
     });
   });
   const debtForm = $("#caja-bar-deuda-form", root);
@@ -382,6 +411,7 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
     $('[name="fecha"]', debtForm).value = today;
     await refresh();
     showMessage(result.message, "success");
+    closeMobileForm(debtForm);
   });
   showArea(active);
   await refresh();

@@ -1,6 +1,6 @@
 // Control de inscripciones y carnets, separado de las cajas operativas.
 "use strict";
-window.CopaInscripcionesAdmin = function ({$, api, bindForm, esc, money, dates, showMessage, today}) {
+window.CopaInscripcionesAdmin = function ({$, api, bindForm, esc, money, dates, showMessage, today, closeMobileForm}) {
   const root = $("#admin-copa-caja");
   const panel = $('[data-copa-panel="INSCRIPCIONES"]', root);
   const form = $("#copa-inscripciones-pago-form", panel);
@@ -79,7 +79,9 @@ window.CopaInscripcionesAdmin = function ({$, api, bindForm, esc, money, dates, 
       teamSelect.value = collect.dataset.copaCobrar;
       conceptSelect.value = Number(selected()?.inscripcion.pendiente) ? "INSCRIPCION" : "CARNETS";
       updateForm();
-      form.scrollIntoView({behavior: "smooth", block: "start"});
+      const disclosure = form.closest(".copa-form-disclosure");
+      if (disclosure) disclosure.open = true;
+      (disclosure || form).scrollIntoView({behavior: "smooth", block: "start"});
       return;
     }
     const adjust = event.target.closest("[data-copa-carnets]");
@@ -122,6 +124,7 @@ window.CopaInscripcionesAdmin = function ({$, api, bindForm, esc, money, dates, 
     transferInput.value = "0";
     await refresh();
     showMessage(result.message, "success");
+    closeMobileForm(form);
   });
   return {refresh};
 };
