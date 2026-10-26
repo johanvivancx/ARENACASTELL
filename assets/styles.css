@@ -12,6 +12,8 @@
   --accent-soft: #e3e3e3;
   --green: #9fe6c1;
   --red: #ffb5b5;
+  --restaurant-red: #c90819;
+  --restaurant-gold: #ffd900;
   --radius: 10px;
 }
 * {
@@ -890,6 +892,43 @@ svg.icon {
   gap: 1rem;
   margin: 1.25rem 0;
 }
+.restaurant-hero {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+  overflow: hidden;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border: 1px solid color-mix(in srgb, var(--restaurant-red) 55%, var(--line));
+  border-radius: var(--radius);
+  background: var(--surface);
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--restaurant-red) 15%, transparent), transparent 55%),
+    var(--surface);
+}
+.restaurant-hero img {
+  display: block;
+  width: 148px;
+  height: 148px;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border: 3px solid var(--restaurant-gold);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 28%);
+}
+.restaurant-hero .eyebrow {
+  color: var(--restaurant-gold);
+}
+.restaurant-hero h2 {
+  margin: .25rem 0 .5rem;
+  text-wrap: balance;
+}
+.restaurant-hero p:last-child {
+  max-width: 68ch;
+  margin-bottom: 0;
+}
 .restaurant-summary article {
   display: grid;
   gap: .35rem;
@@ -937,6 +976,17 @@ svg.icon {
 .restaurant-history h3 { margin-top: 1.25rem; }
 
 @media (max-width: 720px) {
+  .restaurant-hero {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .restaurant-hero img {
+    width: 92px;
+    height: 92px;
+    border-width: 2px;
+    border-radius: 14px;
+  }
   .restaurant-summary,
   .restaurant-form-grid { grid-template-columns: 1fr; }
   .restaurant-list-heading { align-items: stretch; flex-direction: column; }

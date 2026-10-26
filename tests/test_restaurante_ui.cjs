@@ -8,6 +8,7 @@ const { chromium } = require('C:/Users/johan/.cache/codex-runtimes/codex-primary
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   let html = fs.readFileSync(path.join(root, 'pages/admin.html'), 'utf8');
   html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<link\b[^>]*rel="stylesheet"[^>]*>/gi, '');
+  html = html.replace('../assets/asadero-bj-logo.jpg', `data:image/jpeg;base64,${fs.readFileSync(path.join(root, 'assets/asadero-bj-logo.jpg')).toString('base64')}`);
   await page.setContent(html);
   await page.addStyleTag({ content: fs.readFileSync(path.join(root, 'assets/styles.css'), 'utf8') });
   await page.addStyleTag({ content: fs.readFileSync(path.join(root, 'assets/admin-sidebar.css'), 'utf8') });
@@ -52,7 +53,11 @@ const { chromium } = require('C:/Users/johan/.cache/codex-runtimes/codex-primary
   await page.waitForFunction(() => document.querySelector('#restaurante-total-pie').textContent === 'TOTAL DEUDAS: $9,00');
   const after = await page.evaluate(() => ({ abono: window.__abono, closed: !document.querySelector('#restaurante-abono-form').closest('details').open }));
   if (after.abono.metodo !== 'TRANSFERENCIA' || after.abono.monto !== '4' || !after.closed) throw new Error(`Abono incorrecto: ${JSON.stringify(after)}`);
-  for (const viewport of [{ width: 375, height: 812 }, { width: 844, height: 390 }, { width: 1440, height: 900 }]) {
+  for (const viewport of [
+    { width: 320, height: 700 }, { width: 375, height: 812 }, { width: 414, height: 896 },
+    { width: 844, height: 390 }, { width: 768, height: 1024 }, { width: 1024, height: 768 },
+    { width: 1440, height: 900 },
+  ]) {
     await page.setViewportSize(viewport);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     if (overflow) throw new Error(`Desbordamiento en ${JSON.stringify(viewport)}`);
