@@ -195,6 +195,42 @@ def test_deudas_repetidas_se_agrupan_por_persona_y_cobros_reducen_su_total(conn)
     assert after["saldos"]["BAR"] == Decimal("2.80")
 
 
+def test_abono_parcial_reduce_deuda_total_y_suma_solo_lo_recibido_al_bar(conn):
+    admin = _admin(conn)
+    day = datetime.now(TZ).date().isoformat()
+    first = caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "Johan Vivanco", "monto": "6.00", "concepto": "Consumo uno"})["id"]
+    second = caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "johan vivanco", "monto": "5.00", "concepto": "Consumo dos"})["id"]
+    result = caja.registrar_abono_bar(conn, admin, {
+        "fecha": day, "nombre": "JOHAN VIVANCO", "monto": "4.00"})
+    assert "le quedan $7.00" in result["message"]
+    state = caja.resumen(conn, admin)
+    assert state["bar_deuda_pendiente"] == Decimal("7.00")
+    assert state["bar_deudores"] == [{"nombre": "Johan Vivanco", "pendiente": Decimal("7.00"), "deudas": 2}]
+    assert state["saldos"]["BAR"] == Decimal("4.00")
+    rows = {row["id"]: row for row in state["bar_deudas"]}
+    assert (rows[first]["abonado"], rows[first]["pendiente"]) == (Decimal("4.00"), Decimal("2.00"))
+    assert (rows[second]["abonado"], rows[second]["pendiente"]) == (Decimal("0.00"), Decimal("5.00"))
+
+
+def test_abono_no_supera_pendiente_y_puede_anularse_desde_historial(conn):
+    admin = _admin(conn)
+    day = datetime.now(TZ).date().isoformat()
+    debt = caja.registrar_deuda_bar(conn, admin, {
+        "fecha": day, "nombre": "Cliente del bar", "monto": "5.00", "concepto": "Consumo fiado"})["id"]
+    with pytest.raises(ErrorValidacion, match="superar"):
+        caja.registrar_abono_bar(conn, admin, {"fecha": day, "nombre": "Cliente del bar", "monto": "5.01"})
+    caja.registrar_abono_bar(conn, admin, {"fecha": day, "nombre": "Cliente del bar", "monto": "2.00"})
+    with pytest.raises(ErrorValidacion, match="dinero abonado"):
+        caja.anular_deuda_bar(conn, admin, debt, {"motivo": "Registro equivocado"})
+    movement_id = conn.execute("SELECT movimiento_id FROM copa_bar_abonos").fetchone()["movimiento_id"]
+    caja.anular(conn, admin, movement_id, {"motivo": "Abono registrado por error"})
+    state = caja.resumen(conn, admin)
+    assert state["bar_deuda_pendiente"] == Decimal("5.00")
+    assert state["saldos"]["BAR"] == 0
+
+
 def test_eliminar_solo_un_fiado_pendiente_recalcula_deudor_y_conserva_auditoria(conn, user):
     admin = _admin(conn)
     day = datetime.now(TZ).date().isoformat()

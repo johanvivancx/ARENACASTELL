@@ -401,6 +401,8 @@ class Handler(SimpleHTTPRequestHandler):
             return copa_caja.limpiar_historial_vocalias(conn, uid, data, self.client_ip())
         if path == "/api/admin/copa-bar-deudas" and method == "POST":
             return copa_caja.registrar_deuda_bar(conn, uid, data)
+        if path == "/api/admin/copa-bar-deudas/abonos" and method == "POST":
+            return copa_caja.registrar_abono_bar(conn, uid, data)
         if match := re.fullmatch(r"/api/admin/copa-bar-deudas/(\d+)/collect", path):
             if method == "POST":
                 return copa_caja.cobrar_deuda_bar(conn, uid, match[1], data)

@@ -29,7 +29,13 @@ window.CopaInscripcionesAdmin = function ({$, api, bindForm, esc, money, dates, 
     form.querySelector('[type="submit"]').disabled = !team || balance <= 0;
   };
   const line = (title, info) => {
-    if (!Number(info.pendiente)) return `<div><span>${title}</span><strong class="good">Completo</strong><small>${info.completo_inicial ? "Según hoja; medio anterior sin clasificar" : `Cobrado en esta página: ${esc(money(info.cobrado_nuevo))}`}</small></div>`;
+    if (!Number(info.pendiente)) {
+      const status = info.acuerdo ? "Completo (acuerdo)" : "Completo";
+      const detail = info.acuerdo ? "Sin cobro de inscripción por acuerdo"
+        : Number(info.cobrado_nuevo) ? `Cobrado en esta página: ${esc(money(info.cobrado_nuevo))}`
+          : "Según hoja; medio anterior sin clasificar";
+      return `<div><span>${title}</span><strong class="good">${status}</strong><small>${detail}</small></div>`;
+    }
     return `<div><span>${title} · ${esc(money(info.esperado))}</span><strong>${esc(money(info.pendiente))} pendiente</strong><small>${Number(info.abono_inicial) ? `Abono anterior ${esc(money(info.abono_inicial))} · medio sin clasificar` : "Sin abono anterior"}${Number(info.cobrado_nuevo) ? ` · nuevo ${esc(money(info.cobrado_nuevo))}` : ""}</small></div>`;
   };
   const render = () => {

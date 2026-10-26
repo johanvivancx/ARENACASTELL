@@ -55,7 +55,8 @@ def _totales(team, payments):
         due = max(CERO, expected - (expected if complete else initial) - current)
         values[concept.lower()] = {"esperado": expected, "abono_inicial": initial,
                                    "completo_inicial": complete, "cobrado_nuevo": current,
-                                   "pendiente": due}
+                                   "pendiente": due,
+                                   "acuerdo": concept == "INSCRIPCION" and team["inscripcion_acuerdo"]}
     return values
 
 

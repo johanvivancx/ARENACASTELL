@@ -1733,6 +1733,7 @@ td small {
 #caja-bar-deuda-form { max-width: 760px; margin: 8px 0 30px; }
 .copa-bar-deuda-filtro { max-width: 460px; margin: 16px 0 4px; }
 #copa-bar-deuda-persona-aviso { margin: 7px 0 0; }
+.copa-bar-deuda-total { margin: 12px 0 24px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface2); color: var(--text); font-weight: 700; }
 .copa-caja-form h4 { margin: 0 0 12px; font-size: 18px; }
 .copa-caja-form .field { margin: 16px 0; }
 .copa-caja-form .form-actions { margin-top: 22px; }

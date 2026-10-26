@@ -17,13 +17,13 @@
     <title>Administración | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=20261025-caja-movil" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261025-abonos-bar" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <link rel="stylesheet" href="../assets/admin-sidebar.css?v=20261018-2" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/copa-inscripciones-admin.js?v=20261025-caja-movil" defer></script>
-    <script src="../assets/copa-caja-admin.js?v=20261025-caja-movil" defer></script>
+    <script src="../assets/copa-inscripciones-admin.js?v=20261025-acuerdo-colombia" defer></script>
+    <script src="../assets/copa-caja-admin.js?v=20261025-abonos-bar" defer></script>
     <script src="../assets/app.js?v=20261018-admin-sidebar" defer></script>
   </head>
 
@@ -327,12 +327,20 @@
                 <div class="field"><label for="caja-bar-deuda-concepto">Qué debe</label><input id="caja-bar-deuda-concepto" name="concepto" type="text" placeholder="Ej.: cervezas y comida" minlength="3" maxlength="180" required /></div>
                 <div class="form-actions"><button class="btn" type="submit">Guardar deuda</button></div>
               </form>
+              <form id="caja-bar-abono-form" class="panel" method="post">
+                <h4>Registrar abono de una deuda</h4>
+                <p class="small-text muted">El dinero recibido se sumará a la caja del bar y se restará del total pendiente de la persona.</p>
+                <div class="field"><label for="caja-bar-abono-fecha">Fecha del abono</label><input id="caja-bar-abono-fecha" name="fecha" type="date" required /></div>
+                <div class="field"><label for="caja-bar-abono-nombre">Persona que abona</label><select id="caja-bar-abono-nombre" name="nombre" required><option value="">Selecciona una persona</option></select><p id="copa-bar-abono-pendiente" class="small-text muted" role="status">Selecciona una persona para ver cuánto debe.</p></div>
+                <div class="field"><label for="caja-bar-abono-monto">Monto que entrega (USD)</label><input id="caja-bar-abono-monto" name="monto" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div>
+                <div class="form-actions"><button class="btn" type="submit">Guardar abono</button></div>
+              </form>
               <h4>Deudas del bar</h4>
               <p class="small-text muted">Si registraste un fiado por error, usa «Eliminar fiado» en su fila. Solo se quitará ese registro; si ya fue cobrado, también se anulará el ingreso vinculado.</p>
-              <p id="copa-bar-deuda-total" class="small-text muted" role="status"></p>
               <div class="field copa-bar-deuda-filtro"><label for="copa-bar-deuda-buscar">Buscar por nombre</label><input id="copa-bar-deuda-buscar" type="search" placeholder="Filtrar personas y fiados" autocomplete="off" /></div>
               <p id="copa-bar-deuda-filtrado" class="small-text muted" role="status"></p>
               <div id="copa-bar-deudores" class="copa-ledger-scroll"></div>
+              <p id="copa-bar-deuda-total" class="copa-bar-deuda-total" role="status"></p>
               <h5>Detalle de los fiados</h5>
               <div id="copa-bar-deudas" class="copa-ledger-scroll"></div>
             </div>

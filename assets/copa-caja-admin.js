@@ -119,11 +119,21 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
   const debtSearch = (name) => debtKey(name).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const debtorName = $("#caja-bar-deuda-nombre", root);
   const debtFilter = $("#copa-bar-deuda-buscar", root);
+  const paymentForm = $("#caja-bar-abono-form", root);
+  const paymentName = $("#caja-bar-abono-nombre", root);
+  const paymentAmount = $("#caja-bar-abono-monto", root);
   const updateDebtorHint = () => {
     const person = state?.bar_deudores.find((item) => debtKey(item.nombre) === debtKey(debtorName.value));
     $("#copa-bar-deuda-persona-aviso", root).textContent = person
       ? `${person.nombre} ya tiene ${person.deudas} ${person.deudas === 1 ? "fiado pendiente" : "fiados pendientes"} por ${money(person.pendiente)}. La nueva deuda se sumará a ese total.`
       : "Si ya debe, elige su nombre de la lista; la nueva compra se sumará a su total pendiente.";
+  };
+  const updatePaymentHint = () => {
+    const person = state?.bar_deudores.find((item) => debtKey(item.nombre) === debtKey(paymentName.value));
+    const status = $("#copa-bar-abono-pendiente", root);
+    status.textContent = person ? `${person.nombre} debe ${money(person.pendiente)} en total.`
+      : "Selecciona una persona para ver cuánto debe.";
+    paymentAmount.max = person ? Number(person.pendiente).toFixed(2) : "";
   };
 
   const renderBarDebts = () => {
@@ -132,20 +142,25 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
     const rows = state.bar_deudas.filter((item) => debtSearch(item.nombre).includes(query));
     const names = [...new Map(state.bar_deudas.map((item) => [debtKey(item.nombre), item.nombre])).values()];
     $("#copa-bar-nombres", root).innerHTML = names.map((name) => `<option value="${esc(name)}"></option>`).join("");
-    $("#copa-bar-deuda-total", root).textContent = `Total pendiente por cobrar: ${money(state.bar_deuda_pendiente)}. Las deudas no están incluidas en el saldo del bar.`;
+    const selectedPaymentName = paymentName.value;
+    paymentName.innerHTML = '<option value="">Selecciona una persona</option>' + state.bar_deudores.map((item) =>
+      `<option value="${esc(item.nombre)}">${esc(item.nombre)} · debe ${esc(money(item.pendiente))}</option>`).join("");
+    if (state.bar_deudores.some((item) => debtKey(item.nombre) === debtKey(selectedPaymentName))) paymentName.value = selectedPaymentName;
+    $("#copa-bar-deuda-total", root).textContent = `TOTAL DEUDAS: ${money(state.bar_deuda_pendiente)}`;
     const filteredTotal = people.reduce((total, item) => total + Number(item.pendiente), 0);
     $("#copa-bar-deuda-filtrado", root).textContent = query
       ? `Coincidencias: ${people.length} ${people.length === 1 ? "persona" : "personas"} con ${money(filteredTotal)} pendiente. Los fiados ya cobrados aparecen abajo, pero no suman.`
       : "Pendiente agrupado por persona. Cada compra conserva su detalle y se cobra por separado.";
     $("#copa-bar-deudores", root).innerHTML = people.length
       ? `<table class="copa-ledger-table"><thead><tr><th>Persona</th><th>Fiados pendientes</th><th>Total que debe</th><th>Acciones</th></tr></thead><tbody>${people.map((item) =>
-          `<tr><td>${esc(item.nombre)}</td><td>${esc(item.deudas)}</td><td><strong>${esc(money(item.pendiente))}</strong></td><td><button class="btn secondary" type="button" data-bar-debtor-view="${esc(item.nombre)}">Ver detalle</button> <button class="btn secondary" type="button" data-bar-debtor-use="${esc(item.nombre)}">Añadir deuda</button></td></tr>`).join("")}</tbody></table>`
+          `<tr><td>${esc(item.nombre)}</td><td>${esc(item.deudas)}</td><td><strong>${esc(money(item.pendiente))}</strong></td><td><div class="copa-debt-actions"><button class="btn" type="button" data-bar-debtor-pay="${esc(item.nombre)}">Registrar abono</button><button class="btn secondary" type="button" data-bar-debtor-view="${esc(item.nombre)}">Ver detalle</button><button class="btn secondary" type="button" data-bar-debtor-use="${esc(item.nombre)}">Añadir deuda</button></div></td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">No hay personas con deudas pendientes que coincidan con la búsqueda.</p>';
     $("#copa-bar-deudas", root).innerHTML = rows.length
-      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Qué debe</th><th>Monto</th><th>Registrado por</th><th>Estado</th></tr></thead><tbody>${rows.map((item) =>
-          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${esc(item.registrado_por_nombre)}</td><td><div class="copa-debt-actions">${item.cobrada_en ? `<span>Cobrada por ${esc(item.cobrada_por_nombre)}</span>` : `<button class="btn secondary" type="button" data-bar-debt-collect="${esc(item.id)}">Registrar cobro</button>`}<button class="btn danger" type="button" data-bar-debt-void="${esc(item.id)}" aria-label="Eliminar fiado de ${esc(item.nombre)} por ${esc(money(item.monto))}">Eliminar fiado</button></div></td></tr>`).join("")}</tbody></table>`
+      ? `<table class="copa-ledger-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Qué debe</th><th>Monto original</th><th>Abonado</th><th>Pendiente</th><th>Registrado por</th><th>Estado</th></tr></thead><tbody>${rows.map((item) =>
+          `<tr><td>${esc(dates(item.fecha))}</td><td>${esc(item.nombre)}</td><td>${esc(item.concepto)}</td><td>${esc(money(item.monto))}</td><td>${esc(money(item.abonado))}</td><td><strong>${esc(money(item.pendiente))}</strong></td><td>${esc(item.registrado_por_nombre)}</td><td><div class="copa-debt-actions"><span>${item.cobrada_en ? `Cobrada por ${esc(item.cobrada_por_nombre)}` : Number(item.pendiente) ? "Pendiente" : "Pagada con abonos"}</span><button class="btn danger" type="button" data-bar-debt-void="${esc(item.id)}" aria-label="Eliminar fiado de ${esc(item.nombre)} por ${esc(money(item.monto))}">Eliminar fiado</button></div></td></tr>`).join("")}</tbody></table>`
       : '<p class="small-text muted">No hay fiados que coincidan con la búsqueda.</p>';
     updateDebtorHint();
+    updatePaymentHint();
   };
 
   const renderArea = () => {
@@ -282,11 +297,21 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
   });
   debtFilter.addEventListener("input", renderBarDebts);
   debtorName.addEventListener("input", updateDebtorHint);
+  paymentName.addEventListener("change", updatePaymentHint);
   $("#copa-bar-deudores", root).addEventListener("click", (event) => {
     const view = event.target.closest("[data-bar-debtor-view]");
     const use = event.target.closest("[data-bar-debtor-use]");
+    const pay = event.target.closest("[data-bar-debtor-pay]");
     if (view) { debtFilter.value = view.dataset.barDebtorView; renderBarDebts(); }
     if (use) { debtorName.value = use.dataset.barDebtorUse; updateDebtorHint(); debtorName.focus(); }
+    if (pay) {
+      paymentName.value = pay.dataset.barDebtorPay;
+      updatePaymentHint();
+      const disclosure = paymentForm.closest(".copa-form-disclosure");
+      if (disclosure) disclosure.open = true;
+      (disclosure || paymentForm).scrollIntoView({behavior: "smooth", block: "start"});
+      paymentAmount.focus({preventScroll: true});
+    }
   });
   week.addEventListener("change", async () => {
     try { await refresh(); } catch (error) { showMessage(error.message); }
@@ -412,6 +437,19 @@ window.CopaCajaAdmin = async function ({$, $$, api, bindForm, esc, money, dates,
     await refresh();
     showMessage(result.message, "success");
     closeMobileForm(debtForm);
+  });
+  $('[name="fecha"]', paymentForm).value = today;
+  $('[name="fecha"]', paymentForm).max = today;
+  bindForm("#caja-bar-abono-form", async (data) => {
+    const person = state.bar_deudores.find((item) => debtKey(item.nombre) === debtKey(data.nombre));
+    if (!person) throw new Error("Selecciona una persona con deuda pendiente.");
+    if (!confirm(`¿Registrar un abono de ${money(data.monto)} para ${person.nombre}? Este dinero se sumará a la caja del bar.`)) return;
+    const result = await api("/admin/copa-bar-deudas/abonos", data);
+    paymentForm.reset();
+    $('[name="fecha"]', paymentForm).value = today;
+    await refresh();
+    showMessage(result.message, "success");
+    closeMobileForm(paymentForm);
   });
   showArea(active);
   await refresh();

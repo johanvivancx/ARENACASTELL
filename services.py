@@ -660,6 +660,7 @@ ACCIONES_ADMIN = {
     "/api/admin/copa-mvp": "Publicó o corrigió un jugador del partido",
     "/api/admin/copa-caja": "Registró un movimiento de Copa Castell",
     "/api/admin/copa-bar-deudas": "Registró una deuda del bar",
+    "/api/admin/copa-bar-deudas/abonos": "Registró un abono de una deuda del bar",
     "/api/admin/expenses": "Registró un gasto",
     "/api/admin/school/students": "Registró un alumno de Súper Chaca",
     "/api/admin/school/payments": "Registró un pago de Súper Chaca",

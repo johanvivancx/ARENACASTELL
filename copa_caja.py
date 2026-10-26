@@ -108,6 +108,57 @@ def _resumen_vocalias(rows):
     return result
 
 
+def _estado_deudas_bar(conn):
+    """Aplica los abonos a los fiados más antiguos sin cambiar sus montos originales."""
+    source = conn.execute("""SELECT d.id,d.fecha,d.nombre,d.monto,d.concepto,d.creado_en,d.cobrada_en,
+        autor.nombre AS registrado_por_nombre,cobrador.nombre AS cobrada_por_nombre
+        FROM copa_bar_deudas d JOIN usuarios autor ON autor.id=d.registrado_por
+        LEFT JOIN usuarios cobrador ON cobrador.id=d.cobrada_por
+        WHERE d.anulado_en IS NULL
+        ORDER BY d.fecha DESC,d.id DESC""").fetchall()
+    payments = conn.execute("""SELECT a.id,a.fecha,a.nombre,a.monto,a.creado_en,
+        autor.nombre AS registrado_por_nombre
+        FROM copa_bar_abonos a JOIN usuarios autor ON autor.id=a.registrado_por
+        JOIN copa_movimientos m ON m.id=a.movimiento_id
+        WHERE m.anulado_en IS NULL
+        ORDER BY a.fecha DESC,a.id DESC""").fetchall()
+    payment_totals = {}
+    for row in payments:
+        key = _clave_deudor(row["nombre"])
+        payment_totals[key] = payment_totals.get(key, CERO) + row["monto"]
+    allocated = {row["id"]: CERO for row in source}
+    unresolved = [row for row in source if row["cobrada_en"] is None]
+    groups = {}
+    for row in unresolved:
+        groups.setdefault(_clave_deudor(row["nombre"]), []).append(row)
+    for key, debts in groups.items():
+        remaining_payment = payment_totals.get(key, CERO)
+        for row in sorted(debts, key=lambda item: (item["fecha"], item["id"])):
+            applied = min(row["monto"], remaining_payment)
+            allocated[row["id"]] = applied
+            remaining_payment -= applied
+    debts = []
+    debtors = {}
+    for source_row in source:
+        row = dict(source_row)
+        paid = row["monto"] if row["cobrada_en"] else allocated[row["id"]]
+        row["abonado"] = paid
+        row["pendiente"] = max(CERO, row["monto"] - paid)
+        debts.append(row)
+        if row["cobrada_en"] or row["pendiente"] <= 0:
+            continue
+        key = _clave_deudor(row["nombre"])
+        person = debtors.setdefault(key, {"nombre": row["nombre"], "pendiente": CERO, "deudas": 0})
+        person["pendiente"] += row["pendiente"]
+        person["deudas"] += 1
+    return {
+        "deudas": debts,
+        "deudores": sorted(debtors.values(), key=lambda item: item["nombre"].casefold()),
+        "pendiente": sum((row["pendiente"] for row in debts), CERO),
+        "abonos": payments,
+    }
+
+
 def resumen(conn, admin_uid, semana=None):
     exigir_administrador(conn, admin_uid)
     start = fecha(semana) if semana else datetime.now(TZ).date()
@@ -146,19 +197,7 @@ def resumen(conn, admin_uid, semana=None):
         if not row["anulado_en"] and row["tipo"] == "INGRESO" and row["cuenta"] == "VOCALIAS":
             key = (row["fixture_id"], row["equipo"])
             payments[key] = payments.get(key, CERO) + row["monto"]
-    debts = conn.execute("""SELECT d.id,d.fecha,d.nombre,d.monto,d.concepto,d.creado_en,d.cobrada_en,
-        autor.nombre AS registrado_por_nombre,cobrador.nombre AS cobrada_por_nombre
-        FROM copa_bar_deudas d JOIN usuarios autor ON autor.id=d.registrado_por
-        LEFT JOIN usuarios cobrador ON cobrador.id=d.cobrada_por
-        WHERE d.anulado_en IS NULL
-        ORDER BY d.fecha DESC,d.id DESC""").fetchall()
-    pending_debts = [row for row in debts if row["cobrada_en"] is None]
-    debtors = {}
-    for row in pending_debts:
-        key = _clave_deudor(row["nombre"])
-        person = debtors.setdefault(key, {"nombre": row["nombre"], "pendiente": CERO, "deudas": 0})
-        person["pendiente"] += row["monto"]
-        person["deudas"] += 1
+    debt_state = _estado_deudas_bar(conn)
     # Solo partidos programados para la semana seleccionada; el reprogramado usa la fecha nueva.
     due = []
     for fixture in fixtures.values():
@@ -183,9 +222,10 @@ def resumen(conn, admin_uid, semana=None):
             "vocalias_transferencia": vocalias_semana["cobrado_transferencia"],
             "vocalias_sin_desglose": vocalias_semana["cobrado_sin_desglose"],
             "vocalias_saldos": vocalia_balances,
-            "bar_deudas": debts,
-            "bar_deudores": sorted(debtors.values(), key=lambda item: item["nombre"].casefold()),
-            "bar_deuda_pendiente": sum((row["monto"] for row in pending_debts), CERO),
+            "bar_deudas": debt_state["deudas"],
+            "bar_deudores": debt_state["deudores"],
+            "bar_deuda_pendiente": debt_state["pendiente"],
+            "bar_abonos": debt_state["abonos"],
             "vocalias_esperadas": sum((r["esperado"] for r in due), CERO),
             "vocalias_pendientes": sum((r["pendiente"] for r in due), CERO),
             "partidos": [{"id": f["id"], "date": f["date"], "home": f["home"],
@@ -284,6 +324,34 @@ def registrar_deuda_bar(conn, admin_uid, data):
     return {"id": row["id"], "message": "Deuda del bar registrada; aún no cuenta como ingreso."}
 
 
+def registrar_abono_bar(conn, admin_uid, data):
+    """Registra dinero realmente recibido y lo descuenta del total pendiente de la persona."""
+    exigir_administrador(conn, admin_uid)
+    conn.execute("SELECT pg_advisory_xact_lock(20491007)")
+    day = _fecha(data.get("fecha"))
+    requested_name = " ".join(texto(data.get("nombre"), "Nombre", 2, 120).split())
+    state = _estado_deudas_bar(conn)
+    person = next((item for item in state["deudores"]
+                   if _clave_deudor(item["nombre"]) == _clave_deudor(requested_name)), None)
+    if not person:
+        raise ErrorValidacion("Esa persona no tiene una deuda pendiente en el bar.")
+    amount = _monto(data.get("monto"))
+    if amount > person["pendiente"]:
+        raise ErrorValidacion(f"El abono no puede superar lo pendiente: {person['pendiente']}.")
+    movement = conn.execute("""INSERT INTO copa_movimientos
+        (fecha,tipo,cuenta,monto,concepto,registrado_por)
+        VALUES(%s,'INGRESO','BAR',%s,%s,%s) RETURNING id""",
+        (day,amount,f"Abono de deuda del bar: {person['nombre']}"[:180],admin_uid)).fetchone()
+    payment = conn.execute("""INSERT INTO copa_bar_abonos
+        (fecha,nombre,monto,movimiento_id,registrado_por)
+        VALUES(%s,%s,%s,%s,%s) RETURNING id""",
+        (day,person["nombre"],amount,movement["id"],admin_uid)).fetchone()
+    remaining = person["pendiente"] - amount
+    message = (f"Abono registrado. A {person['nombre']} le quedan ${remaining:.2f}."
+               if remaining else f"Abono registrado. {person['nombre']} ya no tiene deuda pendiente.")
+    return {"id": payment["id"], "message": message}
+
+
 def cobrar_deuda_bar(conn, admin_uid, debt_id, data):
     """Al saldarla se anota exactamente un ingreso del bar."""
     exigir_administrador(conn, admin_uid)
@@ -296,6 +364,11 @@ def cobrar_deuda_bar(conn, admin_uid, debt_id, data):
         raise ErrorValidacion("Esta deuda fue eliminada y no puede cobrarse.")
     if debt["cobrada_en"]:
         raise ErrorValidacion("Esta deuda ya se cobró.")
+    active_payments = conn.execute("""SELECT a.nombre FROM copa_bar_abonos a
+        JOIN copa_movimientos m ON m.id=a.movimiento_id
+        WHERE m.anulado_en IS NULL""").fetchall()
+    if any(_clave_deudor(row["nombre"]) == _clave_deudor(debt["nombre"]) for row in active_payments):
+        raise ErrorValidacion("Esta persona ya tiene abonos. Registra el cobro desde el total pendiente del deudor.")
     day = _fecha(data.get("fecha"))
     movement = conn.execute("""INSERT INTO copa_movimientos
         (fecha,tipo,cuenta,monto,concepto,registrado_por)
@@ -328,6 +401,16 @@ def anular_deuda_bar(conn, admin_uid, debt_id, data):
             (admin_uid, f"Fiado #{did} eliminado: {reason}"[:250], movement["id"]))
         if _saldos(_movimientos(conn))["BAR"] < 0:
             raise ErrorValidacion("No se puede eliminar: anular el cobro dejaría negativa la caja del bar.")
+    else:
+        unresolved = conn.execute("""SELECT nombre,monto FROM copa_bar_deudas
+            WHERE cobrada_en IS NULL AND anulado_en IS NULL""").fetchall()
+        payments = conn.execute("""SELECT a.nombre,a.monto FROM copa_bar_abonos a
+            JOIN copa_movimientos m ON m.id=a.movimiento_id WHERE m.anulado_en IS NULL""").fetchall()
+        key = _clave_deudor(debt["nombre"])
+        total_debts = sum((row["monto"] for row in unresolved if _clave_deudor(row["nombre"]) == key), CERO)
+        total_payments = sum((row["monto"] for row in payments if _clave_deudor(row["nombre"]) == key), CERO)
+        if total_debts - debt["monto"] < total_payments:
+            raise ErrorValidacion("No se puede eliminar este fiado porque ya tiene dinero abonado. Anula primero el abono desde el historial del bar.")
     conn.execute("""UPDATE copa_bar_deudas SET anulado_en=current_timestamp,
         anulado_por=%s,motivo_anulacion=%s WHERE id=%s""", (admin_uid, reason, did))
     return {"id": did, "message": "Fiado eliminado de la lista y los totales. La anulación queda auditada."}
