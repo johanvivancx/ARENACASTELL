@@ -96,8 +96,10 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "same-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
         if urlsplit(ORIGIN).scheme == "https":
-            self.send_header("Strict-Transport-Security", "max-age=15552000")
+            self.send_header("Strict-Transport-Security", "max-age=31536000")
         self.send_header(
             "Content-Security-Policy",
             "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
@@ -349,6 +351,8 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data, session_hash)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if path == "/api/admin/security" and method == "GET":
+            return s.estado_ciberseguridad(conn, uid)
         if path == "/api/admin/school" and method == "GET":
             return escuela_admin.resumen(conn, uid, params.get("periodo"))
         if path == "/api/admin/school/students" and method == "POST":

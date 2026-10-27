@@ -1334,6 +1334,36 @@ async function initRestaurante() {
   await window.RestauranteAdmin({$, $$, api, bindForm, esc, money, dates, showMessage, today: catalog.hoy});
 }
 
+let securityLoaded = false;
+async function loadSecurityStatus(force = false) {
+  if (securityLoaded && !force) return;
+  const host = $("#security-controls");
+  const status = $("#security-status");
+  if (!host || !status) return;
+  status.textContent = "Revisando controles del servidor…";
+  try {
+    const result = await api("/admin/security");
+    $("#security-date").textContent = dates(result.revision);
+    $("#security-cost").textContent = result.costo_adicional;
+    $("#security-overall").textContent = "Protecciones activas";
+    host.innerHTML = result.controles.map((item) => `
+      <article class="security-control">
+        <div><h3>${esc(item.nombre)}</h3><p>${esc(item.detalle)}</p></div>
+        <span class="security-badge">${esc(item.estado)}</span>
+      </article>`).join("");
+    status.textContent = result.consulta_automatica
+      ? "Estado actualizado automáticamente."
+      : "Revisión manual completada. No hay monitoreo periódico ni costo adicional.";
+    securityLoaded = true;
+  } catch (error) {
+    status.textContent = `No se pudo completar la revisión: ${error.message}`;
+  }
+}
+
+function initSecurityPanel() {
+  $("#security-refresh")?.addEventListener("click", () => loadSecurityStatus(true));
+}
+
 // Agrupa las tareas relacionadas sin alterar sus formularios ni reportes.
 function initAdminWorkspace() {
   const menu = $(".admin-section-nav");
@@ -1353,6 +1383,7 @@ function initAdminWorkspace() {
     "admin-finanzas": {title: "Ingresos y gastos", tabs: [["admin-finanzas", "Saldos y gastos"], ["admin-reportes", "Operaciones"], ["admin-pagos", "Auditoría de pagos"]]},
     "admin-escuela": {title: "Súper Chaca", tabs: [["admin-escuela", "Mensualidades"]]},
     "admin-restaurante": {title: "Restaurante Asadero BJ", tabs: [["admin-restaurante", "Deudores"]]},
+    "admin-seguridad": {title: "Ciberseguridad", tabs: [["admin-seguridad", "Estado de protección"]]},
     "admin-administradores": {title: "Agregar administrador", tabs: [["admin-administradores", "Nueva cuenta"]]},
     "admin-correos": {title: "Envío de correos", tabs: [["admin-correos", "Correos"]]},
     "admin-limpieza": {title: "Vaciar datos de prueba", tabs: [["admin-limpieza", "Limpieza"]]},
@@ -1392,6 +1423,7 @@ function initAdminWorkspace() {
       groupNav.append(button);
     });
     toolbar.scrollIntoView({behavior: "smooth", block: "start"});
+    if (id === "admin-seguridad") loadSecurityStatus().catch((error) => showMessage(error.message));
   };
   const showMenu = () => {
     markActive(null);
@@ -1995,6 +2027,7 @@ async function initialize() {
     if (page === "admin") {
       await loadReports();
       initAdminWorkspace();
+      initSecurityPanel();
       initAdminAccounts();
       initAdminReset();
       await initSchoolAdmin();

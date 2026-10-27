@@ -20,12 +20,12 @@
     <link rel="stylesheet" href="../assets/styles.css?v=20261026-restaurante-logo" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
-    <link rel="stylesheet" href="../assets/admin-sidebar.css?v=20261018-2" />
+    <link rel="stylesheet" href="../assets/admin-sidebar.css?v=20261026-security" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-inscripciones-admin.js?v=20261025-acuerdo-colombia" defer></script>
     <script src="../assets/copa-caja-admin.js?v=20261025-abonos-bar" defer></script>
     <script src="../assets/restaurante-admin.js?v=20261026-restaurante" defer></script>
-    <script src="../assets/app.js?v=20261026-restaurante" defer></script>
+    <script src="../assets/app.js?v=20261026-security" defer></script>
   </head>
 
   <body data-page="admin">
@@ -167,6 +167,13 @@
               <span class="admin-nav-top"><span>06 / DEUDORES</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4V7Zm0 4h16M8 4v3m8-3v3m-7 8h6" /></svg></span>
               <strong>Asadero BJ</strong>
               <small>Deudores, abonos y total pendiente</small>
+              <span class="admin-nav-arrow" aria-hidden="true">↗</span>
+            </button>
+            <p class="admin-side-group">SEGURIDAD</p>
+            <button type="button" data-admin-target="admin-seguridad">
+              <span class="admin-nav-top"><span>07 / SEGURIDAD</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 7.9 7.5 9.5 4.4-1.6 7.5-4.9 7.5-9.5V6L12 3Zm-3 9 2 2 4-5" /></svg></span>
+              <strong>Ciberseguridad</strong>
+              <small>Estado de las protecciones de la página</small>
               <span class="admin-nav-arrow" aria-hidden="true">↗</span>
             </button>
           </nav>
@@ -768,6 +775,32 @@
               <div id="restaurante-deudas" class="copa-ledger-scroll"></div>
               <h3>Abonos recibidos</h3>
               <div id="restaurante-abonos" class="copa-ledger-scroll"></div>
+            </details>
+          </section>
+
+          <section class="admin-workspace-section security-panel" id="admin-seguridad" aria-labelledby="admin-seguridad-title" hidden>
+            <div class="security-heading">
+              <div>
+                <p class="eyebrow">ADMINISTRACIÓN / PROTECCIÓN</p>
+                <h2 id="admin-seguridad-title">Ciberseguridad</h2>
+                <p>Consulta manualmente los controles principales sin mostrar contraseñas, llaves ni datos de conexión.</p>
+              </div>
+              <button id="security-refresh" class="btn secondary" type="button">Revisar ahora</button>
+            </div>
+            <div class="security-summary" aria-label="Resumen de seguridad">
+              <article><span>Estado</span><strong id="security-overall">Pendiente de revisión</strong></article>
+              <article><span>Costo adicional</span><strong id="security-cost">$0,00</strong></article>
+              <article><span>Última revisión</span><strong id="security-date">—</strong></article>
+            </div>
+            <div id="security-status" class="security-status" role="status">Abre este apartado o pulsa “Revisar ahora”. No se realizan consultas automáticas.</div>
+            <div id="security-controls" class="security-controls" aria-live="polite"></div>
+            <details class="panel security-notes">
+              <summary>Qué protege este apartado y qué no hace</summary>
+              <ul>
+                <li>No muestra variables privadas, contraseñas, llaves ni la dirección de la base de datos.</li>
+                <li>No ejecuta escaneos externos, no consulta cada cierto tiempo y no crea servicios nuevos.</li>
+                <li>Es un resumen de controles del código; ninguna página puede garantizar riesgo cero.</li>
+              </ul>
             </details>
           </section>
 

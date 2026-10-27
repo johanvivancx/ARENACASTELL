@@ -653,6 +653,48 @@ def exigir_administrador(conn, uid):
         raise HTTPError(403, "Esta sección está disponible solo para administradores.")
 
 
+def estado_ciberseguridad(conn, uid):
+    """Resume controles verificables sin revelar secretos ni datos de infraestructura."""
+    exigir_administrador(conn, uid)
+    return {
+        "revision": "2026-10-26",
+        "costo_adicional": "USD 0,00",
+        "consulta_automatica": False,
+        "controles": [
+            {
+                "nombre": "Acceso administrativo",
+                "estado": "PROTEGIDO",
+                "detalle": "Cada operación vuelve a comprobar la sesión y el rol de administrador en el servidor.",
+            },
+            {
+                "nombre": "Sesión y formularios",
+                "estado": "PROTEGIDO",
+                "detalle": "Cookies HttpOnly y SameSite, token CSRF y límite de intentos de acceso.",
+            },
+            {
+                "nombre": "Archivos y secretos",
+                "estado": "PROTEGIDO",
+                "detalle": "Solo se publican archivos permitidos; las claves permanecen en variables privadas del servidor.",
+            },
+            {
+                "nombre": "Navegador",
+                "estado": "PROTEGIDO",
+                "detalle": "CSP, bloqueo de marcos, protección MIME y política de permisos activas.",
+            },
+            {
+                "nombre": "Tecnología PHP",
+                "estado": "NO APLICA",
+                "detalle": "Arena Castell usa Python; no contiene ni ejecuta archivos PHP.",
+            },
+            {
+                "nombre": "Dependencias Python",
+                "estado": "ACTUALIZADO",
+                "detalle": "Pillow fue actualizado a la versión corregida 13.0.0 durante la revisión del 26 de octubre de 2026.",
+            },
+        ],
+    }
+
+
 ACCIONES_ADMIN = {
     "/api/admin/copa-fixtures": "Programó un partido de Copa Castell",
     "/api/admin/reservations": "Registró una reserva manual",

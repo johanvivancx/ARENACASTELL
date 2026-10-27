@@ -49,6 +49,7 @@ def test_http_csrf_auth_et_controle_acces(conn):
         assert status==200 and registered['usuario']['rol']=='CLIENTE'
         assert 'password_hash' not in registered['usuario']
         assert request('/api/admin/reports')[0]==403
+        assert request('/api/admin/security')[0]==403
         manual={'cliente':'Prueba manual','cancha_id':1,'tipo_evento':'HORA',
                 'fecha':str(datetime.now(s.TZ).date()+timedelta(days=3)),
                 'hora':'12:00','horas':1}
@@ -74,7 +75,9 @@ def test_https_cookie_y_cabeceras_de_seguridad(conn, monkeypatch):
         status, _, headers = request('/api/session')
         assert status == 200
         assert 'Secure' in headers['Set-Cookie']
-        assert headers['Strict-Transport-Security'] == 'max-age=15552000'
+        assert headers['Strict-Transport-Security'] == 'max-age=31536000'
+        assert headers['Cross-Origin-Opener-Policy'] == 'same-origin'
+        assert headers['Cross-Origin-Resource-Policy'] == 'same-origin'
 
 
 def test_ip_de_cliente_solo_usa_proxy_en_alojamiento(monkeypatch):
@@ -184,6 +187,10 @@ def test_http_admin_registra_reserva_manual_y_ocupa_horario(conn):
         status,session,_=request('/api/auth/login',
             {'email':'manual-http@arena.test','password':'ClaveOperador!2026'},session['csrf'])
         assert status==200 and session['usuario']['rol']=='ADMIN'
+        status, security, _ = request('/api/admin/security')
+        assert status == 200 and security['costo_adicional'] == 'USD 0,00'
+        assert security['consulta_automatica'] is False
+        assert all(term not in str(security).lower() for term in ('database_url', 'password', 'api_key'))
         day=str(datetime.now(s.TZ).date()+timedelta(days=4))
         data={'cliente':'Cliente de WhatsApp','telefono':'0991234567',
               'cancha_id':1,'tipo_evento':'HORA','fecha':day,'hora':'14:00','horas':2,'monto':'25.00'}
