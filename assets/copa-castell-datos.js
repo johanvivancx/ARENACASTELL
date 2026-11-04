@@ -70,9 +70,9 @@ window.CopaCastellData = {
         ]
       }
     ],
-    "byeRound": 9,
+    "byeRound": 10,
     "bye": [
-      "Marruecos"
+      "Colombia"
     ]
   },
   "teams": [
@@ -1461,7 +1461,14 @@ window.CopaCastellData = {
     {"round": 9, "stage": "GRUPO_A", "home": "Cabo Verde", "away": "Japón", "status": "scheduled", "date": "2026-10-23", "time": "22:00"},
     {"round": 9, "stage": "GRUPO_B", "home": "Francia", "away": "Ecuador", "status": "scheduled", "date": "2026-10-24", "time": "18:30"},
     {"round": 9, "stage": "BRONCE", "home": "Argentina", "away": "España", "status": "scheduled", "date": "2026-10-24", "time": "19:30"},
-    {"round": 9, "stage": "BRONCE", "home": "Uruguay", "away": "Alemania", "status": "scheduled", "date": "2026-10-24", "time": "20:30"}
+    {"round": 9, "stage": "BRONCE", "home": "Uruguay", "away": "Alemania", "status": "scheduled", "date": "2026-10-24", "time": "20:30"},
+    {"round": 10, "stage": "GRUPO_A", "home": "Cabo Verde", "away": "Portugal", "status": "scheduled", "date": "2026-11-06", "time": "19:00"},
+    {"round": 10, "stage": "GRUPO_A", "home": "Noruega", "away": "Japón", "status": "scheduled", "date": "2026-11-06", "time": "20:00"},
+    {"round": 10, "stage": "GRUPO_B", "home": "Francia", "away": "Egipto", "status": "scheduled", "date": "2026-11-06", "time": "21:00"},
+    {"round": 10, "stage": "GRUPO_B", "home": "Ecuador", "away": "Marruecos", "status": "scheduled", "date": "2026-11-06", "time": "22:00"},
+    {"round": 10, "stage": "BRONCE", "home": "España", "away": "Brasil", "status": "scheduled", "date": "2026-11-07", "time": "18:30"},
+    {"round": 10, "stage": "BRONCE", "home": "Venezuela", "away": "Uruguay", "status": "scheduled", "date": "2026-11-07", "time": "19:30"},
+    {"round": 10, "stage": "BRONCE", "home": "Argentina", "away": "Alemania", "status": "scheduled", "date": "2026-11-07", "time": "20:30"}
   ],
   "scorers": [
     {

@@ -28,9 +28,26 @@ def test_fecha_9_publicada_en_el_calendario_y_disponible_para_resultados():
     actual = [(m["date"], m["time"], m["stage"], m["home"], m["away"]) for m in matches]
     assert actual == expected
     assert all(m["status"] == "scheduled" for m in matches)
-    assert copa.base()["upcoming"]["bye"] == ["Marruecos"]
-    assert copa.base()["upcoming"]["byeRound"] == 9
     assert all(f"9:{home}:{away}" in copa.catalogo()[0] for _, _, _, home, away in expected)
+
+
+def test_fecha_10_publicada_en_el_calendario_y_disponible_para_resultados():
+    expected = [
+        ("2026-11-06", "19:00", "GRUPO_A", "Cabo Verde", "Portugal"),
+        ("2026-11-06", "20:00", "GRUPO_A", "Noruega", "Japón"),
+        ("2026-11-06", "21:00", "GRUPO_B", "Francia", "Egipto"),
+        ("2026-11-06", "22:00", "GRUPO_B", "Ecuador", "Marruecos"),
+        ("2026-11-07", "18:30", "BRONCE", "España", "Brasil"),
+        ("2026-11-07", "19:30", "BRONCE", "Venezuela", "Uruguay"),
+        ("2026-11-07", "20:30", "BRONCE", "Argentina", "Alemania"),
+    ]
+    matches = [match for match in copa.base()["matches"] if match["round"] == 10]
+    actual = [(m["date"], m["time"], m["stage"], m["home"], m["away"]) for m in matches]
+    assert actual == expected
+    assert all(m["status"] == "scheduled" for m in matches)
+    assert copa.base()["upcoming"]["bye"] == ["Colombia"]
+    assert copa.base()["upcoming"]["byeRound"] == 10
+    assert all(f"10:{home}:{away}" in copa.catalogo()[0] for _, _, _, home, away in expected)
 
 
 def test_grupos_confirmados_no_anuncian_semifinalistas_antes_de_jugar():
