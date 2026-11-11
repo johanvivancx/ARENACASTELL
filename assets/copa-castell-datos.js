@@ -1468,7 +1468,15 @@ window.CopaCastellData = {
     {"round": 10, "stage": "GRUPO_B", "home": "Ecuador", "away": "Marruecos", "status": "scheduled", "date": "2026-11-06", "time": "22:00"},
     {"round": 10, "stage": "BRONCE", "home": "España", "away": "Brasil", "status": "scheduled", "date": "2026-11-07", "time": "18:30"},
     {"round": 10, "stage": "BRONCE", "home": "Venezuela", "away": "Uruguay", "status": "scheduled", "date": "2026-11-07", "time": "19:30"},
-    {"round": 10, "stage": "BRONCE", "home": "Argentina", "away": "Alemania", "status": "scheduled", "date": "2026-11-07", "time": "20:30"}
+    {"round": 10, "stage": "BRONCE", "home": "Argentina", "away": "Alemania", "status": "scheduled", "date": "2026-11-07", "time": "20:30"},
+    {"round": 12, "stage": "BRONCE", "home": "España", "away": "Uruguay", "status": "scheduled", "date": "2026-11-13", "time": "19:30"},
+    {"round": 12, "stage": "GRUPO_B", "home": "Ecuador", "away": "Egipto", "status": "scheduled", "date": "2026-11-13", "time": "20:30"},
+    {"round": 12, "stage": "BRONCE", "home": "Venezuela", "away": "Alemania", "status": "scheduled", "date": "2026-11-13", "time": "21:30"},
+    {"round": 12, "stage": "GRUPO_B", "home": "Colombia", "away": "Marruecos", "status": "scheduled", "date": "2026-11-14", "time": "16:30"},
+    {"round": 12, "stage": "GRUPO_B", "home": "Marruecos", "away": "Francia", "status": "scheduled", "date": "2026-11-14", "time": "17:30"},
+    {"round": 12, "stage": "BRONCE", "home": "Argentina", "away": "Brasil", "status": "scheduled", "date": "2026-11-14", "time": "18:30"},
+    {"round": 12, "stage": "BRONCE", "home": "Argentina", "away": "Uruguay", "status": "scheduled", "date": "2026-11-14", "time": "19:30"},
+    {"round": 12, "stage": "BRONCE", "home": "Brasil", "away": "Alemania", "status": "scheduled", "date": "2026-11-14", "time": "20:30"}
   ],
   "scorers": [
     {

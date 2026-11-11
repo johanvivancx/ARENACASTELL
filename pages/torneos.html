@@ -19,9 +19,9 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261012-tablas" />
-    <script src="../assets/copa-castell-datos.js?v=20261020-mvp8" defer></script>
-    <script src="../assets/copa-castell.js?v=20261020-mvp8-solo" defer></script>
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261110-fecha12" />
+    <script src="../assets/copa-castell-datos.js?v=20261110-fecha12" defer></script>
+    <script src="../assets/copa-castell.js?v=20261110-fecha12" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20261012-clasificados" defer></script>
     <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
@@ -138,7 +138,7 @@
           <section id="mundial-formato" aria-labelledby="copa-formato-title">
             <p class="eyebrow">COPA CASTELL · EDICIÓN MUNDIALISTA</p>
             <h3 id="copa-formato-title">Así sigue la Copa Castell</h3>
-            <p class="copa-format-intro">Los equipos ya están asignados a la fase 2 y a Bronce según la clasificación de la primera fase. <strong>Consulta los horarios en Calendario.</strong> Las semifinales se definirán jugando; aquí no se adelanta ningún clasificado.</p>
+            <p class="copa-format-intro">Los equipos ya están asignados a la fase 2 y a Bronce según la clasificación de la primera fase. <strong>Noruega, Portugal y Francia ya están clasificados a las semifinales de la Copa Oro.</strong> Falta definir al equipo que termine 2.º del Grupo B.</p>
             <div id="copa-format-live" hidden>
               <div class="copa-format-block-heading"><span>01 · EQUIPOS CONFIRMADOS</span><h4>Estos son los grupos</h4><p>A indica el Grupo 1 de la primera fase; B, el Grupo 2. El número es la posición en que terminó el equipo.</p></div>
               <div id="copa-format-groups" class="copa-format-groups"></div>
@@ -178,6 +178,7 @@
               <option value="8">Fecha 8 · viernes 16 y sábado 17 de octubre</option>
               <option value="9">Fecha 9 · viernes 23 y sábado 24 de octubre</option>
               <option value="10">Fecha 10 · viernes 6 y sábado 7 de noviembre</option>
+              <option value="12">Fecha 12 · viernes 13 y sábado 14 de noviembre</option>
             </select>
             <div id="mundial-partidos" class="mundial-matches" aria-live="polite"></div>
           </section>
@@ -185,6 +186,19 @@
             <p class="eyebrow">CLASIFICACIÓN DEL TORNEO</p>
             <h3 id="posiciones-title">Tablas oficiales · Fase 2</h3>
             <p class="copa-standings-intro">Noruega y Francia comienzan con <strong>+2 puntos de bonificación</strong> por haber ganado sus grupos de la primera fase. Los partidos en juego muestran el marcador en Resultados, pero solo suman a estas tablas cuando finalizan.</p>
+            <section class="copa-qualified-announcement" aria-labelledby="copa-oro-semifinalistas-title">
+              <div>
+                <p class="eyebrow">SEMIFINALES · COPA ORO</p>
+                <h4 id="copa-oro-semifinalistas-title">Tres equipos ya están clasificados</h4>
+                <p><strong>Noruega · Impormegatex</strong> clasificó 1.º del Grupo A; <strong>Portugal · Chancletas</strong>, 2.º del Grupo A; y <strong>Francia · Fnatik</strong>, 1.º del Grupo B. Falta definir al 2.º del Grupo B.</p>
+              </div>
+              <figure class="copa-publication-poster">
+                <a href="../assets/semifinalistas-copa-oro-2026.png" target="_blank" rel="noopener noreferrer">
+                  <img src="../assets/semifinalistas-copa-oro-2026.png" alt="Semifinalistas clasificados a la Copa Oro: Noruega primero del Grupo A, Portugal segundo del Grupo A y Francia primero del Grupo B; falta definir al segundo del Grupo B" width="1024" height="1536" loading="lazy" decoding="async" />
+                </a>
+                <figcaption>Semifinalistas confirmados de la Copa Oro · Toca para ampliar</figcaption>
+              </figure>
+            </section>
             <p id="copa-format-status" class="small-text muted" role="status"></p>
             <div id="copa-format-standings" class="copa-format-standings" aria-live="polite"></div>
             <div id="copa-format-cups" class="copa-format-cups"></div>
@@ -212,6 +226,12 @@
             <p class="eyebrow">COPA CASTELL · EDICIÓN MUNDIALISTA</p>
             <h3 id="proxima-fecha-title">Próximos partidos</h3>
             <p>Consulta los encuentros programados y los marcadores en juego. Horarios de Ecuador.</p>
+            <figure class="copa-publication-poster copa-schedule-poster">
+              <a href="../assets/cronograma-fecha-12-13-14-noviembre-2026.png" target="_blank" rel="noopener noreferrer">
+                <img src="../assets/cronograma-fecha-12-13-14-noviembre-2026.png" alt="Cronograma oficial de la Fecha 12 de Copa Castell para el viernes 13 y sábado 14 de noviembre de 2026" width="1024" height="1536" loading="lazy" decoding="async" />
+              </a>
+              <figcaption>Cronograma oficial · Fecha 12 · Toca para ampliar</figcaption>
+            </figure>
             <div id="mundial-proxima-partidos" class="mundial-upcoming-days"></div>
             <p id="mundial-proxima-descanso" class="mundial-upcoming-rest"></p>
           </section>

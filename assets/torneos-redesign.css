@@ -121,6 +121,16 @@ body[data-page="torneos"] .mundial-section > section > h3 { margin-top: 0; }
 .copa-format-posters a:focus-visible { outline: 3px solid #f5deb2; outline-offset: 3px; }
 .copa-format-posters img { display: block; width: 100%; height: auto; }
 .copa-format-posters figcaption { margin-top: 8px; color: #c8d1d3; font-size: 13px; }
+.copa-qualified-announcement { display: grid; grid-template-columns: minmax(0, .9fr) minmax(280px, 1.1fr); align-items: center; gap: clamp(18px, 4vw, 38px); margin-top: 24px; padding: clamp(18px, 3vw, 28px); border: 1px solid #aa8548; border-radius: 14px; background: linear-gradient(145deg, #221d14, #15191b 62%); }
+.copa-qualified-announcement h4 { margin: 7px 0 12px; color: #fff; font-size: clamp(22px, 3vw, 30px); }
+.copa-qualified-announcement > div > p:last-child { margin-bottom: 0; color: #dbe1e2; line-height: 1.65; }
+.copa-publication-poster { width: min(100%, 650px); margin: 24px auto 0; }
+.copa-qualified-announcement .copa-publication-poster { margin: 0 auto; }
+.copa-publication-poster a { display: block; overflow: hidden; border: 1px solid #c79a49; border-radius: 12px; background: #090909; box-shadow: 0 18px 38px rgb(0 0 0 / 28%); }
+.copa-publication-poster a:focus-visible { outline: 3px solid #f5deb2; outline-offset: 4px; }
+.copa-publication-poster img { display: block; width: 100%; height: auto; }
+.copa-publication-poster figcaption { margin-top: 9px; color: #c8d1d3; font-size: 13px; text-align: center; }
+.copa-schedule-poster { width: min(100%, 560px); }
 .copa-format-standings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 22px; }
 .copa-format-standings .copa-format-table:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .copa-format-table { min-width: 0; overflow-x: auto; }
@@ -182,6 +192,7 @@ body[data-page="torneos"] .pasochoa-intro .pasochoa-photo img { aspect-ratio: 3 
 }
 @media (max-width: 600px) {
   .copa-format-cups, .copa-format-posters { grid-template-columns: 1fr; }
+  .copa-qualified-announcement { grid-template-columns: 1fr; padding: 17px; }
   body[data-page="torneos"] .page-intro { padding-top: 32px; }
   body[data-page="torneos"] .content-section { gap: 26px; }
   .tournament-index a { padding: 12px 14px; }
