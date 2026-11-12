@@ -727,6 +727,13 @@ async function loadOrder() {
     if (["EFECTIVO", "TRANSFERENCIA"].includes(currentOrder.metodo_previsto))
       $(`input[name="metodo"][value="${currentOrder.metodo_previsto}"]`).checked = true;
     $("#referencia_transferencia").value = currentOrder.referencia_transferencia || "";
+    const paymentDescription = $("#payment-description-example");
+    if (paymentDescription) {
+      paymentDescription.textContent =
+        currentOrder.tipo === "TORNEO" && currentOrder.equipo?.nombre
+          ? `INSCRIPCIÓN DEL EQUIPO ${currentOrder.equipo.nombre.toUpperCase()}`
+          : `PAGO DE ${currentOrder.descripcion.toUpperCase()}`;
+    }
     renderPaymentMethod();
   }
   if (page === "confirmation") {
@@ -796,7 +803,7 @@ function renderPaymentMethod() {
   $("#referencia_transferencia").required = method === "TRANSFERENCIA";
   $("#referencia_transferencia").disabled = method !== "TRANSFERENCIA";
   const descriptions = {
-    TRANSFERENCIA: "Solicita primero los datos bancarios vigentes por el canal oficial de la cancha. Tras transferir, escribe la referencia. La solicitud se confirma cuando la administración comprueba y aprueba el abono.",
+    TRANSFERENCIA: "Utiliza los datos bancarios mostrados abajo. Escribe la descripción indicada al transferir y luego envía el número de comprobante para que la administración revise el pago.",
     EFECTIVO: "Paga en efectivo al acercarte a la cancha. Tu solicitud seguirá pendiente y no bloqueará horarios ni cupos hasta registrar el cobro. Coordina tu llegada por WhatsApp antes del horario solicitado.",
   };
   $("#method-info").textContent = descriptions[method] || "Elige cómo deseas realizar el pago de tu operación.";

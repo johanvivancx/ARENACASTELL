@@ -17,10 +17,10 @@
     <title>Pago unificado | ARENA CASTELL</title>
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
-    <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
-    <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
+    <link rel="stylesheet" href="../assets/styles.css?v=20261112-pago-visible" />
+    <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-nav-unificada" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20260930-pagos" defer></script>
+    <script src="../assets/app.js?v=20261112-pago-visible" defer></script>
   </head>
 
   <body data-page="payment">
@@ -142,7 +142,7 @@
                   />
                   <span>
                     <strong>Transferencia bancaria</strong>
-                    <small>Solicita los datos bancarios vigentes por el canal oficial de la cancha.</small>
+                    <small>Consulta los datos, realiza la transferencia y envía el número de comprobante.</small>
                   </span>
                 </label>
                 <!-- Opción para pago presencial -->
@@ -168,17 +168,41 @@
               Elige cómo deseas realizar el pago de tu operación.
             </div>
 
-            <!-- Instrucciones para transferir sin publicar datos personales -->
+            <!-- Datos e instrucciones para realizar la transferencia -->
             <section id="transfer-details" class="bank-details" aria-labelledby="bank-title" hidden>
               <h2 id="bank-title">Pago por transferencia</h2>
               <p>
-                Solicita los datos bancarios vigentes a la administración por el canal oficial
-                antes de transferir. Comprueba el destinatario directamente con la cancha.
-                Después de realizar el pago, escribe la referencia para que podamos revisarlo.
+                Escanea el código o utiliza los datos que aparecen en la imagen. Antes de confirmar,
+                comprueba que el titular sea <strong>Bryan Estiv Jaya Carrera</strong>.
               </p>
+              <figure class="payment-bank-card">
+                <img
+                  src="../assets/pago-arena-castell.jpeg"
+                  alt="Datos para pagar a Arena Castell mediante Deuna o transferencia a la cuenta de ahorros de Banco Pichincha del titular Bryan Estiv Jaya Carrera"
+                  width="1199"
+                  height="1312"
+                  loading="lazy"
+                />
+              </figure>
+              <div class="payment-reference-guide" aria-labelledby="payment-description-title">
+                <span id="payment-description-title">Descripción que debes escribir al transferir</span>
+                <strong id="payment-description-example">INSCRIPCIÓN DEL EQUIPO [NOMBRE DEL EQUIPO]</strong>
+                <small>Reemplaza el texto entre corchetes por el nombre de tu equipo.</small>
+              </div>
               <div class="field">
-                <label for="referencia_transferencia">Referencia o número de la transferencia</label>
-                <input id="referencia_transferencia" name="referencia_transferencia" type="text" minlength="3" maxlength="100" autocomplete="off" />
+                <label for="referencia_transferencia">Número de comprobante</label>
+                <input
+                  id="referencia_transferencia"
+                  name="referencia_transferencia"
+                  type="text"
+                  minlength="3"
+                  maxlength="100"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  placeholder="Escribe el número que aparece en tu comprobante"
+                  aria-describedby="payment-reference-help"
+                />
+                <small id="payment-reference-help">Lo utilizaremos para comprobar la transferencia y aprobar la inscripción.</small>
               </div>
             </section>
 
