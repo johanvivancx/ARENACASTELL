@@ -1,6 +1,6 @@
 // Lógica del sitio
 "use strict";
-document.documentElement.classList.add("js");
+document.documentElement.classList.add("js", "auth-pending");
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -13,6 +13,7 @@ const pageHref = (name) =>
 const page = document.body.dataset.page;
 const query = new URLSearchParams(location.search);
 let session = { usuario: null, csrf: null };
+let sessionCheckedAt = 0;
 let catalog = null;
 let currentOrder = null;
 let historyData = null;
@@ -155,6 +156,11 @@ async function api(path, data) {
     );
   }
   if (!response.ok) {
+    if (response.status === 401) {
+      session = { usuario: null, csrf: session.csrf };
+      updateSessionUI();
+      void refreshSessionUI();
+    }
     const error = new Error(body.error || "No se pudo completar la operación.");
     error.status = response.status;
     throw error;
@@ -209,10 +215,11 @@ function updateSessionUI() {
   $$("[data-admin-link]").forEach((el) => (el.hidden = user?.rol !== "ADMIN"));
   $$("[data-history-link]").forEach((el) => (el.hidden = !user));
   const account = $("[data-account-link]");
-  if (user && account) {
-    account.href = pageHref("mi_perfil.html");
-    $("span", account).textContent = "Mi cuenta";
+  if (account) {
+    account.href = user ? pageHref("mi_perfil.html") : loginHref();
+    $("span", account).textContent = user ? "Mi cuenta" : "Iniciar sesión";
   }
+  document.documentElement.classList.remove("auth-pending");
   if ($("#auth-gate")) $("#auth-gate").hidden = Boolean(user);
   $$("[data-login-link]").forEach((el) => (el.href = loginHref()));
   $$("[data-register-link]").forEach(
@@ -2029,8 +2036,11 @@ async function initialize() {
   const results = await Promise.allSettled([api("/session"), api("/catalog")]);
   if (results[0].status === "fulfilled") {
     session = results[0].value;
-    updateSessionUI();
+  } else {
+    session = { usuario: null, csrf: null };
   }
+  sessionCheckedAt = Date.now();
+  updateSessionUI();
   if (results[1].status === "fulfilled") catalog = results[1].value;
   const failure = results.find((r) => r.status === "rejected");
   if (failure) return;
@@ -2072,3 +2082,21 @@ async function initialize() {
   }
 }
 const boot = initialize();
+
+async function refreshSessionUI() {
+  try {
+    session = await api("/session");
+  } catch {}
+  sessionCheckedAt = Date.now();
+  updateSessionUI();
+}
+
+// Confirma la sesión al volver desde el historial o desde otra pestaña.
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) void refreshSessionUI();
+});
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && Date.now() - sessionCheckedAt > 30_000) {
+    void refreshSessionUI();
+  }
+});

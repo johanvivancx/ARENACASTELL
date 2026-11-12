@@ -27,11 +27,16 @@ body {
   line-height: 1;
 }
 .main-nav a[aria-current="page"]::after {
-  bottom: 3px;
+  right: auto;
+  bottom: 2px;
+  left: 50%;
+  width: 36px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #f4f5f5 20%, #f4f5f5 80%, transparent);
-  box-shadow: 0 1px 7px rgba(244, 245, 245, .34);
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, #fff 28%, #fff 72%, transparent);
+  box-shadow: 0 2px 9px rgba(244, 245, 245, .58);
 }
+html.auth-pending [data-account-link] { visibility: hidden; }
 .eyebrow { color: #c9ccca; letter-spacing: .15em; font-weight: 700; }
 h1, h2 { letter-spacing: -.04em; }
 h1 { font-size: clamp(34px, 4.4vw, 58px); line-height: 1.09; font-weight: 730; }
