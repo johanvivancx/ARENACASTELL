@@ -69,3 +69,9 @@ def preparar_actividad_administrativa():
     """Guarda la autoría de los cambios administrativos futuros."""
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/014_actividad_administrativa.sql").read_text(encoding="utf8"))
+
+
+def preparar_cuadrangular_navideno():
+    """Publica el torneo navideño en el catálogo de inscripciones web."""
+    with conectar() as conn:
+        conn.execute((ROOT / "sql/migrations/028_cuadrangular_navideno.sql").read_text(encoding="utf8"))

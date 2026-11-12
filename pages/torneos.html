@@ -19,11 +19,11 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261006-1" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261112-navidad" />
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261112-navidad-final" />
     <script src="../assets/copa-castell-datos.js?v=20261110-fecha12" defer></script>
     <script src="../assets/copa-castell.js?v=20261110-fecha12" defer></script>
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261012-clasificados" defer></script>
+    <script src="../assets/app.js?v=20261112-navidad-directa" defer></script>
     <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
   </head>
 
@@ -109,16 +109,20 @@
           <a href="#pasochoa-cup"><span>03</span> Edición anterior <small>Fotos y recuerdos</small></a>
         </nav>
         <section class="navidad-tournament" id="cuadrangular-navideno" aria-labelledby="navidad-title">
-          <div class="tournament-live-copy">
-            <p class="eyebrow">NAVIDAD EN ARENA CASTELL · 2026</p>
-            <span class="tournament-live-status">Inscripciones abiertas</span>
+          <div class="navidad-tournament-copy">
+            <p class="eyebrow">FÚTBOL · PREMIOS · NAVIDAD</p>
+            <span class="tournament-live-status" id="navidad-status">Inscripciones abiertas</span>
             <h2 id="navidad-title">Cuadrangular Navideño</h2>
-            <p>Vive una jornada de fútbol y premios navideños en Arena Castell, Amaguaña.</p>
-            <p><strong>Sábado 12 de diciembre de 2026</strong><br />Todo en un solo día.</p>
-            <p class="navidad-price">Inscripción <strong>$5</strong></p>
-            <p>Premios navideños · Servicio de bar y parqueadero.</p>
+            <p class="navidad-lead">Una jornada especial de fútbol en Arena Castell con premios navideños, servicio de bar y parqueadero.</p>
+            <div class="navidad-details" aria-label="Información del Cuadrangular Navideño">
+              <div><small>Fecha</small><strong>Sábado 12</strong><span>Diciembre de 2026</span></div>
+              <div><small>Duración</small><strong>Un solo día</strong><span>Cuadrangular completo</span></div>
+              <div><small>Inscripción</small><strong>$5</strong><span>Por equipo</span></div>
+            </div>
+            <p class="navidad-availability" id="navidad-capacity">Cupos limitados · Inscripciones abiertas</p>
             <div class="tournament-live-actions">
-              <a class="btn" href="https://wa.me/593999901241?text=Hola%2C%20quiero%20inscribir%20a%20mi%20equipo%20en%20el%20Cuadrangular%20Navide%C3%B1o%20del%2012%20de%20diciembre%20de%202026.%20Inscripci%C3%B3n%3A%20%245." target="_blank" rel="noopener noreferrer">Inscribirme por WhatsApp</a>
+              <a class="btn navidad-register" id="navidad-register-link" href="pagos_torneos.html">Inscribir equipo en la web</a>
+              <a class="btn secondary" href="https://wa.me/593999901241?text=Hola%2C%20quiero%20inscribir%20a%20mi%20equipo%20en%20el%20Cuadrangular%20Navide%C3%B1o%20del%2012%20de%20diciembre%20de%202026.%20Inscripci%C3%B3n%3A%20%245." target="_blank" rel="noopener noreferrer">Consultar por WhatsApp</a>
             </div>
           </div>
           <figure class="navidad-poster">

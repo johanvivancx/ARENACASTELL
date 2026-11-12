@@ -20,7 +20,7 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_deudores_restaurante, preparar_escuela_manual, preparar_actividad_administrativa, ROOT
+from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_deudores_restaurante, preparar_escuela_manual, preparar_actividad_administrativa, preparar_cuadrangular_navideno, ROOT
 from models import ErrorValidacion
 import services as s
 import copa
@@ -487,6 +487,7 @@ def main():
     preparar_deudores_restaurante()
     preparar_escuela_manual()
     preparar_actividad_administrativa()
+    preparar_cuadrangular_navideno()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
     print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)

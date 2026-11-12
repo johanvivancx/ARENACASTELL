@@ -599,6 +599,28 @@ function initTournaments() {
       $("#pasochoa-next-status").textContent = "Inscripciones aún no disponibles";
     }
   }
+  if ($("#navidad-status")) {
+    const christmas = catalog.torneos.find(
+      (item) => item.nombre === "Cuadrangular Navideño 2026",
+    );
+    const available = christmas && open.some((item) => item.id === christmas.id);
+    const registerLink = $("#navidad-register-link");
+    if (christmas && available) {
+      registerLink.href = pageHref("pagos_torneos.html") + "?torneo=" + christmas.id;
+      registerLink.removeAttribute("aria-disabled");
+      $("#navidad-status").textContent = "Inscripciones abiertas";
+      $("#navidad-capacity").textContent = christmas.disponibles + " " +
+        (Number(christmas.disponibles) === 1 ? "cupo disponible" : "cupos disponibles") +
+        " · Inscripción $" + Number(christmas.costo).toFixed(0);
+    } else {
+      registerLink.setAttribute("aria-disabled", "true");
+      registerLink.removeAttribute("href");
+      $("#navidad-status").textContent = christmas && Number(christmas.disponibles) <= 0
+        ? "Cupos completos"
+        : "Inscripciones cerradas";
+      $("#navidad-capacity").textContent = "Consulta por WhatsApp para recibir información.";
+    }
+  }
 }
 
 // Busca el horario escolar
