@@ -78,39 +78,80 @@ def preparar_cuadrangular_navideno():
         conn.execute((ROOT / "sql/migrations/028_cuadrangular_navideno.sql").read_text(encoding="utf8"))
 
 
+def _cedula_historica_disponible(conn, account_id):
+    """Genera una cédula técnica válida para liberar la cédula personal."""
+    for offset in range(1000):
+        sequence = 5_000_000 + (int(account_id) + offset) % 1_000_000
+        base = "17" + f"{sequence:07d}"
+        values = [int(value) * (2 if index % 2 == 0 else 1) for index, value in enumerate(base)]
+        digit = (10 - sum(value - 9 if value > 9 else value for value in values) % 10) % 10
+        candidate = base + str(digit)
+        occupied = conn.execute(
+            "SELECT 1 FROM usuarios WHERE cedula=%s AND id<>%s", (candidate, account_id)
+        ).fetchone()
+        if not occupied:
+            return candidate
+    raise RuntimeError("No se pudo reservar un identificador histórico para la cuenta retirada.")
+
+
 def retirar_administrador_comprometido():
-    """Revoca la cuenta comprometida sin eliminar sus referencias históricas."""
+    """Anonimiza la cuenta comprometida sin eliminar las operaciones históricas."""
     compromised_owner_hash = "b58fe7ac12514feabb0ba52adc8917253842ad8ea9fc8f22383d3a8123d2cf9b"
     with conectar() as conn:
-        administrators = conn.execute(
-            "SELECT id,email FROM usuarios WHERE rol='ADMIN' FOR UPDATE"
+        candidates = conn.execute(
+            """SELECT id,email FROM usuarios
+               WHERE rol='ADMIN'
+                  OR (email LIKE 'cuenta-retirada-%@invalid.local'
+                      AND password_hash LIKE 'pbkdf2_sha256$600000$cuenta_retirada_segura$%')
+               FOR UPDATE"""
         ).fetchall()
         account = next(
             (
-                row for row in administrators
+                row for row in candidates
                 if hashlib.sha256(row["email"].strip().lower().encode()).hexdigest()
                 == compromised_owner_hash
+                or row["email"].startswith("cuenta-retirada-")
             ),
             None,
         )
         if not account:
             return
         account_id = account["id"]
+        historical_id = _cedula_historica_disponible(conn, account_id)
         conn.execute(
             """UPDATE usuarios
-               SET rol='CLIENTE',
+               SET nombre='Administrador anterior',
+                   rol='CLIENTE',
                    email='cuenta-retirada-' || id || '@invalid.local',
+                   cedula=%s,
+                   telefono='0990000000',
                    password_hash='pbkdf2_sha256$600000$cuenta_retirada_segura$'
                      || repeat('0',64),
                    session_version=session_version+1
                WHERE id=%s""",
-            (account_id,),
+            (historical_id, account_id),
         )
         conn.execute("DELETE FROM sesiones WHERE usuario_id=%s", (account_id,))
         conn.execute("UPDATE restablecimientos SET usado=true WHERE usuario_id=%s", (account_id,))
         conn.execute(
             """UPDATE correo_salida
-               SET estado_envio='CANCELADO',ultimo_error='CUENTA_COMPROMETIDA'
-               WHERE usuario_id=%s AND estado_envio IN ('LOCAL','PENDIENTE','ERROR')""",
+               SET destinatario='cuenta-retirada@invalid.local',
+                   cuerpo='Mensaje histórico asociado a una cuenta retirada.',
+                   estado_envio=CASE
+                     WHEN estado_envio IN ('LOCAL','PENDIENTE','ERROR') THEN 'CANCELADO'
+                     ELSE estado_envio
+                   END,
+                   ultimo_error=CASE
+                     WHEN estado_envio IN ('LOCAL','PENDIENTE','ERROR') THEN 'CUENTA_COMPROMETIDA'
+                     ELSE ultimo_error
+                   END
+               WHERE usuario_id=%s""",
+            (account_id,),
+        )
+        conn.execute(
+            """UPDATE actividad_administrativa
+               SET administrador_nombre='Administrador anterior',
+                   administrador_email='cuenta-retirada@invalid.local'
+               WHERE administrador_id=%s""",
             (account_id,),
         )
