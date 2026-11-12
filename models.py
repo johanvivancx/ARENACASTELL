@@ -164,8 +164,8 @@ class InscripcionTorneo(ServicioArena):
                 f"El límite es de {max_jugadores} jugadores para este torneo; el tope del sistema es 20."
             )
         self.__tarifa = Decimal(str(tarifa))
-        if self.__tarifa <= 0:
-            raise ErrorValidacion("La tarifa del torneo debe ser positiva.")
+        if self.__tarifa < 0:
+            raise ErrorValidacion("La tarifa del torneo no puede ser negativa.")
 
     # Devuelve la tarifa torneo
     def calcular_costo(self):

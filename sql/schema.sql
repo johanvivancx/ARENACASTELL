@@ -49,7 +49,7 @@ CREATE TABLE torneos (
   nombre varchar(100) NOT NULL UNIQUE,
   descripcion text NOT NULL,
   fecha_inicio date NOT NULL,
-  costo numeric(8,2) NOT NULL CHECK (costo > 0),
+  costo numeric(8,2) NOT NULL CHECK (costo >= 0),
   cupos integer NOT NULL DEFAULT 16 CHECK (cupos BETWEEN 2 AND 64),
   max_jugadores integer NOT NULL DEFAULT 20 CHECK (max_jugadores BETWEEN 1 AND 20),
   visible boolean NOT NULL DEFAULT true,
@@ -73,7 +73,7 @@ CREATE TABLE ordenes (
   motivo_rechazo_transferencia varchar(250),
   revision_pago integer NOT NULL DEFAULT 0 CHECK (revision_pago >= 0),
   descripcion varchar(250) NOT NULL,
-  monto numeric(10,2) NOT NULL CHECK (monto > 0),
+  monto numeric(10,2) NOT NULL CHECK (monto >= 0),
   estado varchar(12) NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE','PAGADA','CANCELADA')),
   creado_en timestamptz NOT NULL DEFAULT current_timestamp
 );

@@ -443,7 +443,19 @@ def inscribir_torneo(conn, uid, data):
         "INSERT INTO equipos(orden_id,torneo_id,nombre) VALUES(%s,%s,%s)",
         (order["id"], tournament["id"], name),
     )
-    return {"id": order["id"]}
+    gratuita = Decimal(str(tournament["costo"])) == Decimal("0")
+    if gratuita:
+        # Una convocatoria gratuita ocupa el cupo inmediatamente, pero no crea
+        # un pago ni aparece como ingreso en la caja administrativa.
+        conn.execute(
+            "UPDATE equipos SET estado='CONFIRMADO' WHERE orden_id=%s",
+            (order["id"],),
+        )
+        conn.execute(
+            "UPDATE ordenes SET estado='PAGADA' WHERE id=%s",
+            (order["id"],),
+        )
+    return {"id": order["id"], "gratuita": gratuita}
 
 
 # Crea una inscripción escolar

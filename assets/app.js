@@ -406,7 +406,8 @@ bindForm("#reservation-form", async (data) => {
 bindForm("#tournament-form", async (data) => {
   needUser();
   const result = await api("/tournaments", data);
-  location.href = `${pageHref("informacion_torneos_pago.html")}?orden=${encodeURIComponent(result.id)}`;
+  const destination = result.gratuita ? "confirmacion.html" : "informacion_torneos_pago.html";
+  location.href = `${pageHref(destination)}?orden=${encodeURIComponent(result.id)}`;
 });
 bindForm("#school-form", async (data) => {
   needUser();
@@ -533,7 +534,14 @@ function tournamentSummary() {
   const tournament = catalog?.torneos.find(
     (t) => String(t.id) === $("#torneo_id").value,
   );
-  $("#summary-total").textContent = tournament ? money(tournament.costo) : "—";
+  $("#summary-total").textContent = tournament
+    ? Number(tournament.costo) === 0 ? "Sin costo" : money(tournament.costo)
+    : "—";
+  if ($("#tournament-submit-label")) {
+    $("#tournament-submit-label").textContent = tournament && Number(tournament.costo) === 0
+      ? "Confirmar inscripción sin costo"
+      : "Revisar inscripción";
+  }
   $("#summary-details").innerHTML = tournament
     ? detailList([
         ["Torneo", tournament.nombre],
@@ -618,7 +626,9 @@ function initTournaments() {
       $("#navidad-status").textContent = "Inscripciones abiertas";
       $("#navidad-capacity").textContent = christmas.disponibles + " " +
         (Number(christmas.disponibles) === 1 ? "cupo disponible" : "cupos disponibles") +
-        " · Inscripción $" + Number(christmas.costo).toFixed(0);
+        (Number(christmas.costo) === 0
+          ? " · Inscripción sin costo"
+          : " · Inscripción $" + Number(christmas.costo).toFixed(0));
     } else {
       registerLink.setAttribute("aria-disabled", "true");
       registerLink.removeAttribute("href");
@@ -777,6 +787,7 @@ async function loadOrder() {
       ESCUELA: "¡Bienvenido a Súper Chaca!",
       MENSUALIDAD: "¡Gracias por tu mensualidad!",
     }[currentOrder.tipo];
+    const freeTournament = currentOrder.tipo === "TORNEO" && Number(currentOrder.monto) === 0;
     $("#confirmation-title").textContent = title;
     $("#confirmation-description").textContent =
       currentOrder.tipo === "TORNEO"
@@ -784,20 +795,30 @@ async function loadOrder() {
         : "Tu pago quedó registrado. Encontrarás todos los detalles en tu cuenta.";
     const mail = currentOrder.correo;
     $("#confirmation-mail").textContent =
-      mail?.estado_envio === "ENVIADO"
+      freeTournament
+        ? "La inscripción quedó confirmada sin cobro. Puedes gestionar la lista de jugadores desde Mi actividad."
+        : mail?.estado_envio === "ENVIADO"
         ? `Enviamos la confirmación y el comprobante a ${mail.destinatario}. Revisa también spam. Puedes consultarlos en Mi actividad.`
         : mail?.estado_envio === "PENDIENTE"
           ? `Tu confirmación está pendiente de envío a ${mail.destinatario}. La información y el comprobante ya están disponibles en Mi actividad.`
           : "La información y el comprobante están disponibles en Mi actividad. Si necesitas ayuda con el correo, comunícate con Arena Castell.";
-    $("#receipt-details").innerHTML =
-      detailList([
-        ["Titular", session.usuario.nombre],
-        ...pairs,
-        ["Método", methods[currentOrder.pago.metodo]],
-        ["Fecha de pago", dates(currentOrder.pago.pagado_en)],
-        ["Referencia", currentOrder.pago.referencia],
-      ]) +
-      `<div class="total"><span>Total registrado</span><strong>${esc(money(currentOrder.monto))}</strong></div>`;
+    if (freeTournament) {
+      $("#confirmation-eyebrow").textContent = "INSCRIPCIÓN CONFIRMADA";
+      $("#receipt-kind").textContent = "CONSTANCIA DE INSCRIPCIÓN";
+      $("#receipt-details").innerHTML =
+        detailList([["Titular", session.usuario.nombre], ...pairs, ["Inscripción", "Sin costo"]]) +
+        '<div class="total"><span>Total</span><strong>Sin costo</strong></div>';
+    } else {
+      $("#receipt-details").innerHTML =
+        detailList([
+          ["Titular", session.usuario.nombre],
+          ...pairs,
+          ["Método", methods[currentOrder.pago.metodo]],
+          ["Fecha de pago", dates(currentOrder.pago.pagado_en)],
+          ["Referencia", currentOrder.pago.referencia],
+        ]) +
+        `<div class="total"><span>Total registrado</span><strong>${esc(money(currentOrder.monto))}</strong></div>`;
+    }
     $("#confirmation-content").hidden = false;
   }
 }
@@ -850,8 +871,9 @@ function renderHistory(filter = "TODOS") {
           const paid = o.estado === "PAGADA";
           const cash = o.estado === "PENDIENTE" && o.metodo_previsto === "EFECTIVO";
           const transfer = o.estado === "PENDIENTE" && o.metodo_previsto === "TRANSFERENCIA";
+          const free = o.tipo === "TORNEO" && Number(o.monto) === 0;
           const href = pageHref(paid || cash || transfer ? "confirmacion.html" : "pagos.html");
-          return `<article class="history-item"><div><span class="tag ${paid ? "good" : "gold"}">${paid ? "Confirmado" : transfer ? "Transferencia en revisión" : cash ? "Efectivo pendiente en cancha" : o.motivo_rechazo_transferencia ? "Transferencia rechazada" : "Pendiente de pago"}</span><h3>${esc(o.descripcion)}</h3><p>${esc(kinds[o.tipo])} · ${esc(dates(o.creado_en))}</p>${o.motivo_rechazo_transferencia ? `<p>${esc(o.motivo_rechazo_transferencia)}</p>` : ""}</div><div class="history-price"><strong>${esc(money(o.monto))}</strong><div class="actions"><a class="btn small secondary" href="${href}?orden=${o.id}">${paid ? "Ver comprobante" : transfer ? "Ver revisión" : cash ? "Ver pago en cancha" : "Continuar al pago"}</a>${o.equipo_id && paid ? `<a class="text-link" href="${pageHref("mi_equipo.html")}?equipo=${o.equipo_id}">Gestionar equipo</a>` : ""}</div></div></article>`;
+          return `<article class="history-item"><div><span class="tag ${paid ? "good" : "gold"}">${paid ? "Confirmado" : transfer ? "Transferencia en revisión" : cash ? "Efectivo pendiente en cancha" : o.motivo_rechazo_transferencia ? "Transferencia rechazada" : "Pendiente de pago"}</span><h3>${esc(o.descripcion)}</h3><p>${esc(kinds[o.tipo])} · ${esc(dates(o.creado_en))}</p>${o.motivo_rechazo_transferencia ? `<p>${esc(o.motivo_rechazo_transferencia)}</p>` : ""}</div><div class="history-price"><strong>${free ? "Sin costo" : esc(money(o.monto))}</strong><div class="actions"><a class="btn small secondary" href="${href}?orden=${o.id}">${free ? "Ver inscripción" : paid ? "Ver comprobante" : transfer ? "Ver revisión" : cash ? "Ver pago en cancha" : "Continuar al pago"}</a>${o.equipo_id && paid ? `<a class="text-link" href="${pageHref("mi_equipo.html")}?equipo=${o.equipo_id}">Gestionar equipo</a>` : ""}</div></div></article>`;
         })
         .join("")
     : `<div class="empty-state"><h3>Aquí comienza tu historia.</h3><p>No tienes operaciones en esta sección.</p><a class="btn" href="${pageHref("reservas.html")}">Explorar reservas</a></div>`;
