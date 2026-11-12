@@ -627,7 +627,7 @@ function initTournaments() {
       $("#navidad-capacity").textContent = christmas.disponibles + " " +
         (Number(christmas.disponibles) === 1 ? "cupo disponible" : "cupos disponibles") +
         (Number(christmas.costo) === 0
-          ? " · Inscripción sin costo"
+          ? " · Inscripción gratuita"
           : " · Inscripción $" + Number(christmas.costo).toFixed(0));
     } else {
       registerLink.setAttribute("aria-disabled", "true");
