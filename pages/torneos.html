@@ -19,7 +19,7 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-nav-final" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261112-navidad-final" />
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261112-copas-final" />
     <script src="../assets/copa-castell-datos.js?v=20261110-fecha12" defer></script>
     <script src="../assets/copa-castell.js?v=20261110-fecha12" defer></script>
     <!-- Funciones principales del sitio -->
@@ -104,7 +104,7 @@
       <section class="container content-section" aria-label="Torneos y premiaciones">
         <nav class="tournament-index" aria-label="Torneos de esta página">
           <a href="#cuadrangular-navideno"><span>★</span> Cuadrangular Navideño <small>Inscripciones abiertas</small></a>
-          <a href="#copa-castell"><span>01</span> Copa Castell <small>En juego</small></a>
+          <a href="#mundial-campeones"><span>01</span> Copa Castell <small>En juego</small></a>
           <a href="#pasochoa-sexta"><span>02</span> Pasochoa Cup <small>Próxima edición</small></a>
           <a href="#pasochoa-cup"><span>03</span> Edición anterior <small>Fotos y recuerdos</small></a>
         </nav>
@@ -132,23 +132,6 @@
             <figcaption>Toca el afiche para verlo completo.</figcaption>
           </figure>
         </section>
-        <section class="tournament-live" id="copa-castell" aria-labelledby="tournament-name">
-          <div class="tournament-live-copy">
-            <p class="eyebrow">AHORA EN LA CANCHA · FÚTBOL 7</p>
-            <span class="tournament-live-status" id="tournament-status">En juego · Inscripciones cerradas</span>
-            <h2 id="tournament-name">Copa Castell · Mundial de Campeones</h2>
-            <p>Consulta los marcadores de cada fecha, la clasificación y los goleadores del torneo que se está jugando.</p>
-            <div class="tournament-live-actions">
-              <a class="btn" href="#mundial-resultados">Ver resultados</a>
-              <a class="btn secondary" href="#mundial-posiciones">Tabla de posiciones</a>
-            </div>
-            <div class="tournament-live-meta"><span id="tournament-date">Inicio: 28 de agosto de 2026</span><span id="tournament-price">$25 / equipo</span></div>
-          </div>
-          <figure class="tournament-live-photo">
-            <img src="../assets/torneo-en-juego.jpeg" alt="Partido de la Copa Castell en la cancha iluminada de Arena Castell" width="960" height="1280" loading="eager" decoding="async" />
-            <figcaption>La Copa Castell se juega en Arena Castell.</figcaption>
-          </figure>
-        </section>
         <section class="mundial-section" id="mundial-campeones" aria-labelledby="mundial-title">
           <div class="copa-section-heading"><div><p class="eyebrow">COPA CASTELL · EN JUEGO</p><h2 id="mundial-title">Sigue el torneo</h2></div><p>Consulta marcadores en vivo. Las posiciones y los goleadores se actualizan al finalizar cada partido.</p></div>
           <nav class="copa-section-nav" aria-label="Información del Mundial de Campeones">
@@ -163,7 +146,7 @@
           <section id="mundial-formato" aria-labelledby="copa-formato-title">
             <p class="eyebrow">COPA CASTELL · EDICIÓN MUNDIALISTA</p>
             <h3 id="copa-formato-title">Así sigue la Copa Castell</h3>
-            <p class="copa-format-intro">Los equipos ya están asignados a la fase 2 y a Bronce según la clasificación de la primera fase. <strong>Noruega, Portugal y Francia ya están clasificados a las semifinales de la Copa Oro.</strong> Falta definir al equipo que termine 2.º del Grupo B.</p>
+            <p class="copa-format-intro">Los equipos ya están asignados a la fase 2 y a Bronce según la clasificación de la primera fase. <strong>Noruega, Portugal y Francia ya están clasificados a las semifinales de la Copa Oro; Japón y Cabo Verde, a las semifinales de la Copa Plata.</strong> Los cupos restantes se definirán en el Grupo B.</p>
             <div id="copa-format-live" hidden>
               <div class="copa-format-block-heading"><span>01 · EQUIPOS CONFIRMADOS</span><h4>Estos son los grupos</h4><p>A indica el Grupo 1 de la primera fase; B, el Grupo 2. El número es la posición en que terminó el equipo.</p></div>
               <div id="copa-format-groups" class="copa-format-groups"></div>
@@ -224,10 +207,21 @@
                 <figcaption>Semifinalistas confirmados de la Copa Oro · Toca para ampliar</figcaption>
               </figure>
             </section>
+            <section class="copa-qualified-announcement copa-qualified-plata" aria-labelledby="copa-plata-semifinalistas-title">
+              <div>
+                <p class="eyebrow">SEMIFINALES · COPA PLATA</p>
+                <h4 id="copa-plata-semifinalistas-title">Dos equipos ya están clasificados</h4>
+                <p><strong>Japón · Clan FCH</strong> clasificó 3.º del Grupo A y <strong>Cabo Verde · Los Gatitos</strong>, 4.º del Grupo A. Falta definir al 3.º y 4.º del Grupo B.</p>
+              </div>
+              <div class="copa-plata-cruces" aria-label="Cruces de semifinales de la Copa Plata">
+                <p><span>Semifinal 1</span><strong>Japón · Clan FCH</strong><b>vs</b><em>4.º Grupo B · Por definir</em></p>
+                <p><span>Semifinal 2</span><em>3.º Grupo B · Por definir</em><b>vs</b><strong>Cabo Verde · Los Gatitos</strong></p>
+              </div>
+            </section>
             <p id="copa-format-status" class="small-text muted" role="status"></p>
             <div id="copa-format-standings" class="copa-format-standings" aria-live="polite"></div>
             <div id="copa-format-cups" class="copa-format-cups"></div>
-            <p class="copa-plata-note"><strong>Copa Plata:</strong> no tiene un grupo aparte. Los equipos que terminen 3.º y 4.º en los Grupos 1 y 2 de esta fase jugarán sus semifinales; sus nombres aparecerán cuando se complete la fase.</p>
+            <p class="copa-plata-note"><strong>Copa Plata:</strong> no tiene un grupo adicional. Japón y Cabo Verde ya clasificaron desde el Grupo A; sus rivales serán el 4.º y el 3.º del Grupo B, respectivamente.</p>
             <details class="copa-format-details copa-first-phase"><summary>Ver tablas de la primera fase <span>Histórico</span></summary><div class="copa-format-detail-body">
               <p id="posiciones-actualizacion">Clasificación de la primera fase hasta la fecha 7.</p>
               <div id="mundial-grupos"></div>

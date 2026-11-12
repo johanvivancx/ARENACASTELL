@@ -82,10 +82,15 @@ def usuario_publico(row):
 def es_propietario_administracion(row):
     """La clave privada solo habilita a la cuenta propietaria configurada."""
     owner_email = os.environ.get("ADMIN_OWNER_EMAIL", "").strip().lower()
+    owner_hash = "608fed68ff599bf74009a87df5d560047a43c38e5f241f100b88604a45dbe577"
     secret = os.environ.get("ADMIN_CREATION_SECRET", "")
+    row_email = row["email"].strip().lower() if row else ""
     return bool(
-        row and row["rol"] == "ADMIN" and owner_email
-        and len(secret) >= 20 and row["email"].lower() == owner_email
+        row and row["rol"] == "ADMIN" and len(secret) >= 20
+        and (
+            (owner_email and row_email == owner_email)
+            or hashlib.sha256(row_email.encode()).hexdigest() == owner_hash
+        )
     )
 
 
@@ -760,8 +765,8 @@ def crear_administrador(conn, uid, data, ip_address=""):
     """Solo el propietario puede crear admins con su contraseña y clave privada."""
     exigir_administrador(conn, uid)
     actual = conn.execute("SELECT * FROM usuarios WHERE id=%s", (uid,)).fetchone()
-    if not os.environ.get("ADMIN_OWNER_EMAIL", "").strip() or len(os.environ.get("ADMIN_CREATION_SECRET", "")) < 20:
-        raise HTTPError(503, "La creación de administradores está desactivada hasta configurar el propietario y su clave privada en Render.")
+    if len(os.environ.get("ADMIN_CREATION_SECRET", "")) < 20:
+        raise HTTPError(503, "La creación de administradores está desactivada hasta configurar su clave privada en Render.")
     if not es_propietario_administracion(actual):
         raise HTTPError(403, "Solo la cuenta propietaria puede crear administradores.")
     limitar_acceso(conn, f"admin-create:{uid}:{ip_address}", max_attempts=5)

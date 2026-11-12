@@ -13,6 +13,7 @@ body[data-page="torneos"] .content-section > * {
   min-width: 0;
 }
 body[data-page="torneos"] #copa-castell,
+body[data-page="torneos"] #mundial-campeones,
 body[data-page="torneos"] #pasochoa-sexta,
 body[data-page="torneos"] #pasochoa-cup {
   scroll-margin-top: 110px;
@@ -146,6 +147,14 @@ body[data-page="torneos"] .mundial-section > section > h3 { margin-top: 0; }
 .copa-qualified-announcement { display: grid; grid-template-columns: minmax(0, .9fr) minmax(280px, 1.1fr); align-items: center; gap: clamp(18px, 4vw, 38px); margin-top: 24px; padding: clamp(18px, 3vw, 28px); border: 1px solid #aa8548; border-radius: 14px; background: linear-gradient(145deg, #221d14, #15191b 62%); }
 .copa-qualified-announcement h4 { margin: 7px 0 12px; color: #fff; font-size: clamp(22px, 3vw, 30px); }
 .copa-qualified-announcement > div > p:last-child { margin-bottom: 0; color: #dbe1e2; line-height: 1.65; }
+.copa-qualified-plata { grid-template-columns: minmax(0, .85fr) minmax(320px, 1.15fr); border-color: #8ea3ac; background: linear-gradient(145deg, #20292d, #15191b 66%); }
+.copa-plata-cruces { display: grid; gap: 10px; }
+.copa-plata-cruces p { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; margin: 0; padding: 14px; border: 1px solid #53636a; border-radius: 9px; background: #111617; text-align: center; }
+.copa-plata-cruces span { grid-column: 1 / -1; color: #aebdc3; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.copa-plata-cruces strong, .copa-plata-cruces em { font-size: 13px; font-style: normal; line-height: 1.35; }
+.copa-plata-cruces strong { color: #f0f4f5; }
+.copa-plata-cruces em { color: #aab8bd; }
+.copa-plata-cruces b { color: #d5b56d; font-size: 11px; text-transform: uppercase; }
 .copa-publication-poster { width: min(100%, 650px); margin: 24px auto 0; }
 .copa-qualified-announcement .copa-publication-poster { margin: 0 auto; }
 .copa-publication-poster a { display: block; overflow: hidden; border: 1px solid #c79a49; border-radius: 12px; background: #090909; box-shadow: 0 18px 38px rgb(0 0 0 / 28%); }
@@ -215,6 +224,8 @@ body[data-page="torneos"] .pasochoa-intro .pasochoa-photo img { aspect-ratio: 3 
 @media (max-width: 600px) {
   .copa-format-cups, .copa-format-posters { grid-template-columns: 1fr; }
   .copa-qualified-announcement { grid-template-columns: 1fr; padding: 17px; }
+  .copa-plata-cruces p { grid-template-columns: 1fr; }
+  .copa-plata-cruces span { grid-column: auto; }
   body[data-page="torneos"] .page-intro { padding-top: 32px; }
   body[data-page="torneos"] .content-section { gap: 26px; }
   .tournament-index a { padding: 12px 14px; }
