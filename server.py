@@ -20,7 +20,7 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_deudores_restaurante, preparar_escuela_manual, preparar_actividad_administrativa, preparar_cuadrangular_navideno, ROOT
+from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_deudores_restaurante, preparar_escuela_manual, preparar_actividad_administrativa, preparar_cuadrangular_navideno, retirar_administrador_comprometido, ROOT
 from models import ErrorValidacion
 import services as s
 import copa
@@ -92,6 +92,11 @@ class Handler(SimpleHTTPRequestHandler):
 
     # Agrega cabeceras de seguridad
     def end_headers(self):
+        request_path = urlsplit(self.path).path.lower()
+        if request_path == "/" or request_path.endswith(".html") or request_path in CLEAN_PAGES:
+            # El encabezado y la navegación cambian con frecuencia; obliga al navegador
+            # y a la CDN a comprobar que sirven la versión publicada más reciente.
+            self.send_header("Cache-Control", "no-cache, max-age=0, must-revalidate")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "same-origin")
@@ -488,6 +493,7 @@ def main():
     preparar_escuela_manual()
     preparar_actividad_administrativa()
     preparar_cuadrangular_navideno()
+    retirar_administrador_comprometido()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)
     print(f"ARENA CASTELL · {ORIGIN} · HTML + Python + PostgreSQL", flush=True)
     print("Ctrl+C para detener. La configuración está explicada en INICIAR.md.", flush=True)

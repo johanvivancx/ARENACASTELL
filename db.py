@@ -1,5 +1,6 @@
 """Conexiones cortas y transacciones PostgreSQL; nunca se usa SQLite."""
 import os
+import hashlib
 from contextlib import contextmanager
 from pathlib import Path
 import psycopg
@@ -75,3 +76,41 @@ def preparar_cuadrangular_navideno():
     """Publica el torneo navideño en el catálogo de inscripciones web."""
     with conectar() as conn:
         conn.execute((ROOT / "sql/migrations/028_cuadrangular_navideno.sql").read_text(encoding="utf8"))
+
+
+def retirar_administrador_comprometido():
+    """Revoca la cuenta comprometida sin eliminar sus referencias históricas."""
+    compromised_owner_hash = "b58fe7ac12514feabb0ba52adc8917253842ad8ea9fc8f22383d3a8123d2cf9b"
+    with conectar() as conn:
+        administrators = conn.execute(
+            "SELECT id,email FROM usuarios WHERE rol='ADMIN' FOR UPDATE"
+        ).fetchall()
+        account = next(
+            (
+                row for row in administrators
+                if hashlib.sha256(row["email"].strip().lower().encode()).hexdigest()
+                == compromised_owner_hash
+            ),
+            None,
+        )
+        if not account:
+            return
+        account_id = account["id"]
+        conn.execute(
+            """UPDATE usuarios
+               SET rol='CLIENTE',
+                   email='cuenta-retirada-' || id || '@invalid.local',
+                   password_hash='pbkdf2_sha256$600000$cuenta_retirada_segura$'
+                     || repeat('0',64),
+                   session_version=session_version+1
+               WHERE id=%s""",
+            (account_id,),
+        )
+        conn.execute("DELETE FROM sesiones WHERE usuario_id=%s", (account_id,))
+        conn.execute("UPDATE restablecimientos SET usado=true WHERE usuario_id=%s", (account_id,))
+        conn.execute(
+            """UPDATE correo_salida
+               SET estado_envio='CANCELADO',ultimo_error='CUENTA_COMPROMETIDA'
+               WHERE usuario_id=%s AND estado_envio IN ('LOCAL','PENDIENTE','ERROR')""",
+            (account_id,),
+        )
