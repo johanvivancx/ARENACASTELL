@@ -17,9 +17,19 @@ body[data-page="torneos"] #pasochoa-sexta,
 body[data-page="torneos"] #pasochoa-cup {
   scroll-margin-top: 110px;
 }
+.navidad-tournament { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; overflow: hidden; border: 1px solid #9e8050; border-radius: 16px; background: linear-gradient(135deg, #163b30, #171c1e 70%); scroll-margin-top: 110px; }
+.navidad-tournament h2 { font-size: clamp(30px, 4vw, 46px); line-height: 1.1; }
+.navidad-tournament .tournament-live-status { color: #f9e7bb; border-color: #b4975c; }
+.navidad-price { color: #f9e7bb; font-size: 24px; }
+.navidad-price strong { font-size: 36px; }
+.navidad-poster { min-width: 0; margin: 0; padding: 20px; }
+.navidad-poster a { display: block; border-radius: 10px; overflow: hidden; }
+.navidad-poster img { display: block; width: 100%; height: auto; }
+.navidad-poster figcaption { margin-top: 10px; text-align: center; font-size: 12px; color: #c8d1d3; }
+@media (max-width: 750px) { .navidad-tournament { grid-template-columns: 1fr; } .navidad-tournament .tournament-live-actions, .navidad-tournament .btn { width: 100%; text-align: center; } }
 .tournament-index {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 10px;
 }
 .tournament-index a {
