@@ -19,7 +19,7 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-session-nav" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261112-copas-final" />
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261112-cruces-plegables" />
     <script src="../assets/copa-castell-datos.js?v=20261110-fecha12" defer></script>
     <script src="../assets/copa-castell.js?v=20261110-fecha12" defer></script>
     <!-- Funciones principales del sitio -->
@@ -200,12 +200,19 @@
                 <h4 id="copa-oro-semifinalistas-title">Tres equipos ya están clasificados</h4>
                 <p><strong>Noruega · Impormegatex</strong> clasificó 1.º del Grupo A; <strong>Portugal · Chancletas</strong>, 2.º del Grupo A; y <strong>Francia · Fnatik</strong>, 1.º del Grupo B. Falta definir al 2.º del Grupo B.</p>
               </div>
-              <figure class="copa-publication-poster">
-                <a href="../assets/semifinalistas-copa-oro-2026.png" target="_blank" rel="noopener noreferrer">
-                  <img src="../assets/semifinalistas-copa-oro-2026.png" alt="Semifinalistas clasificados a la Copa Oro: Noruega primero del Grupo A, Portugal segundo del Grupo A y Francia primero del Grupo B; falta definir al segundo del Grupo B" width="1024" height="1536" loading="lazy" decoding="async" />
-                </a>
-                <figcaption>Semifinalistas confirmados de la Copa Oro · Toca para ampliar</figcaption>
-              </figure>
+              <div class="copa-semifinal-cruces" aria-label="Cruces de semifinales de la Copa Oro">
+                <p><span>Semifinal 1</span><strong>Noruega · Impormegatex</strong><b>vs</b><em>2.º Grupo B · Por definir</em></p>
+                <p><span>Semifinal 2</span><strong>Francia · Fnatik</strong><b>vs</b><strong>Portugal · Chancletas</strong></p>
+              </div>
+              <details class="copa-media-disclosure">
+                <summary>Ver afiche de los clasificados <span>Mostrar imagen</span></summary>
+                <figure class="copa-publication-poster">
+                  <a href="../assets/semifinalistas-copa-oro-2026.png" target="_blank" rel="noopener noreferrer">
+                    <img src="../assets/semifinalistas-copa-oro-2026.png" alt="Semifinalistas clasificados a la Copa Oro: Noruega primero del Grupo A, Portugal segundo del Grupo A y Francia primero del Grupo B; falta definir al segundo del Grupo B" width="1024" height="1536" loading="lazy" decoding="async" />
+                  </a>
+                  <figcaption>Semifinalistas confirmados de la Copa Oro · Toca para ampliar</figcaption>
+                </figure>
+              </details>
             </section>
             <section class="copa-qualified-announcement copa-qualified-plata" aria-labelledby="copa-plata-semifinalistas-title">
               <div>
@@ -213,7 +220,7 @@
                 <h4 id="copa-plata-semifinalistas-title">Dos equipos ya están clasificados</h4>
                 <p><strong>Japón · Clan FCH</strong> clasificó 3.º del Grupo A y <strong>Cabo Verde · Los Gatitos</strong>, 4.º del Grupo A. Falta definir al 3.º y 4.º del Grupo B.</p>
               </div>
-              <div class="copa-plata-cruces" aria-label="Cruces de semifinales de la Copa Plata">
+              <div class="copa-semifinal-cruces" aria-label="Cruces de semifinales de la Copa Plata">
                 <p><span>Semifinal 1</span><strong>Japón · Clan FCH</strong><b>vs</b><em>4.º Grupo B · Por definir</em></p>
                 <p><span>Semifinal 2</span><em>3.º Grupo B · Por definir</em><b>vs</b><strong>Cabo Verde · Los Gatitos</strong></p>
               </div>
@@ -245,12 +252,15 @@
             <p class="eyebrow">COPA CASTELL · EDICIÓN MUNDIALISTA</p>
             <h3 id="proxima-fecha-title">Próximos partidos</h3>
             <p>Consulta los encuentros programados y los marcadores en juego. Horarios de Ecuador.</p>
-            <figure class="copa-publication-poster copa-schedule-poster">
-              <a href="../assets/cronograma-fecha-12-13-14-noviembre-2026.png" target="_blank" rel="noopener noreferrer">
-                <img src="../assets/cronograma-fecha-12-13-14-noviembre-2026.png" alt="Cronograma oficial de la Fecha 12 de Copa Castell para el viernes 13 y sábado 14 de noviembre de 2026" width="1024" height="1536" loading="lazy" decoding="async" />
-              </a>
-              <figcaption>Cronograma oficial · Fecha 12 · Toca para ampliar</figcaption>
-            </figure>
+            <details class="copa-media-disclosure copa-schedule-disclosure">
+              <summary>Ver afiche del calendario semanal <span>Mostrar imagen</span></summary>
+              <figure class="copa-publication-poster copa-schedule-poster">
+                <a href="../assets/cronograma-fecha-12-13-14-noviembre-2026.png" target="_blank" rel="noopener noreferrer">
+                  <img src="../assets/cronograma-fecha-12-13-14-noviembre-2026.png" alt="Cronograma oficial de la Fecha 12 de Copa Castell para el viernes 13 y sábado 14 de noviembre de 2026" width="1024" height="1536" loading="lazy" decoding="async" />
+                </a>
+                <figcaption>Cronograma oficial · Fecha 12 · Toca para ampliar</figcaption>
+              </figure>
+            </details>
             <div id="mundial-proxima-partidos" class="mundial-upcoming-days"></div>
             <p id="mundial-proxima-descanso" class="mundial-upcoming-rest"></p>
           </section>
