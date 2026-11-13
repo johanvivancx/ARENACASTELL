@@ -170,8 +170,12 @@ def test_http_tres_flujos_completos(conn,user):
         _,activity,_=request('/api/history')
         assert len(activity['ordenes'])==3 and len(activity['correos'])==3
         assert activity['escuela'][0]['estado']=='ACTIVA'
-        team=next(o['equipo_id'] for o in activity['ordenes'] if o['tipo']=='TORNEO')
-        assert request(f'/api/teams/{team}/players',{'nombre':'Jugador HTTP','cedula':cedula_demo(502)},csrf)[0]==200
+        tournament_order=next(o for o in activity['ordenes'] if o['tipo']=='TORNEO')
+        team=tournament_order['equipo_id']
+        assert tournament_order['equipo_nombre']=='Equipo HTTP'
+        assert tournament_order['torneo_nombre']=='Torneo de prueba'
+        assert tournament_order['jugadores_registrados']==0 and tournament_order['max_jugadores']==20
+        assert request(f'/api/teams/{team}/players',{'nombre':'Jugador HTTP','cedula':cedula_demo(502),'numero_camiseta':10},csrf)[0]==200
         assert len(request(f'/api/teams/{team}')[1]['jugadores'])==1
         assert 'máximo 20' in next(c['cuerpo'] for c in activity['correos'] if 'lista de jugadores' in c['cuerpo'])
 

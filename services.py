@@ -891,8 +891,13 @@ def revisar_transferencia(conn, admin_uid, oid, data, *, aprobar):
 def historial(conn, uid):
     return {
         "ordenes": conn.execute(
-            """SELECT o.*,e.id AS equipo_id FROM ordenes o
-            LEFT JOIN equipos e ON e.orden_id=o.id WHERE o.usuario_id=%s ORDER BY o.creado_en DESC""",
+            """SELECT o.*,e.id AS equipo_id,e.nombre AS equipo_nombre,
+            t.nombre AS torneo_nombre,t.max_jugadores,
+            (SELECT count(*)::integer FROM jugadores j WHERE j.equipo_id=e.id) AS jugadores_registrados
+            FROM ordenes o
+            LEFT JOIN equipos e ON e.orden_id=o.id
+            LEFT JOIN torneos t ON t.id=e.torneo_id
+            WHERE o.usuario_id=%s ORDER BY o.creado_en DESC""",
             (uid,),
         ).fetchall(),
         "escuela": conn.execute(

@@ -873,6 +873,26 @@ function renderHistory(filter = "TODOS") {
           const transfer = o.estado === "PENDIENTE" && o.metodo_previsto === "TRANSFERENCIA";
           const free = o.tipo === "TORNEO" && Number(o.monto) === 0;
           const href = pageHref(paid || cash || transfer ? "confirmacion.html" : "pagos.html");
+          if (o.tipo === "TORNEO" && o.equipo_id && paid) {
+            return `<article class="history-item tournament-team-card">
+              <div class="tournament-team-identity">
+                <div class="tournament-team-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4h10v6a5 5 0 0 1-10 0V4Zm0 2H4v2a4 4 0 0 0 4 4m9-6h3v2a4 4 0 0 1-4 4m-4 3v5m-4 0h8" /></svg></div>
+                <div class="tournament-team-copy">
+                  <div class="tournament-team-kicker"><span>MI EQUIPO EN TORNEOS</span><span class="tag good">Confirmado</span></div>
+                  <h3>${esc(o.equipo_nombre || "Mi equipo")}</h3>
+                  <dl class="tournament-team-details">
+                    <div><dt>Torneo</dt><dd>${esc(o.torneo_nombre || o.descripcion)}</dd></div>
+                    <div><dt>Jugadores</dt><dd>${esc(o.jugadores_registrados || 0)} de ${esc(o.max_jugadores || 20)} registrados</dd></div>
+                    <div><dt>Inscripción</dt><dd>${free ? "Gratuita" : esc(money(o.monto))} · ${esc(dates(o.creado_en))}</dd></div>
+                  </dl>
+                </div>
+              </div>
+              <div class="tournament-team-actions">
+                <a class="btn" href="${pageHref("mi_equipo.html")}?equipo=${o.equipo_id}">Gestionar mi equipo</a>
+                <a class="text-link" href="${href}?orden=${o.id}">Ver inscripción</a>
+              </div>
+            </article>`;
+          }
           return `<article class="history-item"><div><span class="tag ${paid ? "good" : "gold"}">${paid ? "Confirmado" : transfer ? "Transferencia en revisión" : cash ? "Efectivo pendiente en cancha" : o.motivo_rechazo_transferencia ? "Transferencia rechazada" : "Pendiente de pago"}</span><h3>${esc(o.descripcion)}</h3><p>${esc(kinds[o.tipo])} · ${esc(dates(o.creado_en))}</p>${o.motivo_rechazo_transferencia ? `<p>${esc(o.motivo_rechazo_transferencia)}</p>` : ""}</div><div class="history-price"><strong>${free ? "Sin costo" : esc(money(o.monto))}</strong><div class="actions"><a class="btn small secondary" href="${href}?orden=${o.id}">${free ? "Ver inscripción" : paid ? "Ver comprobante" : transfer ? "Ver revisión" : cash ? "Ver pago en cancha" : "Continuar al pago"}</a>${o.equipo_id && paid ? `<a class="text-link" href="${pageHref("mi_equipo.html")}?equipo=${o.equipo_id}">Gestionar equipo</a>` : ""}</div></div></article>`;
         })
         .join("")
