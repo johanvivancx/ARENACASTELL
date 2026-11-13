@@ -1825,10 +1825,36 @@ function renderTournamentTeams() {
           </div>
           <h3>Lista de jugadores</h3>
           ${rosterMarkup}
+          <div class="admin-team-danger-zone">
+            <div>
+              <strong>Eliminar inscripción de prueba</strong>
+              <p>Retira el equipo y sus jugadores, libera el cupo y conserva únicamente la auditoría administrativa.</p>
+            </div>
+            <button class="btn danger small" type="button" data-delete-test-team="${esc(team.id)}" data-team-name="${esc(team.nombre)}">Eliminar equipo</button>
+          </div>
         </div>
       </details>`;
     }).join("")
     : '<div class="empty-state"><p>No hay equipos que coincidan con la búsqueda.</p></div>';
+  $$('[data-delete-test-team]', host).forEach((button) => button.addEventListener("click", async () => {
+    const name = button.dataset.teamName;
+    if (!confirm(`¿Eliminar el equipo de prueba “${name}”?\n\nSe retirarán sus jugadores y el cupo volverá a estar disponible.`)) return;
+    const typed = prompt(`Para confirmar, escribe exactamente el nombre del equipo:\n${name}`);
+    if (typed === null) return;
+    if (typed.trim() !== name) {
+      showMessage("El nombre no coincide. No se eliminó ningún equipo.", "error");
+      return;
+    }
+    button.disabled = true;
+    try {
+      const result = await api(`/admin/tournament-teams/${button.dataset.deleteTestTeam}/delete-test`, {confirmacion: typed.trim()});
+      await loadReports();
+      showMessage(result.message, "success");
+    } catch (error) {
+      button.disabled = false;
+      showMessage(error.message, "error");
+    }
+  }));
 }
 $("#admin-team-search")?.addEventListener("input", renderTournamentTeams);
 

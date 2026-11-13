@@ -356,6 +356,9 @@ class Handler(SimpleHTTPRequestHandler):
             return s.actualizar_perfil(conn, uid, data, session_hash)
         if path == "/api/admin/reports" and method == "GET":
             return s.reportes(conn, uid, params)
+        if match := re.fullmatch(r"/api/admin/tournament-teams/(\d+)/delete-test", path):
+            if method == "POST":
+                return s.eliminar_equipo_prueba(conn, uid, match[1], data)
         if path == "/api/admin/security" and method == "GET":
             return s.estado_ciberseguridad(conn, uid)
         if path == "/api/admin/school" and method == "GET":

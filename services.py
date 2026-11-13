@@ -416,6 +416,44 @@ def cancelar_reserva_manual(conn, admin_uid, oid):
     return {"id": order["id"], "message": "Reserva manual anulada. El horario vuelve a estar disponible."}
 
 
+def eliminar_equipo_prueba(conn, admin_uid, team_id, data):
+    """Retira una inscripción gratuita de prueba sin borrar su referencia administrativa."""
+    exigir_administrador(conn, admin_uid)
+    team = conn.execute(
+        """SELECT e.id,e.nombre,e.estado,e.orden_id,t.nombre AS torneo,
+            o.estado AS estado_orden,o.monto,
+            EXISTS(SELECT 1 FROM pagos p WHERE p.orden_id=o.id) AS tiene_pago
+            FROM equipos e
+            JOIN torneos t ON t.id=e.torneo_id
+            JOIN ordenes o ON o.id=e.orden_id
+            WHERE e.id=%s FOR UPDATE OF e,o,t""",
+        (numero(team_id, "Equipo"),),
+    ).fetchone()
+    if not team:
+        raise HTTPError(404, "No encontramos ese equipo.")
+    if team["estado"] == "CANCELADO":
+        return {"id": team["id"], "message": "Este equipo de prueba ya estaba eliminado."}
+    if str(data.get("confirmacion", "")).strip() != team["nombre"]:
+        raise ErrorValidacion("Escribe el nombre exacto del equipo para confirmar la eliminación.")
+    if Decimal(str(team["monto"])) != Decimal("0") or team["tiene_pago"]:
+        raise ErrorValidacion(
+            "Este equipo tiene un cobro relacionado y no puede eliminarse como prueba. Conserva el historial y revisa el pago por separado."
+        )
+    conn.execute("DELETE FROM jugadores WHERE equipo_id=%s", (team["id"],))
+    conn.execute("UPDATE equipos SET estado='CANCELADO' WHERE id=%s", (team["id"],))
+    conn.execute("UPDATE ordenes SET estado='CANCELADA' WHERE id=%s", (team["orden_id"],))
+    conn.execute(
+        """UPDATE correo_salida
+           SET estado_envio='CANCELADO',ultimo_error='INSCRIPCION_DE_PRUEBA_ELIMINADA'
+           WHERE orden_id=%s AND estado_envio='PENDIENTE'""",
+        (team["orden_id"],),
+    )
+    return {
+        "id": team["id"],
+        "message": f"Equipo de prueba {team['nombre']} eliminado. El cupo volvió a estar disponible.",
+    }
+
+
 # Crea un equipo pendiente
 def inscribir_torneo(conn, uid, data):
     tournament = conn.execute(
@@ -761,6 +799,8 @@ def registrar_actividad_admin(conn, uid, path, result):
             accion = "Registró efectivo recibido"
         elif re.fullmatch(r"/api/admin/emails/\d+/queue-receipt", path):
             accion = "Reactivó un comprobante por correo"
+        elif re.fullmatch(r"/api/admin/tournament-teams/\d+/delete-test", path):
+            accion = "Eliminó una inscripción de equipo de prueba"
     if not accion:
         return
     exigir_administrador(conn, uid)
@@ -897,7 +937,7 @@ def historial(conn, uid):
             FROM ordenes o
             LEFT JOIN equipos e ON e.orden_id=o.id
             LEFT JOIN torneos t ON t.id=e.torneo_id
-            WHERE o.usuario_id=%s ORDER BY o.creado_en DESC""",
+            WHERE o.usuario_id=%s AND o.estado<>'CANCELADA' ORDER BY o.creado_en DESC""",
             (uid,),
         ).fetchall(),
         "escuela": conn.execute(
@@ -1290,6 +1330,7 @@ def reportes(conn, uid, data):
                 JOIN ordenes o ON o.id=e.orden_id
                 JOIN usuarios u ON u.id=o.usuario_id
                 LEFT JOIN jugadores j ON j.equipo_id=e.id
+                WHERE e.estado<>'CANCELADO'
                 GROUP BY e.id,e.nombre,e.estado,t.nombre,t.fecha_inicio,t.max_jugadores,
                     o.creado_en,u.nombre,u.email,u.telefono
                 ORDER BY o.creado_en DESC,e.id DESC"""
@@ -1297,6 +1338,7 @@ def reportes(conn, uid, data):
         "jugadores_torneo": conn.execute(
             """SELECT j.id,j.equipo_id,j.nombre,j.cedula,j.numero_camiseta,j.posicion
                 FROM jugadores j JOIN equipos e ON e.id=j.equipo_id
+                WHERE e.estado<>'CANCELADO'
                 ORDER BY e.id DESC,j.posicion"""
         ).fetchall(),
         "operaciones": conn.execute(

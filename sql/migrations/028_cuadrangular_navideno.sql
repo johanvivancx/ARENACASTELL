@@ -12,7 +12,7 @@ INSERT INTO torneos(
 VALUES (
   'Cuadrangular Navideño 2026',
   'Cuadrangular de fútbol en Arena Castell, con jornadas los sábados 12 y 19 de diciembre de 2026.',
-  DATE '2026-12-12',0.00,4,20,true,true,NULL,DATE '2026-12-11'
+  DATE '2026-12-12',0.00,6,20,true,true,NULL,DATE '2026-12-11'
 )
 ON CONFLICT (nombre) DO NOTHING;
 
@@ -21,7 +21,7 @@ UPDATE torneos
 SET descripcion='Cuadrangular de fútbol en Arena Castell, con jornadas los sábados 12 y 19 de diciembre de 2026.',
     fecha_inicio=DATE '2026-12-12',
     costo=0.00,
-    cupos=4,
+    cupos=6,
     visible=true,
     abierto=true,
     inscripcion_hasta=DATE '2026-12-11'

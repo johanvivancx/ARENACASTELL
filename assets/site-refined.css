@@ -219,6 +219,19 @@ a:focus-visible, button:focus-visible { outline: 3px solid #e9ece9; outline-offs
 .admin-player-row strong, .admin-player-row small { overflow-wrap: anywhere; }
 .admin-player-row small { color: #b5bcba; }
 .admin-shirt-badge { display: grid; place-items: center; min-height: 48px; border-radius: 6px; background: #2a2413; color: #f0d47b; font-size: 18px; font-weight: 800; }
+.admin-team-danger-zone {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid #70464c;
+  border-radius: 7px;
+  background: #211719;
+}
+.admin-team-danger-zone > div { display: grid; gap: 5px; }
+.admin-team-danger-zone p { margin: 0; color: #cbb7b9; font-size: 13px; }
 
 @media (max-width: 900px) {
   .admin-team-owner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -229,6 +242,8 @@ a:focus-visible, button:focus-visible { outline: 3px solid #e9ece9; outline-offs
   .admin-team-card > summary::after { grid-column: 2; grid-row: 1; }
   .admin-team-details { padding: 0 16px 18px; }
   .admin-team-owner, .admin-player-list { grid-template-columns: 1fr; }
+  .admin-team-danger-zone { align-items: stretch; flex-direction: column; }
+  .admin-team-danger-zone .btn { width: 100%; }
 }
 
 /* Ficha del equipo dentro de Mi actividad */
