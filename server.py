@@ -20,7 +20,7 @@ import re
 import uuid
 import psycopg
 
-from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_deudores_restaurante, preparar_escuela_manual, preparar_actividad_administrativa, preparar_cuadrangular_navideno, retirar_administrador_comprometido, activar_nuevo_administrador, ROOT
+from db import conectar, preparar_control_financiero, preparar_resultados_copa, preparar_movimientos_copa, preparar_deudores_restaurante, preparar_escuela_manual, preparar_actividad_administrativa, preparar_cuadrangular_navideno, preparar_listas_torneos, retirar_administrador_comprometido, activar_nuevo_administrador, ROOT
 from models import ErrorValidacion
 import services as s
 import copa
@@ -493,6 +493,7 @@ def main():
     preparar_escuela_manual()
     preparar_actividad_administrativa()
     preparar_cuadrangular_navideno()
+    preparar_listas_torneos()
     retirar_administrador_comprometido()
     activar_nuevo_administrador()
     httpd = ThreadingHTTPServer(direccion_escucha(), Handler)

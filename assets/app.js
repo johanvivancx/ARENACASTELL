@@ -940,11 +940,13 @@ async function loadTeam() {
   const id = query.get("equipo");
   if (!id) throw new Error("Selecciona tu equipo desde Mi actividad.");
   const team = await api(`/teams/${encodeURIComponent(id)}`);
-  $("#team-title").textContent = `${team.nombre} · ${team.torneo}`;
+  $("#team-title").textContent = team.nombre;
+  $("#team-tournament").textContent = team.torneo;
   $("#roster-count").textContent =
     `${team.jugadores.length} de ${team.max_jugadores} jugadores`;
+  $("#roster-progress").style.width = `${Math.min(100, (team.jugadores.length / team.max_jugadores) * 100)}%`;
   $("#roster").innerHTML = team.jugadores.length
-    ? `<div class="table-wrap"><table><caption>Jugadores inscritos en tu equipo</caption><thead><tr><th scope="col">N.º</th><th scope="col">Jugador</th><th scope="col">Acción</th></tr></thead><tbody>${team.jugadores.map((p) => `<tr><td>${p.posicion}</td><td>${esc(p.nombre)}<small>${esc(p.cedula)}</small></td><td><button class="btn small danger" type="button" data-remove="${p.id}" data-name="${esc(p.nombre)}">Retirar</button></td></tr>`).join("")}</tbody></table></div>`
+    ? `<div class="roster-grid">${team.jugadores.map((p) => `<article class="roster-player-card"><div class="roster-shirt-number" aria-label="Camiseta número ${esc(p.numero_camiseta)}"><span>#</span>${esc(p.numero_camiseta)}</div><div class="roster-player-copy"><small>Jugador ${esc(p.posicion)}</small><h3>${esc(p.nombre)}</h3><p>Cédula ${esc(p.cedula)}</p></div><button class="btn small danger" type="button" data-remove="${p.id}" data-name="${esc(p.nombre)}">Retirar</button></article>`).join("")}</div>`
     : '<p class="muted small-text">Todavía no hay jugadores. Registra el primero con el formulario.</p>';
   const locked =
     team.jugadores.length >= team.max_jugadores ||
@@ -1436,6 +1438,7 @@ function initAdminWorkspace() {
     .filter((section) => section !== overview);
   const groups = {
     "admin-copa": {title: "Copa Castell · Partidos", tabs: [["admin-copa", "Resultados"], ["admin-copa-mvp", "Jugadores del partido"]]},
+    "admin-equipos": {title: "Torneos · Equipos inscritos", tabs: [["admin-equipos", "Equipos y jugadores"]]},
     "admin-copa-caja": {title: "Copa Castell · Movimientos", tabs: [["admin-copa-caja", "Movimientos"]]},
     "admin-reservas": {title: "Reservas", tabs: [["admin-reservas", "Reservas realizadas"], ["admin-cobros", "Pendientes por cobrar"], ["admin-ocupacion", "Ocupación"]]},
     "admin-finanzas": {title: "Ingresos y gastos", tabs: [["admin-finanzas", "Saldos y gastos"], ["admin-reportes", "Operaciones"], ["admin-pagos", "Auditoría de pagos"]]},
@@ -1755,11 +1758,66 @@ async function initSchoolAdmin() {
   await loadSchoolAdmin();
 }
 
+// Presenta las inscripciones web sin mezclar sus datos con la caja de Copa Castell.
+function renderTournamentTeams() {
+  const host = $("#admin-tournament-teams");
+  if (!host || !reportData) return;
+  const teams = reportData.equipos_torneo || [];
+  const players = reportData.jugadores_torneo || [];
+  const queryValue = $("#admin-team-search")?.value.trim().toLocaleLowerCase("es") || "";
+  const visibleTeams = teams.filter((team) => {
+    const roster = players.filter((player) => String(player.equipo_id) === String(team.id));
+    const searchable = [
+      team.nombre,
+      team.torneo,
+      team.representante,
+      team.email,
+      team.telefono,
+      ...roster.flatMap((player) => [player.nombre, player.cedula, player.numero_camiseta]),
+    ].join(" ").toLocaleLowerCase("es");
+    return !queryValue || searchable.includes(queryValue);
+  });
+  const confirmed = teams.filter((team) => team.estado === "CONFIRMADO").length;
+  $("#admin-team-stats").innerHTML = [
+    ["Equipos registrados", teams.length],
+    ["Inscripciones confirmadas", confirmed],
+    ["Jugadores registrados", players.length],
+  ].map(([label, value]) => `<div class="stat"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("");
+  $("#admin-team-count").textContent = `${visibleTeams.length} de ${teams.length} equipos visibles.`;
+  const stateLabels = {CONFIRMADO: "Confirmado", PENDIENTE: "Pendiente", CANCELADO: "Cancelado"};
+  host.innerHTML = visibleTeams.length
+    ? visibleTeams.map((team) => {
+      const roster = players.filter((player) => String(player.equipo_id) === String(team.id));
+      const rosterMarkup = roster.length
+        ? `<div class="admin-player-list">${roster.map((player) => `<article class="admin-player-row"><span class="admin-shirt-badge">#${esc(player.numero_camiseta)}</span><div><strong>${esc(player.nombre)}</strong><small>Cédula ${esc(player.cedula)} · N.º de lista ${esc(player.posicion)}</small></div></article>`).join("")}</div>`
+        : '<div class="empty-state"><p>Este equipo todavía no ha registrado jugadores.</p></div>';
+      return `<details class="panel admin-team-card">
+        <summary>
+          <span><small>${esc(team.torneo)}</small><strong>${esc(team.nombre)}</strong></span>
+          <span class="admin-team-summary-meta"><span class="status-pill status-${esc(team.estado.toLowerCase())}">${esc(stateLabels[team.estado] || team.estado)}</span><b>${esc(team.jugadores_registrados)} / ${esc(team.max_jugadores)}</b></span>
+        </summary>
+        <div class="admin-team-details">
+          <div class="admin-team-owner">
+            <div><small>Representante</small><strong>${esc(team.representante)}</strong></div>
+            <div><small>Correo</small><a href="mailto:${esc(team.email)}">${esc(team.email)}</a></div>
+            <div><small>Celular</small><a href="tel:${esc(team.telefono)}">${esc(team.telefono)}</a></div>
+            <div><small>Registro</small><strong>${esc(dates(team.creado_en))}</strong></div>
+          </div>
+          <h3>Lista de jugadores</h3>
+          ${rosterMarkup}
+        </div>
+      </details>`;
+    }).join("")
+    : '<div class="empty-state"><p>No hay equipos que coincidan con la búsqueda.</p></div>';
+}
+$("#admin-team-search")?.addEventListener("input", renderTournamentTeams);
+
 // Carga reportes administrativos
 async function loadReports(filters = {}) {
   needUser();
   reportData = await api(`/admin/reports?${new URLSearchParams(filters)}`);
   $("#admin-content").hidden = false;
+  renderTournamentTeams();
   const finance = reportData.finanzas;
   const manualPaid = reportData.reservas_manuales_cobradas || {};
   $("#manual-payment-stats").innerHTML = [

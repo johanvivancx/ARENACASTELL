@@ -113,11 +113,26 @@ def test_limite_jugadores_en_base(conn,user,pay_data):
     order=s.inscribir_torneo(conn,user["id"],{"torneo_id":1,"equipo":"Equipo Prueba","acepta_reglamento":True})
     confirmar_transferencia(conn,user["id"],order["id"],pay_data)
     team=s.detalle_orden(conn,user["id"],order["id"])["equipo"]
-    for n in range(20):s.agregar_jugador(conn,user["id"],team["id"],{"nombre":f"Jugador {n}","cedula":cedula_demo(n+300)})
+    for n in range(20):s.agregar_jugador(conn,user["id"],team["id"],{"nombre":f"Jugador {n}","cedula":cedula_demo(n+300),"numero_camiseta":n+1})
     with pytest.raises(psycopg.errors.CheckViolation):
         with conn.transaction():
-            conn.execute("INSERT INTO jugadores(equipo_id,nombre,cedula) VALUES(%s,'Jugador 21',%s)",(team["id"],cedula_demo(399)))
+            conn.execute("INSERT INTO jugadores(equipo_id,nombre,cedula,numero_camiseta) VALUES(%s,'Jugador 21',%s,21)",(team["id"],cedula_demo(399)))
     assert len(s.lista_equipo(conn,user["id"],team["id"])["jugadores"])==20
+
+
+def test_numero_camiseta_es_obligatorio_y_no_se_repite(conn,user,pay_data):
+    order=s.inscribir_torneo(conn,user["id"],{"torneo_id":1,"equipo":"Equipo con dorsales","acepta_reglamento":True})
+    confirmar_transferencia(conn,user["id"],order["id"],pay_data)
+    team=s.detalle_orden(conn,user["id"],order["id"])["equipo"]
+    s.agregar_jugador(conn,user["id"],team["id"],{"nombre":"Primer jugador","cedula":cedula_demo(410),"numero_camiseta":10})
+    with pytest.raises(s.ErrorValidacion, match="camiseta #10"):
+        s.agregar_jugador(conn,user["id"],team["id"],{"nombre":"Segundo jugador","cedula":cedula_demo(411),"numero_camiseta":10})
+    player=s.lista_equipo(conn,user["id"],team["id"])["jugadores"][0]
+    assert player["numero_camiseta"]==10
+    admin_id=conn.execute("SELECT id FROM usuarios WHERE email='revision@arena.test'").fetchone()["id"]
+    report=s.reportes(conn,admin_id,{})
+    assert report["equipos_torneo"][0]["nombre"]=="Equipo con dorsales"
+    assert report["jugadores_torneo"][0]["numero_camiseta"]==10
 
 
 def test_ultimo_cupo_torneo_concurrente(conn,user,pay_data,database_url):

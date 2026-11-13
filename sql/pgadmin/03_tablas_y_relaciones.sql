@@ -94,8 +94,9 @@ CREATE TABLE jugadores (
   equipo_id bigint NOT NULL REFERENCES equipos(id),
   nombre varchar(100) NOT NULL CHECK (length(trim(nombre)) BETWEEN 2 AND 100),
   cedula varchar(10) NOT NULL CHECK (validar_cedula(cedula)),
+  numero_camiseta integer NOT NULL CHECK (numero_camiseta BETWEEN 1 AND 99),
   posicion integer NOT NULL CHECK (posicion BETWEEN 1 AND 20),
-  UNIQUE(equipo_id, cedula), UNIQUE(equipo_id, posicion)
+  UNIQUE(equipo_id, cedula), UNIQUE(equipo_id, numero_camiseta), UNIQUE(equipo_id, posicion)
 );
 
 -- Guarda horarios escolares

@@ -927,7 +927,7 @@ def equipo_usuario(conn, uid, team_id):
 def lista_equipo(conn, uid, team_id):
     team = equipo_usuario(conn, uid, team_id)
     team["jugadores"] = conn.execute(
-        "SELECT id,nombre,cedula,posicion FROM jugadores WHERE equipo_id=%s ORDER BY posicion",
+        "SELECT id,nombre,cedula,numero_camiseta,posicion FROM jugadores WHERE equipo_id=%s ORDER BY posicion",
         (team["id"],),
     ).fetchall()
     return team
@@ -942,9 +942,15 @@ def agregar_jugador(conn, uid, team_id, data):
     cedula = str(data.get("cedula", ""))
     if not validar_cedula(cedula):
         raise ErrorValidacion("Revisa la cédula del jugador.")
+    shirt = numero(data.get("numero_camiseta"), "Número de camiseta", 1, 99)
+    if conn.execute(
+        "SELECT 1 FROM jugadores WHERE equipo_id=%s AND numero_camiseta=%s",
+        (team["id"], shirt),
+    ).fetchone():
+        raise ErrorValidacion(f"La camiseta #{shirt} ya está asignada en este equipo.")
     conn.execute(
-        "INSERT INTO jugadores(equipo_id,nombre,cedula) VALUES(%s,%s,%s)",
-        (team["id"], name, cedula),
+        "INSERT INTO jugadores(equipo_id,nombre,cedula,numero_camiseta) VALUES(%s,%s,%s,%s)",
+        (team["id"], name, cedula, shirt),
     )
     return {"message": "Jugador registrado."}
 
@@ -1269,6 +1275,24 @@ def reportes(conn, uid, data):
                 LEFT JOIN pagos p ON p.orden_id=o.id
                 LEFT JOIN usuarios aprobador ON aprobador.id=p.confirmado_por
                 ORDER BY r.inicio DESC,r.id DESC"""
+        ).fetchall(),
+        "equipos_torneo": conn.execute(
+            """SELECT e.id,e.nombre,e.estado,t.nombre AS torneo,t.fecha_inicio,t.max_jugadores,
+                o.creado_en,u.nombre AS representante,u.email,u.telefono,
+                count(j.id)::integer AS jugadores_registrados
+                FROM equipos e
+                JOIN torneos t ON t.id=e.torneo_id
+                JOIN ordenes o ON o.id=e.orden_id
+                JOIN usuarios u ON u.id=o.usuario_id
+                LEFT JOIN jugadores j ON j.equipo_id=e.id
+                GROUP BY e.id,e.nombre,e.estado,t.nombre,t.fecha_inicio,t.max_jugadores,
+                    o.creado_en,u.nombre,u.email,u.telefono
+                ORDER BY o.creado_en DESC,e.id DESC"""
+        ).fetchall(),
+        "jugadores_torneo": conn.execute(
+            """SELECT j.id,j.equipo_id,j.nombre,j.cedula,j.numero_camiseta,j.posicion
+                FROM jugadores j JOIN equipos e ON e.id=j.equipo_id
+                ORDER BY e.id DESC,j.posicion"""
         ).fetchall(),
         "operaciones": conn.execute(
             """SELECT o.id,o.creado_en,o.tipo,o.descripcion,o.monto,o.estado,

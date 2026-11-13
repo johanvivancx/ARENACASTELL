@@ -18,9 +18,9 @@
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=movil-chaca-5" />
-    <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-session-nav" />
+    <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-equipos" />
     <!-- Funciones principales del sitio -->
-    <script src="../assets/app.js?v=20261112-navidad-valores" defer></script>
+    <script src="../assets/app.js?v=20261112-equipos" defer></script>
   </head>
 
   <body data-page="team">
@@ -89,13 +89,13 @@
         <nav class="breadcrumb" aria-label="Ruta de navegación">
           <a href="../index.html">Inicio</a>
           <span aria-hidden="true">/</span>
-          <span>Tu equipo, nombre por nombre.</span>
+          <span>Plantel del equipo</span>
         </nav>
 
-        <h1>Tu equipo, nombre por nombre.</h1>
+        <h1>Arma tu plantel.</h1>
         <p>
-          Registra tu lista respetando el límite de jugadores de tu torneo antes del inicio del
-          torneo. Puedes corregir la lista retirando y volviendo a ingresar un jugador.
+          Registra los datos y el número de camiseta de cada jugador. Podrás corregir la lista
+          antes del inicio del torneo.
         </p>
       </div>
 
@@ -115,18 +115,26 @@
         <!-- Mensajes del formulario -->
         <div id="form-message" role="alert" tabindex="-1" hidden></div>
 
-        <div class="form-layout">
-          <div class="panel">
-            <p class="eyebrow" id="team-title">LISTA DE JUGADORES</p>
-            <h2 id="roster-count">Lista de jugadores</h2>
+        <div class="team-roster-layout">
+          <div class="panel team-roster-panel">
+            <div class="team-roster-hero">
+              <div>
+                <p class="eyebrow" id="team-tournament">TORNEO</p>
+                <h2 id="team-title">Plantel del equipo</h2>
+                <p id="roster-count">0 jugadores registrados</p>
+              </div>
+              <div class="team-roster-progress" aria-hidden="true"><span id="roster-progress"></span></div>
+            </div>
 
             <!-- Lista de jugadores -->
             <div id="roster"></div>
           </div>
 
           <!-- Registro de jugadores -->
-          <form method="post" class="panel" id="player-form">
-            <h2>Añadir jugador</h2>
+          <form method="post" class="panel team-player-form" id="player-form">
+            <p class="eyebrow">NUEVO INTEGRANTE</p>
+            <h2>Registrar jugador</h2>
+            <p class="small-text muted">La cédula y el número de camiseta no pueden repetirse dentro del equipo.</p>
 
             <div class="form-grid">
               <div class="field full">
@@ -153,6 +161,22 @@
                   inputmode="numeric"
                   data-cedula
                 />
+              </div>
+
+              <div class="field full">
+                <label for="numero_camiseta">Número de camiseta</label>
+                <input
+                  id="numero_camiseta"
+                  name="numero_camiseta"
+                  type="number"
+                  required
+                  min="1"
+                  max="99"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Ej.: 10"
+                />
+                <small>Elige un número del 1 al 99.</small>
               </div>
             </div>
 

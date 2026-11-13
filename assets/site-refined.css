@@ -106,3 +106,127 @@ a:focus-visible, button:focus-visible { outline: 3px solid #e9ece9; outline-offs
 @media (prefers-reduced-motion: reduce) {
   .btn:hover { transform: none; }
 }
+
+/* Planteles de torneos */
+.team-roster-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, .72fr);
+  gap: 24px;
+  align-items: start;
+}
+.team-roster-panel { padding: 0; overflow: hidden; }
+.team-roster-hero {
+  position: relative;
+  padding: 30px;
+  border-bottom: 1px solid #4a5153;
+  background: linear-gradient(120deg, #25200f 0%, #1a1d1f 62%, #121516 100%);
+}
+.team-roster-hero::after {
+  content: "";
+  position: absolute;
+  top: -54px;
+  right: -42px;
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(216, 174, 66, .28);
+  border-radius: 50%;
+}
+.team-roster-hero h2 { margin: 8px 0 6px; font-size: clamp(27px, 3vw, 40px); }
+.team-roster-hero p { margin: 0; }
+.team-roster-progress { height: 5px; margin-top: 24px; overflow: hidden; border-radius: 99px; background: #0e1112; }
+.team-roster-progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #b98a25, #f0d47b); transition: width .25s ease; }
+.roster-grid { display: grid; gap: 12px; padding: 22px; }
+.roster-player-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #42494b;
+  border-radius: 8px;
+  background: #151819;
+}
+.roster-shirt-number {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  min-height: 62px;
+  border: 1px solid #8b702f;
+  border-radius: 7px;
+  background: #241f12;
+  color: #f0d47b;
+  font-size: 29px;
+  font-weight: 800;
+}
+.roster-shirt-number span { margin-right: 2px; font-size: 14px; }
+.roster-player-copy { min-width: 0; }
+.roster-player-copy small { color: #aeb5b5; }
+.roster-player-copy h3 { margin: 3px 0; overflow-wrap: anywhere; }
+.roster-player-copy p { margin: 0; color: #c2c7c6; font-size: 13px; }
+.team-player-form { position: sticky; top: 100px; }
+.team-player-form > .eyebrow { margin-bottom: 8px; color: #d9b95c; }
+
+@media (max-width: 860px) {
+  .team-roster-layout { grid-template-columns: 1fr; }
+  .team-player-form { position: static; }
+}
+@media (max-width: 560px) {
+  .team-roster-hero { padding: 24px 20px; }
+  .roster-grid { padding: 15px; }
+  .roster-player-card { grid-template-columns: 58px minmax(0, 1fr); gap: 12px; }
+  .roster-shirt-number { min-height: 54px; font-size: 24px; }
+  .roster-player-card .btn { grid-column: 1 / -1; width: 100%; }
+}
+
+/* Consulta administrativa de equipos inscritos */
+.admin-team-search { max-width: 720px; margin: 24px 0 10px; }
+.admin-tournament-teams { display: grid; gap: 14px; margin-top: 18px; }
+.admin-team-card { padding: 0; overflow: hidden; }
+.admin-team-card > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 20px;
+  gap: 20px;
+  align-items: center;
+  padding: 21px 24px;
+  cursor: pointer;
+  list-style: none;
+}
+.admin-team-card > summary::-webkit-details-marker { display: none; }
+.admin-team-card > summary::after { content: "+"; color: #d7b754; font-size: 22px; }
+.admin-team-card[open] > summary::after { content: "−"; }
+.admin-team-card > summary > span:first-child { display: grid; gap: 4px; }
+.admin-team-card > summary small { color: #b7bdbc; }
+.admin-team-card > summary strong { font-size: 19px; overflow-wrap: anywhere; }
+.admin-team-summary-meta { display: flex; gap: 12px; align-items: center; }
+.status-pill { display: inline-flex; padding: 5px 9px; border: 1px solid #6f7678; border-radius: 99px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.status-confirmado { border-color: #3b9a76; color: #8ee0bc; }
+.status-pendiente { border-color: #b58e37; color: #f0cf78; }
+.status-cancelado { border-color: #98515a; color: #e89aa3; }
+.admin-team-details { padding: 0 24px 24px; border-top: 1px solid #414749; }
+.admin-team-owner {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 26px;
+}
+.admin-team-owner > div { display: grid; gap: 5px; min-width: 0; padding: 13px; border: 1px solid #3f4648; border-radius: 7px; background: #141718; }
+.admin-team-owner small { color: #aeb5b4; }
+.admin-team-owner a, .admin-team-owner strong { overflow-wrap: anywhere; }
+.admin-player-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.admin-player-row { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: center; padding: 11px; border: 1px solid #3e4547; border-radius: 7px; background: #141718; }
+.admin-player-row > div { display: grid; gap: 3px; min-width: 0; }
+.admin-player-row strong, .admin-player-row small { overflow-wrap: anywhere; }
+.admin-player-row small { color: #b5bcba; }
+.admin-shirt-badge { display: grid; place-items: center; min-height: 48px; border-radius: 6px; background: #2a2413; color: #f0d47b; font-size: 18px; font-weight: 800; }
+
+@media (max-width: 900px) {
+  .admin-team-owner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .admin-team-card > summary { grid-template-columns: minmax(0, 1fr) 20px; padding: 18px; }
+  .admin-team-summary-meta { grid-column: 1 / -1; justify-content: space-between; }
+  .admin-team-card > summary::after { grid-column: 2; grid-row: 1; }
+  .admin-team-details { padding: 0 16px 18px; }
+  .admin-team-owner, .admin-player-list { grid-template-columns: 1fr; }
+}

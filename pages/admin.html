@@ -18,14 +18,14 @@
     <link rel="icon" href="../assets/favicon-arena-castell.png" type="image/png" />
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261026-restaurante-logo" />
-    <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-session-nav" />
+    <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-equipos" />
     <link rel="stylesheet" href="../assets/super-chaca.css?v=20261011-retiro-alumnos" />
     <link rel="stylesheet" href="../assets/admin-sidebar.css?v=20261026-security" />
     <!-- Funciones principales del sitio -->
     <script src="../assets/copa-inscripciones-admin.js?v=20261025-acuerdo-colombia" defer></script>
     <script src="../assets/copa-caja-admin.js?v=20261025-abonos-bar" defer></script>
     <script src="../assets/restaurante-admin.js?v=20261026-restaurante" defer></script>
-    <script src="../assets/app.js?v=20261112-navidad-valores" defer></script>
+    <script src="../assets/app.js?v=20261112-equipos" defer></script>
   </head>
 
   <body data-page="admin">
@@ -136,8 +136,14 @@
               <small>Marcador, goleadores y tabla de posiciones</small>
               <span class="admin-nav-arrow" aria-hidden="true">↗</span>
             </button>
+            <button type="button" data-admin-target="admin-equipos">
+              <span class="admin-nav-top"><span>02 / EQUIPOS</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8-1a3 3 0 1 0 0-6m-8 9c-4 0-6 2-6 5v2h12v-2c0-3-2-5-6-5Zm8 0c3 0 5 2 5 5v2h-5" /></svg></span>
+              <strong>Equipos inscritos</strong>
+              <small>Representantes y listas de jugadores</small>
+              <span class="admin-nav-arrow" aria-hidden="true">↗</span>
+            </button>
             <button type="button" data-admin-target="admin-copa-caja">
-              <span class="admin-nav-top"><span>02 / COPA CASTELL</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v12H3V7Zm0 4h18M7 4h10m-5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" /></svg></span>
+              <span class="admin-nav-top"><span>03 / COPA CASTELL</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v12H3V7Zm0 4h18M7 4h10m-5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" /></svg></span>
               <strong>Caja, vocalías e inscripciones</strong>
               <small>Disponible, bar, entradas, vocalías e inscripciones</small>
               <span class="admin-nav-arrow" aria-hidden="true">↗</span>
@@ -250,6 +256,23 @@
                 <button class="btn" id="copa-finish" type="submit" value="FINALIZADO" hidden>Finalizar y publicar resultado</button>
               </div>
             </form>
+          </section>
+
+          <section class="admin-workspace-section tournament-teams-admin" id="admin-equipos" aria-labelledby="admin-equipos-title" hidden>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">TORNEOS DE LA WEB</p>
+                <h2 id="admin-equipos-title">Equipos y jugadores inscritos</h2>
+                <p class="small-text muted">Consulta el representante, el estado de la inscripción y la lista completa con cédula y número de camiseta.</p>
+              </div>
+            </div>
+            <div class="stats-grid" id="admin-team-stats"></div>
+            <div class="field admin-team-search">
+              <label for="admin-team-search">Buscar equipo, torneo, representante o jugador</label>
+              <input id="admin-team-search" type="search" placeholder="Ej.: FC Bambinos, Johan o camiseta 10" autocomplete="off" />
+            </div>
+            <p id="admin-team-count" class="small-text muted" role="status"></p>
+            <div id="admin-tournament-teams" class="admin-tournament-teams"></div>
           </section>
 
           <section class="admin-workspace-section" id="admin-copa-mvp" aria-labelledby="copa-mvp-admin-title" hidden>

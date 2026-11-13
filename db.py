@@ -78,6 +78,12 @@ def preparar_cuadrangular_navideno():
         conn.execute((ROOT / "sql/migrations/028_cuadrangular_navideno.sql").read_text(encoding="utf8"))
 
 
+def preparar_listas_torneos():
+    """Añade números de camiseta y conserva intactas las listas existentes."""
+    with conectar() as conn:
+        conn.execute((ROOT / "sql/migrations/029_numeros_camiseta.sql").read_text(encoding="utf8"))
+
+
 def _cedula_historica_disponible(conn, account_id):
     """Genera una cédula técnica válida para liberar la cédula personal."""
     for offset in range(1000):

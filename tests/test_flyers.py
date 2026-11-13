@@ -51,10 +51,10 @@ def test_limite_especifico_no_se_puede_saltar_en_sql(conn, user, pay_data):
     confirmar_transferencia(conn, user['id'], order['id'], pay_data)
     team = s.detalle_orden(conn, user['id'], order['id'])['equipo']
     for n in range(15):
-        s.agregar_jugador(conn, user['id'], team['id'], {'nombre': f'Jugador {n}', 'cedula': cedula_demo(720+n)})
+        s.agregar_jugador(conn, user['id'], team['id'], {'nombre': f'Jugador {n}', 'cedula': cedula_demo(720+n), 'numero_camiseta': n+1})
     with pytest.raises(psycopg.errors.CheckViolation):
         with conn.transaction():
-            conn.execute("INSERT INTO jugadores(equipo_id,nombre,cedula) VALUES(%s,'Jugador extra',%s)", (team['id'], cedula_demo(750)))
+            conn.execute("INSERT INTO jugadores(equipo_id,nombre,cedula,numero_camiseta) VALUES(%s,'Jugador extra',%s,16)", (team['id'], cedula_demo(750)))
     with pytest.raises(psycopg.errors.CheckViolation):
         with conn.transaction():
             conn.execute('UPDATE torneos SET max_jugadores=14 WHERE id=1')
@@ -69,7 +69,7 @@ def test_migracion_repetible_conserva_operaciones_y_horarios_antiguos(conn, user
     order = s.inscribir_torneo(conn, user['id'], {'torneo_id': 1, 'equipo': 'Equipo anterior', 'acepta_reglamento': True})
     confirmar_transferencia(conn, user['id'], order['id'], pay_data)
     team = s.detalle_orden(conn, user['id'], order['id'])['equipo']
-    s.agregar_jugador(conn, user['id'], team['id'], {'nombre': 'Jugador anterior', 'cedula': cedula_demo(790)})
+    s.agregar_jugador(conn, user['id'], team['id'], {'nombre': 'Jugador anterior', 'cedula': cedula_demo(790), 'numero_camiseta': 9})
     legacy = conn.execute("INSERT INTO horarios_chaca(categoria,dias,inicio,fin) VALUES('Sub-6','Lunes y miércoles','15:00','16:30') RETURNING id").fetchone()['id']
     for _ in range(2):
         conn.execute((ROOT/'sql/migrations/001_flyers.sql').read_text(encoding='utf8'))
