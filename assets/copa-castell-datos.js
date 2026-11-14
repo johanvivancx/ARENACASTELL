@@ -167,52 +167,84 @@ window.CopaCastellData = {
       "club": "Los de Siempre",
       "players": [
         {
-          "name": "ALEX ALFONSO ANDRANGO ANDRANGO",
+          "name": "JHON JAIRO CAIZA TOAPANTA",
           "number": "2"
         },
         {
-          "name": "PEDRO VINICIO CASAMEN CASAMIN",
+          "name": "ALEXIS JOEL LOACHAMIN GUACHAMIN",
           "number": "3"
         },
         {
-          "name": "JOFFRE ALEXANDER ERAS LOZANO",
+          "name": "JONATHAN MESIAS LLUMIQUINGA GUALLICHICO",
           "number": "4"
         },
         {
-          "name": "LUIS ANGEL ANDRANGO ANDRANGO",
+          "name": "JONATHAN ALEXANDER PAUCAR CHANGO",
           "number": "5"
         },
         {
-          "name": "VICTOR STALYN GUALLICHICO GUAMAN",
-          "number": "6"
-        },
-        {
-          "name": "JHON STEVEN ERAS LOZANO",
+          "name": "WILSON PATRICIO NACIMBA NACIMBA",
           "number": "7"
         },
         {
-          "name": "CRISTIAN BRYAN PONCE ZURITA",
+          "name": "BRYAN JAVIER LOYA LEMA",
           "number": "8"
         },
         {
-          "name": "JEFFERSON RENE YAJAMIN LOGACHO",
+          "name": "LUIS MATEO GUALLICHICO QUISHPE",
           "number": "9"
         },
         {
-          "name": "DANILO JOEL RIOS PRECIADO",
+          "name": "EDGAR ALEXANDER TOAPANTA QUISHPE",
           "number": "10"
         },
         {
-          "name": "KLEVER EFRAIN GALOTUÑA TIPANTUÑA",
-          "number": "11"
+          "name": "MARLON DAVID ROMAN CASTRO",
+          "number": "13"
         },
         {
-          "name": "ALEXANDER SANTIAGO GUAMAN CORREA",
+          "name": "ERICK PABEL GUALOTUÑA GUACHO",
+          "number": "16"
+        },
+        {
+          "name": "JOSE LUIS QUINGA CHANATAXI",
+          "number": "19"
+        },
+        {
+          "name": "JONATHAN ANDRES NACIMBA TOAPANTA",
+          "number": "20"
+        },
+        {
+          "name": "FRANCISCO JAVIER LOYA LOYA",
+          "number": "22"
+        },
+        {
+          "name": "ERICK PATRICIO NACIMBA TOAPANTA",
+          "number": "60"
+        },
+        {
+          "name": "BRYAN ARIEL MUCHAÑA NETO",
+          "number": "18"
+        },
+        {
+          "name": "DYLAN ALEXANDER SUNTAKI BENALCAZAR",
+          "number": "22"
+        },
+        {
+          "name": "ANTONY JOEL QUINGA CHANGO",
+          "number": "21"
+        },
+        {
+          "name": "KLEVER IVAN PACHACAMA LOYA",
           "number": "15"
         },
         {
-          "name": "CASAMEN JOEL ALFREDO",
-          "number": ""
+          "name": "JORGE JHOEL AMAGUA SUAREZ",
+          "number": "12"
+        },
+        {
+          "name": "LOACHAMIN GUALLICHICO ERICK SEBASTIAN",
+          "number": "100"
         }
       ]
     },
@@ -1127,6 +1159,10 @@ window.CopaCastellData = {
         {
           "name": "ALEXIS MAILA",
           "number": "7"
+        },
+        {
+          "name": "CULITID CHAMORRO ANDERSON JOEL",
+          "number": "31"
         }
       ]
     }
