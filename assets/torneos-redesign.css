@@ -158,21 +158,21 @@ body[data-page="torneos"] .mundial-section > section > h3 { margin-top: 0; }
 .copa-cup-copy > p { max-width: 470px; margin: 20px 0 0; color: #dce2e3; font-size: 15px; line-height: 1.65; }
 .copa-cup-medallion { display: grid; flex: 0 0 82px; width: 82px; aspect-ratio: 1; place-items: center; border: 1px solid #f4d17a; border-radius: 50%; background: radial-gradient(circle at 35% 28%, #fff0b3 0 6%, #d39a31 24%, #6f4715 64%, #241605 100%); box-shadow: 0 0 0 5px rgb(235 179 63 / 10%), 0 12px 28px rgb(0 0 0 / 40%), inset 0 0 0 3px rgb(255 238 176 / 18%); color: #fff4c9; font-size: 13px; font-weight: 900; letter-spacing: .08em; text-shadow: 0 2px 5px #321a00; }
 .copa-qualified-plata .copa-cup-medallion { border-color: #e3edf1; background: radial-gradient(circle at 35% 28%, #fff 0 6%, #b9c8ce 24%, #65747b 64%, #222b2f 100%); box-shadow: 0 0 0 5px rgb(195 218 227 / 9%), 0 12px 28px rgb(0 0 0 / 40%), inset 0 0 0 3px rgb(255 255 255 / 16%); color: #fff; text-shadow: 0 2px 5px #192126; }
-.copa-cup-facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 21px; }
-.copa-cup-facts span { padding: 7px 10px; border: 1px solid rgb(224 177 82 / 38%); border-radius: 999px; background: rgb(225 174 70 / 8%); color: #f1d18a; font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.copa-cup-facts { display: flex; flex-wrap: wrap; column-gap: 8px; row-gap: 8px; margin-top: 21px; }
+.copa-cup-facts span { display: inline-flex; flex: 0 0 auto; align-items: center; min-height: 31px; padding: 7px 10px; border: 1px solid rgb(224 177 82 / 38%); border-radius: 999px; background: rgb(225 174 70 / 8%); color: #f1d18a; font-size: 11px; font-weight: 800; letter-spacing: .07em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
 .copa-qualified-plata .copa-cup-facts span { border-color: rgb(187 207 216 / 36%); background: rgb(187 207 216 / 8%); color: #d4e0e5; }
 .copa-semifinal-cruces { display: grid; gap: 13px; }
 .copa-semifinal-cruces p { display: grid; grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr); align-items: center; gap: 12px; margin: 0; padding: 16px; border: 1px solid #604d27; border-radius: 14px; background: linear-gradient(145deg, rgb(18 23 24 / 96%), rgb(8 10 11 / 96%)); box-shadow: 0 12px 25px rgb(0 0 0 / 24%), inset 0 1px 0 rgb(255 255 255 / 4%); text-align: center; }
 .copa-qualified-plata .copa-semifinal-cruces p { border-color: #46565d; }
-.copa-semifinal-cruces .copa-match-label { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 11px; border-bottom: 1px solid rgb(255 255 255 / 9%); color: #e5bd67; font-size: 10px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+.copa-semifinal-cruces .copa-match-label { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; column-gap: 18px; row-gap: 6px; padding-bottom: 11px; border-bottom: 1px solid rgb(255 255 255 / 9%); color: #e5bd67; font-size: 10px; font-weight: 900; letter-spacing: .14em; line-height: 1.35; text-transform: uppercase; }
 .copa-qualified-plata .copa-match-label { color: #c8d7dd; }
-.copa-semifinal-cruces .copa-match-label em { color: #aeb9bc; font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .04em; }
+.copa-semifinal-cruces .copa-match-label em { flex: 0 0 auto; color: #aeb9bc; font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
 .copa-match-team { display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; text-align: left; }
 .copa-match-team img { width: 42px; height: 28px; border: 1px solid #7d8588; border-radius: 5px; object-fit: cover; box-shadow: 0 4px 10px rgb(0 0 0 / 38%); }
 .copa-match-team > span { min-width: 0; }
 .copa-match-team strong, .copa-match-team small { display: block; overflow-wrap: anywhere; }
 .copa-match-team strong { color: #f5f7f7; font-size: 14px; line-height: 1.2; }
-.copa-match-team small { margin-top: 3px; color: #aeb9bc; font-size: 11px; line-height: 1.25; }
+.copa-match-team small { clear: both; margin-top: 4px; color: #aeb9bc; font-size: 11px; line-height: 1.25; }
 .copa-semifinal-cruces .copa-vs { display: grid; width: 42px; aspect-ratio: 1; place-items: center; border: 1px solid #a27729; border-radius: 50%; background: linear-gradient(145deg, #3f2e0e, #171107); color: #f5d277; font-size: 11px; font-weight: 900; box-shadow: 0 5px 12px rgb(0 0 0 / 30%); }
 .copa-qualified-plata .copa-vs { border-color: #6f858f; background: linear-gradient(145deg, #35434a, #151b1e); color: #e7f0f3; }
 .copa-media-disclosure { grid-column: 1 / -1; margin-top: 3px; border-top: 1px solid #4b5559; }
