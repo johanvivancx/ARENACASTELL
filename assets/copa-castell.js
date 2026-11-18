@@ -16,6 +16,7 @@
   const flags = {'Argentina':'ar','Brasil':'br','Cabo Verde':'cv','Colombia':'co','Ecuador':'ec','Egipto':'eg','Francia':'fr','Alemania':'de','Japón':'jp','Marruecos':'ma','Noruega':'no','Portugal':'pt','España':'es','Uruguay':'uy','Venezuela':'ve'};
   const stageLabels = {FASE1: 'Primera fase', GRUPO_A: 'Fase 2 · Grupo 1',
     GRUPO_B: 'Fase 2 · Grupo 2', BRONCE: 'Copa Bronce · grupo único', ORO: 'Copa Oro', PLATA: 'Copa Plata'};
+  const matchStageLabel = match => `${match.phase === 'SEMIFINAL' ? 'Semifinal · ' : ''}${stageLabels[match.stage || 'FASE1'] || match.stage}`;
   const flag = country => {
     const image = element('img');
     image.src = `../assets/banderas/${flags[country]}.png`;
@@ -80,7 +81,7 @@
           if (country === home) matchup.append(element('span', match?.status === 'live' ? `${match.homeGoals} – ${match.awayGoals}` : 'vs'));
         }
         game.append(time, matchup);
-        if (match.stage && match.stage !== 'FASE1') game.append(element('small', stageLabels[match.stage] || match.stage));
+        if (match.stage && match.stage !== 'FASE1') game.append(element('small', matchStageLabel(match)));
         if (match?.status === 'live') game.append(element('strong', 'EN JUEGO'));
         games.append(game);
       }
@@ -125,7 +126,7 @@
       const pending = match.status === 'rescheduled' || match.status === 'scheduled';
       const live = match.status === 'live';
       if (live) card.classList.add('is-live');
-      card.append(element('span', `FECHA ${match.round} · ${stageLabels[match.stage || 'FASE1']} · ${live ? 'EN JUEGO' : pending ? 'PENDIENTE' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
+      card.append(element('span', `FECHA ${match.round} · ${matchStageLabel(match)} · ${live ? 'EN JUEGO' : pending ? 'PENDIENTE' : suspended ? 'SUSPENDIDO' : 'FINALIZADO'}`), matchup);
       const score = element('p', pending ? 'Pendiente de jugar' : suspended ? 'Esperando decisión' : `${match.homeGoals} – ${match.awayGoals}`);
       score.className = suspended || pending ? 'mundial-match-status' : 'mundial-score';
       card.append(score);

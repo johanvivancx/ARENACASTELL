@@ -1512,7 +1512,12 @@ window.CopaCastellData = {
     {"round": 12, "stage": "GRUPO_B", "home": "Marruecos", "away": "Francia", "status": "scheduled", "date": "2026-11-14", "time": "17:30"},
     {"round": 12, "stage": "BRONCE", "home": "Argentina", "away": "Brasil", "status": "scheduled", "date": "2026-11-14", "time": "18:30"},
     {"round": 12, "stage": "BRONCE", "home": "Argentina", "away": "Uruguay", "status": "scheduled", "date": "2026-11-14", "time": "19:30"},
-    {"round": 12, "stage": "BRONCE", "home": "Brasil", "away": "Alemania", "status": "scheduled", "date": "2026-11-14", "time": "20:30"}
+    {"round": 12, "stage": "BRONCE", "home": "Brasil", "away": "Alemania", "status": "scheduled", "date": "2026-11-14", "time": "20:30"},
+    {"round": 13, "stage": "ORO", "phase": "SEMIFINAL", "home": "Francia", "away": "Portugal", "status": "scheduled", "date": "2026-11-19", "time": "20:30"},
+    {"round": 13, "stage": "BRONCE", "home": "España", "away": "Venezuela", "status": "scheduled", "date": "2026-11-19", "time": "21:30"},
+    {"round": 13, "stage": "ORO", "phase": "SEMIFINAL", "home": "Noruega", "away": "Ecuador", "status": "scheduled", "date": "2026-11-20", "time": "19:30"},
+    {"round": 13, "stage": "PLATA", "phase": "SEMIFINAL", "home": "Cabo Verde", "away": "Egipto", "status": "scheduled", "date": "2026-11-20", "time": "20:30"},
+    {"round": 13, "stage": "PLATA", "phase": "SEMIFINAL", "home": "Marruecos", "away": "Japón", "status": "scheduled", "date": "2026-11-20", "time": "21:30"}
   ],
   "scorers": [
     {
