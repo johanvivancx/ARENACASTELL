@@ -19,9 +19,9 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-equipos" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261118-espaciado-copas" />
-    <script src="../assets/copa-castell-datos.js?v=20261110-fecha12" defer></script>
-    <script src="../assets/copa-castell.js?v=20261110-fecha12" defer></script>
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261120-finales-automaticas" />
+    <script src="../assets/copa-castell-datos.js?v=20261120-primer-finalista" defer></script>
+    <script src="../assets/copa-castell.js?v=20261120-finales-automaticas" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20261112-equipos" defer></script>
     <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
@@ -205,6 +205,23 @@
                 <p><span class="copa-match-label">Semifinal 1 <em>Viernes 20 · 7:30 p. m.</em></span><span class="copa-match-team"><img src="../assets/banderas/no.png" alt="" width="42" height="28" loading="lazy" /><span><strong>Noruega</strong><small>Impormegatex</small></span></span><b class="copa-vs">VS</b><span class="copa-match-team"><img src="../assets/banderas/ec.png" alt="" width="42" height="28" loading="lazy" /><span><strong>Ecuador</strong><small>Real Coholicos</small></span></span></p>
                 <p><span class="copa-match-label">Semifinal 2 <em>Jueves 19 · 8:30 p. m.</em></span><span class="copa-match-team"><img src="../assets/banderas/fr.png" alt="" width="42" height="28" loading="lazy" /><span><strong>Francia</strong><small>Fnatik</small></span></span><b class="copa-vs">VS</b><span class="copa-match-team"><img src="../assets/banderas/pt.png" alt="" width="42" height="28" loading="lazy" /><span><strong>Portugal</strong><small>Chancletas</small></span></span></p>
               </div>
+              <div class="copa-final-card" aria-labelledby="copa-oro-final-title">
+                <div class="copa-final-heading"><span>GRAN FINAL · 5 DE DICIEMBRE DE 2026</span><h5 id="copa-oro-final-title">Final de la Copa Oro</h5><small>Los clasificados se actualizan automáticamente al publicar cada resultado.</small></div>
+                <div class="copa-final-match" id="copa-oro-final" aria-live="polite">
+                  <span class="copa-final-team is-pending" id="copa-oro-final-team-1"><b>Por definir</b><small>Ganador: Noruega vs Ecuador</small></span>
+                  <strong>VS</strong>
+                  <span class="copa-final-team is-confirmed" id="copa-oro-final-team-2"><img src="../assets/banderas/pt.png" alt="" width="42" height="28" /><span><b>Portugal</b><small>Chancletas · primer finalista</small></span></span>
+                </div>
+              </div>
+              <details class="copa-media-disclosure copa-finalist-disclosure">
+                <summary>Ver afiche del primer finalista: Chancletas · Portugal <span>Mostrar imagen</span></summary>
+                <figure class="copa-publication-poster copa-finalist-poster">
+                  <a href="../assets/primer-finalista-copa-oro-chancletas-portugal.png" target="_blank" rel="noopener noreferrer">
+                    <img src="../assets/primer-finalista-copa-oro-chancletas-portugal.png" alt="Chancletas de Portugal, primer finalista de la Copa Castell Mundial de Clubes" width="1536" height="1536" loading="lazy" decoding="async" />
+                  </a>
+                  <figcaption>Chancletas · Portugal · Primer finalista de la Copa Oro</figcaption>
+                </figure>
+              </details>
             </section>
             <section class="copa-qualified-announcement copa-qualified-plata" aria-labelledby="copa-plata-semifinalistas-title">
               <div class="copa-cup-copy">
@@ -215,6 +232,14 @@
               <div class="copa-semifinal-cruces" aria-label="Cruces de semifinales de la Copa Plata">
                 <p><span class="copa-match-label">Semifinal 1 <em>Viernes 20 · 9:30 p. m.</em></span><span class="copa-match-team"><img src="../assets/banderas/ma.png" alt="" width="42" height="28" loading="lazy" /><span><strong>Marruecos</strong><small>Q’Leones</small></span></span><b class="copa-vs">VS</b><span class="copa-match-team"><img src="../assets/banderas/jp.png" alt="" width="42" height="28" loading="lazy" /><span><strong>Japón</strong><small>Clan FCH</small></span></span></p>
                 <p><span class="copa-match-label">Semifinal 2 <em>Viernes 20 · 8:30 p. m.</em></span><span class="copa-match-team"><img src="../assets/banderas/cv.png" alt="" width="42" height="28" loading="lazy" /><span><strong>Cabo Verde</strong><small>Los Gatitos</small></span></span><b class="copa-vs">VS</b><span class="copa-match-team"><img src="../assets/banderas/eg.png" alt="" width="42" height="28" loading="lazy" /><span><strong>Egipto</strong><small>Amaguaña City HPTC</small></span></span></p>
+              </div>
+              <div class="copa-final-card" aria-labelledby="copa-plata-final-title">
+                <div class="copa-final-heading"><span>GRAN FINAL · 5 DE DICIEMBRE DE 2026</span><h5 id="copa-plata-final-title">Final de la Copa Plata</h5><small>Los clasificados se actualizan automáticamente al publicar cada resultado.</small></div>
+                <div class="copa-final-match" id="copa-plata-final" aria-live="polite">
+                  <span class="copa-final-team is-pending" id="copa-plata-final-team-1"><b>Por definir</b><small>Ganador: Marruecos vs Japón</small></span>
+                  <strong>VS</strong>
+                  <span class="copa-final-team is-pending" id="copa-plata-final-team-2"><b>Por definir</b><small>Ganador: Cabo Verde vs Egipto</small></span>
+                </div>
               </div>
             </section>
             <p id="copa-format-status" class="small-text muted" role="status"></p>

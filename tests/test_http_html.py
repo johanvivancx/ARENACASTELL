@@ -142,6 +142,19 @@ def test_http_archivos_privados_y_html(conn):
         assert request('/api/catalog')[0]==200
 
 
+def test_torneos_publica_finales_automaticas_y_primer_finalista():
+    page=(STATIC/'pages/torneos.html').read_text(encoding='utf-8')
+    script=(STATIC/'assets/copa-castell.js').read_text(encoding='utf-8')
+    fallback=(STATIC/'assets/copa-castell-datos.js').read_text(encoding='utf-8')
+    assert 'GRAN FINAL · 5 DE DICIEMBRE DE 2026' in page
+    assert 'copa-oro-final-team-2' in page and 'Portugal' in page and 'Chancletas · primer finalista' in page
+    assert 'primer-finalista-copa-oro-chancletas-portugal.png' in page
+    assert "semifinalWinner('ORO', ['Francia', 'Portugal'], 'Portugal')" in script
+    assert "semifinalWinner('PLATA', ['Marruecos', 'Japón'])" in script
+    assert 'renderFinals();' in script
+    assert '"home": "Francia", "away": "Portugal", "status": "scheduled"' in fallback
+
+
 def test_http_tres_flujos_completos(conn,user):
     conn.commit()
     with client() as request:

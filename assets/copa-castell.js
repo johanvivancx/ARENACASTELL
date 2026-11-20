@@ -26,6 +26,36 @@
     image.height = 32;
     return image;
   };
+  const semifinalWinner = (stage, countries, confirmedFallback = '') => {
+    const match = (data.matches || []).find(item => item.stage === stage && item.phase === 'SEMIFINAL' &&
+      countries.includes(item.home) && countries.includes(item.away));
+    if (!match || match.status !== 'final') return {country: confirmedFallback, match};
+    const homeGoals = Number(match.homeGoals);
+    const awayGoals = Number(match.awayGoals);
+    if (!Number.isFinite(homeGoals) || !Number.isFinite(awayGoals) || homeGoals === awayGoals) return {country: '', match};
+    return {country: homeGoals > awayGoals ? match.home : match.away, match};
+  };
+  const renderFinalTeam = (host, result, pendingLabel) => {
+    if (!host) return;
+    host.replaceChildren();
+    host.classList.toggle('is-confirmed', Boolean(result.country));
+    host.classList.toggle('is-pending', !result.country);
+    if (!result.country) {
+      host.append(element('b', 'Por definir'), element('small', result.match?.status === 'final'
+        ? 'Marcador empatado · pendiente de decisión'
+        : pendingLabel));
+      return;
+    }
+    const names = element('span');
+    names.append(element('b', result.country), element('small', `${teams.get(result.country)?.club || ''} · finalista`));
+    host.append(flag(result.country), names);
+  };
+  const renderFinals = () => {
+    renderFinalTeam(document.getElementById('copa-oro-final-team-1'), semifinalWinner('ORO', ['Noruega', 'Ecuador']), 'Ganador: Noruega vs Ecuador');
+    renderFinalTeam(document.getElementById('copa-oro-final-team-2'), semifinalWinner('ORO', ['Francia', 'Portugal'], 'Portugal'), 'Ganador: Francia vs Portugal');
+    renderFinalTeam(document.getElementById('copa-plata-final-team-1'), semifinalWinner('PLATA', ['Marruecos', 'Japón']), 'Ganador: Marruecos vs Japón');
+    renderFinalTeam(document.getElementById('copa-plata-final-team-2'), semifinalWinner('PLATA', ['Cabo Verde', 'Egipto']), 'Ganador: Cabo Verde vs Egipto');
+  };
   const upcoming = data.upcoming;
   const upcomingContainer = document.getElementById('mundial-proxima-partidos');
   const renderUpcoming = () => {
@@ -383,6 +413,7 @@
   filter.addEventListener('change', scorers);
   renderStandings();
   renderFormat();
+  renderFinals();
   matches();
   scorers();
   let refreshing = false;
@@ -407,6 +438,7 @@
       document.getElementById('goleadores-caption').textContent = `Top 20 de goleadores · fecha ${live.throughRound}`;
       renderStandings();
       renderFormat();
+      renderFinals();
       matches();
       renderUpcoming();
       scorers();
