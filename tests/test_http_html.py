@@ -149,10 +149,24 @@ def test_torneos_publica_finales_automaticas_y_primer_finalista():
     assert 'GRAN FINAL · 5 DE DICIEMBRE DE 2026' in page
     assert 'copa-oro-final-team-2' in page and 'Portugal' in page and 'Chancletas · primer finalista' in page
     assert 'primer-finalista-copa-oro-chancletas-portugal.png' in page
-    assert "semifinalWinner('ORO', ['Francia', 'Portugal'], 'Portugal')" in script
-    assert "semifinalWinner('PLATA', ['Marruecos', 'Japón'])" in script
+    assert "semifinalResult('ORO', ['Francia', 'Portugal'], {winner: 'Portugal', loser: 'Francia'})" in script
+    assert "semifinalResult('PLATA', ['Marruecos', 'Japón'])" in script
     assert 'renderFinals();' in script
     assert '"home": "Francia", "away": "Portugal", "status": "scheduled"' in fallback
+
+
+def test_torneos_muestra_cruces_decisivos_y_esconde_tablas():
+    page=(STATIC/'pages/torneos.html').read_text(encoding='utf-8')
+    script=(STATIC/'assets/copa-castell.js').read_text(encoding='utf-8')
+    assert 'Tercer puesto de la Copa Oro' in page
+    assert 'Francia</b><small>Fnatik · espera rival' in page
+    assert 'FINAL · COPA BRONCE' in page and 'Uruguay' in page and 'Colombia' in page
+    assert 'TERCER PUESTO · BRONCE' in page and 'España' in page and 'Brasil' in page
+    assert 'COPA CASTELL MUNDIAL' in page and 'Alemania' in page and 'Venezuela' in page
+    assert '<details class="copa-format-details copa-current-standings">' in page
+    assert 'Mostrar tablas oficiales de la fase 2 y Bronce' in page
+    assert "standingCountry('B', 5, 'Colombia')" in script
+    assert 'copa-oro-third-team-2' in script and 'copa-plata-third-team-2' in script
 
 
 def test_http_tres_flujos_completos(conn,user):

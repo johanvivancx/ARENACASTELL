@@ -150,6 +150,12 @@ body[data-page="torneos"] .mundial-section > section > h3 { margin-top: 0; }
 .copa-qualified-plata { border-color: #9eafb7; background: linear-gradient(135deg, #20292d 0%, #111516 52%, #192023 100%); box-shadow: 0 24px 56px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(235 247 252 / 10%); }
 .copa-qualified-plata::before { background: radial-gradient(circle at 8% 15%, rgb(194 217 227 / 16%), transparent 35%), linear-gradient(115deg, transparent 45%, rgb(226 242 248 / 5%) 45.2%, transparent 46%); }
 .copa-qualified-plata::after { background: linear-gradient(90deg, transparent, #9eb1bb 18%, #eef7fa 50%, #8799a2 82%, transparent); }
+.copa-qualified-bronce { border-color: #ad754b; background: linear-gradient(135deg, #271b14 0%, #111516 52%, #21160f 100%); }
+.copa-qualified-bronce::before { background: radial-gradient(circle at 8% 15%, rgb(190 105 52 / 18%), transparent 35%), linear-gradient(115deg, transparent 45%, rgb(226 143 88 / 5%) 45.2%, transparent 46%); }
+.copa-qualified-bronce::after { background: linear-gradient(90deg, transparent, #ad7047 18%, #efb081 50%, #875033 82%, transparent); }
+.copa-qualified-bronce .copa-cup-medallion { border-color: #d89a6c; background: radial-gradient(circle at 35% 28%, #ffd6b8 0 6%, #b86d3c 24%, #6c3820 64%, #241108 100%); color: #ffe1ca; }
+.copa-qualified-bronce .copa-cup-title-row .eyebrow { color: #e5a477; }
+.copa-qualified-bronce .copa-cup-facts span { border-color: rgb(215 144 95 / 38%); background: rgb(190 103 51 / 9%); color: #efbc98; }
 .copa-cup-copy { min-width: 0; }
 .copa-cup-title-row { display: flex; align-items: center; gap: 17px; }
 .copa-cup-title-row .eyebrow { margin: 0 0 6px; color: #e9bd60; }
@@ -193,6 +199,19 @@ body[data-page="torneos"] .mundial-section > section > h3 { margin-top: 0; }
 .copa-final-team.is-confirmed { border-color: #c49437; background: linear-gradient(145deg, rgb(74 50 9 / 84%), rgb(12 16 17 / 94%)); box-shadow: inset 0 1px 0 rgb(255 230 155 / 12%); }
 .copa-qualified-plata .copa-final-team.is-confirmed { border-color: #8da3ab; background: linear-gradient(145deg, rgb(53 67 73 / 84%), rgb(12 16 17 / 94%)); }
 .copa-final-team.is-pending { flex-direction: column; align-items: center; color: #d8dfe1; text-align: center; }
+.copa-placement-card { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(230px, .72fr) minmax(0, 1.28fr); align-items: center; gap: clamp(18px, 3vw, 34px); padding: 20px clamp(20px, 3vw, 30px); border: 1px solid #4d5558; border-radius: 14px; background: rgb(9 13 14 / 72%); }
+.copa-placement-card > div:first-child > span { color: #c3a768; font-size: 10px; font-weight: 900; letter-spacing: .12em; line-height: 1.4; }
+.copa-qualified-plata .copa-placement-card > div:first-child > span { color: #b9cbd2; }
+.copa-placement-card h5 { margin: 6px 0 0; color: #f5f7f7; font-size: clamp(18px, 2vw, 24px); }
+.copa-bronze-crosses { display: grid; gap: 12px; }
+.copa-bronze-crosses article { padding: 15px; border: 1px solid #5e4333; border-radius: 14px; background: rgb(8 11 12 / 85%); }
+.copa-bronze-crosses article > span { display: block; margin-bottom: 10px; color: #e1a77e; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-align: center; }
+.copa-qualified-bronce .copa-final-team.is-confirmed { border-color: #8d5c3e; background: linear-gradient(145deg, rgb(70 38 22 / 84%), rgb(12 16 17 / 94%)); }
+.copa-bronze-note { grid-column: 1 / -1; margin: 0; padding: 14px 16px; border-left: 3px solid #bd7b50; background: rgb(28 20 16 / 70%); color: #c9d1d3; font-size: 13px; line-height: 1.5; }
+.copa-bronze-note strong { color: #f3c3a2; }
+.copa-current-standings { margin-top: 30px; border: 1px solid #455155; border-radius: 14px; background: #14191a; }
+.copa-current-standings > summary { min-height: 60px; padding: 17px 20px; font-size: 15px; }
+.copa-current-standings > .copa-format-detail-body { padding: 0 20px 22px; }
 .copa-finalist-disclosure { border-top-color: #6d5729; }
 .copa-finalist-poster { width: min(100%, 560px); }
 .copa-media-disclosure { grid-column: 1 / -1; margin-top: 3px; border-top: 1px solid #4b5559; }
@@ -262,6 +281,7 @@ body[data-page="torneos"] .pasochoa-intro .pasochoa-photo img { aspect-ratio: 3 
   .copa-format-standings { grid-template-columns: 1fr; }
   .copa-qualified-announcement { grid-template-columns: 1fr; }
   .copa-final-card { grid-template-columns: 1fr; }
+  .copa-placement-card { grid-template-columns: 1fr; }
   .tournament-index { grid-template-columns: 1fr; }
   .tournament-index a { min-height: 50px; }
   .tournament-live { grid-template-columns: 1fr; }
@@ -287,6 +307,10 @@ body[data-page="torneos"] .pasochoa-intro .pasochoa-photo img { aspect-ratio: 3 
   .copa-match-team small { font-size: 10px; }
   .copa-semifinal-cruces .copa-vs { width: 36px; }
   .copa-final-card { padding: 18px 13px; }
+  .copa-placement-card { padding: 16px 13px; }
+  .copa-bronze-crosses article { padding: 12px 8px; }
+  .copa-current-standings > summary { padding: 15px; font-size: 14px; }
+  .copa-current-standings > .copa-format-detail-body { padding: 0 12px 16px; }
   .copa-final-match { grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr); gap: 6px; }
   .copa-final-team { flex-direction: column; gap: 7px; min-height: 112px; padding: 11px 7px; text-align: center; }
   .copa-final-team b { font-size: 13px; }

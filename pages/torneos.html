@@ -19,9 +19,9 @@
     <!-- Estilos principales del sitio -->
     <link rel="stylesheet" href="../assets/styles.css?v=20261011-programacion" />
     <link rel="stylesheet" href="../assets/site-refined.css?v=20261112-equipos" />
-    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261120-finales-automaticas" />
+    <link rel="stylesheet" href="../assets/torneos-redesign.css?v=20261120-cruces-decisivos" />
     <script src="../assets/copa-castell-datos.js?v=20261120-primer-finalista" defer></script>
-    <script src="../assets/copa-castell.js?v=20261120-finales-automaticas" defer></script>
+    <script src="../assets/copa-castell.js?v=20261120-cruces-decisivos" defer></script>
     <!-- Funciones principales del sitio -->
     <script src="../assets/app.js?v=20261112-equipos" defer></script>
     <script src="../assets/torneos-ui.js?v=20261007-1" defer></script>
@@ -146,7 +146,7 @@
           <section id="mundial-formato" aria-labelledby="copa-formato-title">
             <p class="eyebrow">COPA CASTELL · EDICIÓN MUNDIALISTA</p>
             <h3 id="copa-formato-title">Así sigue la Copa Castell</h3>
-            <p class="copa-format-intro">La fase de grupos de Oro y Plata ya terminó. <strong>Noruega, Ecuador, Francia y Portugal disputarán las semifinales de la Copa Oro; Japón, Marruecos, Cabo Verde y Egipto jugarán las semifinales de la Copa Plata.</strong> En Bronce falta el partido España vs Venezuela para cerrar la tabla.</p>
+            <p class="copa-format-intro">Los cruces decisivos ya están en marcha. <strong>Portugal es el primer finalista de Oro y Francia disputará el tercer puesto.</strong> El grupo Bronce terminó: Uruguay jugará la final ante Colombia, 5.º del Grupo 2.</p>
             <div id="copa-format-live" hidden>
               <div class="copa-format-block-heading"><span>01 · EQUIPOS CONFIRMADOS</span><h4>Estos son los grupos</h4><p>A indica el Grupo 1 de la primera fase; B, el Grupo 2. El número es la posición en que terminó el equipo.</p></div>
               <div id="copa-format-groups" class="copa-format-groups"></div>
@@ -192,9 +192,9 @@
             <div id="mundial-partidos" class="mundial-matches" aria-live="polite"></div>
           </section>
           <section id="mundial-posiciones" aria-labelledby="posiciones-title">
-            <p class="eyebrow">CLASIFICACIÓN DEL TORNEO</p>
-            <h3 id="posiciones-title">Tablas oficiales · Fase 2</h3>
-            <p class="copa-standings-intro">Noruega y Francia comienzan con <strong>+2 puntos de bonificación</strong> por haber ganado sus grupos de la primera fase. Los partidos en juego muestran el marcador en Resultados, pero solo suman a estas tablas cuando finalizan.</p>
+            <p class="eyebrow">FASE DECISIVA · COPA CASTELL</p>
+            <h3 id="posiciones-title">Así quedan los cruces finales</h3>
+            <p class="copa-standings-intro">La fase de grupos ya definió el camino. <strong>Consulta las finales, los partidos por el tercer puesto y la definición de Bronce.</strong> Las tablas oficiales siguen disponibles al final de esta sección.</p>
             <section class="copa-qualified-announcement copa-qualified-oro" aria-labelledby="copa-oro-semifinalistas-title">
               <div class="copa-cup-copy">
                 <div class="copa-cup-title-row"><span class="copa-cup-medallion" aria-hidden="true">ORO</span><div><p class="eyebrow">SEMIFINALES · COPA ORO</p><h4 id="copa-oro-semifinalistas-title">El camino a la gran final</h4></div></div>
@@ -211,6 +211,14 @@
                   <span class="copa-final-team is-pending" id="copa-oro-final-team-1"><b>Por definir</b><small>Ganador: Noruega vs Ecuador</small></span>
                   <strong>VS</strong>
                   <span class="copa-final-team is-confirmed" id="copa-oro-final-team-2"><img src="../assets/banderas/pt.png" alt="" width="42" height="28" /><span><b>Portugal</b><small>Chancletas · primer finalista</small></span></span>
+                </div>
+              </div>
+              <div class="copa-placement-card" aria-labelledby="copa-oro-third-title">
+                <div><span>TERCER PUESTO · CRUCE EN DEFINICIÓN</span><h5 id="copa-oro-third-title">Tercer puesto de la Copa Oro</h5></div>
+                <div class="copa-final-match" id="copa-oro-third" aria-live="polite">
+                  <span class="copa-final-team is-confirmed" id="copa-oro-third-team-1"><img src="../assets/banderas/fr.png" alt="" width="42" height="28" /><span><b>Francia</b><small>Fnatik · espera rival</small></span></span>
+                  <strong>VS</strong>
+                  <span class="copa-final-team is-pending" id="copa-oro-third-team-2"><b>Por definir</b><small>Perdedor: Noruega vs Ecuador</small></span>
                 </div>
               </div>
               <details class="copa-media-disclosure copa-finalist-disclosure">
@@ -241,15 +249,41 @@
                   <span class="copa-final-team is-pending" id="copa-plata-final-team-2"><b>Por definir</b><small>Ganador: Cabo Verde vs Egipto</small></span>
                 </div>
               </div>
+              <div class="copa-placement-card" aria-labelledby="copa-plata-third-title">
+                <div><span>TERCER PUESTO · CRUCE EN DEFINICIÓN</span><h5 id="copa-plata-third-title">Tercer puesto de la Copa Plata</h5></div>
+                <div class="copa-final-match" id="copa-plata-third" aria-live="polite">
+                  <span class="copa-final-team is-pending" id="copa-plata-third-team-1"><b>Por definir</b><small>Perdedor: Marruecos vs Japón</small></span>
+                  <strong>VS</strong>
+                  <span class="copa-final-team is-pending" id="copa-plata-third-team-2"><b>Por definir</b><small>Perdedor: Cabo Verde vs Egipto</small></span>
+                </div>
+              </div>
             </section>
-            <p id="copa-format-status" class="small-text muted" role="status"></p>
-            <div id="copa-format-standings" class="copa-format-standings" aria-live="polite"></div>
-            <div id="copa-format-cups" class="copa-format-cups"></div>
+            <section class="copa-qualified-announcement copa-qualified-bronce" aria-labelledby="copa-bronce-finales-title">
+              <div class="copa-cup-copy">
+                <div class="copa-cup-title-row"><span class="copa-cup-medallion" aria-hidden="true">BRONCE</span><div><p class="eyebrow">CRUCES DEFINIDOS · COPA BRONCE</p><h4 id="copa-bronce-finales-title">La clasificación ya está lista</h4></div></div>
+                <p>Uruguay ganó el grupo Bronce y enfrentará a Colombia, 5.º del Grupo 2, por el título. Los demás puestos también tienen su cruce definido.</p>
+                <div class="copa-cup-facts" aria-label="Resumen de la Copa Bronce"><span>Grupo completo</span><span>3 cruces definidos</span></div>
+              </div>
+              <div class="copa-bronze-crosses" aria-live="polite">
+                <article><span>FINAL · COPA BRONCE</span><div class="copa-final-match"><span class="copa-final-team is-confirmed" id="copa-bronce-final-team-1"><img src="../assets/banderas/uy.png" alt="" width="42" height="28" /><span><b>Uruguay</b><small>Papas Chacas · 1.º Bronce</small></span></span><strong>VS</strong><span class="copa-final-team is-confirmed" id="copa-bronce-final-team-2"><img src="../assets/banderas/co.png" alt="" width="42" height="28" /><span><b>Colombia</b><small>Fruta Si · 5.º Grupo 2</small></span></span></div></article>
+                <article><span>TERCER PUESTO · BRONCE</span><div class="copa-final-match"><span class="copa-final-team is-confirmed" id="copa-bronce-third-team-1"><img src="../assets/banderas/es.png" alt="" width="42" height="28" /><span><b>España</b><small>Súper Chaca · 2.º Bronce</small></span></span><strong>VS</strong><span class="copa-final-team is-confirmed" id="copa-bronce-third-team-2"><img src="../assets/banderas/br.png" alt="" width="42" height="28" /><span><b>Brasil</b><small>La Última y nos vamos · 3.º Bronce</small></span></span></div></article>
+                <article><span>COPA CASTELL MUNDIAL</span><div class="copa-final-match"><span class="copa-final-team is-confirmed" id="copa-bronce-world-team-1"><img src="../assets/banderas/de.png" alt="" width="42" height="28" /><span><b>Alemania</b><small>Los de Siempre · 4.º Bronce</small></span></span><strong>VS</strong><span class="copa-final-team is-confirmed" id="copa-bronce-world-team-2"><img src="../assets/banderas/ve.png" alt="" width="42" height="28" /><span><b>Venezuela</b><small>Chocolatosos · 5.º Bronce</small></span></span></div></article>
+              </div>
+              <p class="copa-bronze-note"><strong>Argentina · Asadero BJ</strong> terminó 6.º y disputará el partido de exhibición indicado en el formato.</p>
+            </section>
+            <details class="copa-format-details copa-current-standings">
+              <summary>Mostrar tablas oficiales de la fase 2 y Bronce <span>Ver tablas</span></summary>
+              <div class="copa-format-detail-body">
+                <p id="copa-format-status" class="small-text muted" role="status"></p>
+                <div id="copa-format-standings" class="copa-format-standings" aria-live="polite"></div>
+                <div id="copa-format-cups" class="copa-format-cups"></div>
+                <p class="mundial-legend">Pts: puntos · PJ: partidos jugados · GF: goles a favor · GC: goles en contra · DG: diferencia de goles.</p>
+              </div>
+            </details>
             <details class="copa-format-details copa-first-phase"><summary>Ver tablas de la primera fase <span>Histórico</span></summary><div class="copa-format-detail-body">
               <p id="posiciones-actualizacion">Clasificación de la primera fase hasta la fecha 7.</p>
               <div id="mundial-grupos"></div>
             </div></details>
-            <p class="mundial-legend">Pts: puntos · PJ: partidos jugados · PG: ganados · PE: empatados · PP: perdidos · GF: goles a favor · GC: goles en contra · DG: diferencia de goles.</p>
           </section>
           <section id="mundial-goleadores" aria-labelledby="goleadores-title">
             <h3 id="goleadores-title">Top 20 de goleadores</h3>

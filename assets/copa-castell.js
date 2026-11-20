@@ -26,35 +26,58 @@
     image.height = 32;
     return image;
   };
-  const semifinalWinner = (stage, countries, confirmedFallback = '') => {
+  const semifinalResult = (stage, countries, confirmedFallback = {}) => {
     const match = (data.matches || []).find(item => item.stage === stage && item.phase === 'SEMIFINAL' &&
       countries.includes(item.home) && countries.includes(item.away));
-    if (!match || match.status !== 'final') return {country: confirmedFallback, match};
+    if (!match || match.status !== 'final') return {winner: confirmedFallback.winner || '', loser: confirmedFallback.loser || '', match};
     const homeGoals = Number(match.homeGoals);
     const awayGoals = Number(match.awayGoals);
-    if (!Number.isFinite(homeGoals) || !Number.isFinite(awayGoals) || homeGoals === awayGoals) return {country: '', match};
-    return {country: homeGoals > awayGoals ? match.home : match.away, match};
+    if (!Number.isFinite(homeGoals) || !Number.isFinite(awayGoals) || homeGoals === awayGoals) return {winner: '', loser: '', match};
+    return homeGoals > awayGoals
+      ? {winner: match.home, loser: match.away, match}
+      : {winner: match.away, loser: match.home, match};
   };
-  const renderFinalTeam = (host, result, pendingLabel) => {
+  const renderCupTeam = (host, country, match, pendingLabel, confirmedLabel) => {
     if (!host) return;
     host.replaceChildren();
-    host.classList.toggle('is-confirmed', Boolean(result.country));
-    host.classList.toggle('is-pending', !result.country);
-    if (!result.country) {
-      host.append(element('b', 'Por definir'), element('small', result.match?.status === 'final'
+    host.classList.toggle('is-confirmed', Boolean(country));
+    host.classList.toggle('is-pending', !country);
+    if (!country) {
+      host.append(element('b', 'Por definir'), element('small', match?.status === 'final'
         ? 'Marcador empatado · pendiente de decisión'
         : pendingLabel));
       return;
     }
     const names = element('span');
-    names.append(element('b', result.country), element('small', `${teams.get(result.country)?.club || ''} · finalista`));
-    host.append(flag(result.country), names);
+    names.append(element('b', country), element('small', `${teams.get(country)?.club || ''} · ${confirmedLabel}`));
+    host.append(flag(country), names);
+  };
+  const standingCountry = (code, position, fallback) => {
+    const group = data.format?.groups?.[code];
+    return (!Array.isArray(group) && group?.standings?.[position - 1]?.[0]) || fallback;
   };
   const renderFinals = () => {
-    renderFinalTeam(document.getElementById('copa-oro-final-team-1'), semifinalWinner('ORO', ['Noruega', 'Ecuador']), 'Ganador: Noruega vs Ecuador');
-    renderFinalTeam(document.getElementById('copa-oro-final-team-2'), semifinalWinner('ORO', ['Francia', 'Portugal'], 'Portugal'), 'Ganador: Francia vs Portugal');
-    renderFinalTeam(document.getElementById('copa-plata-final-team-1'), semifinalWinner('PLATA', ['Marruecos', 'Japón']), 'Ganador: Marruecos vs Japón');
-    renderFinalTeam(document.getElementById('copa-plata-final-team-2'), semifinalWinner('PLATA', ['Cabo Verde', 'Egipto']), 'Ganador: Cabo Verde vs Egipto');
+    const oro1 = semifinalResult('ORO', ['Noruega', 'Ecuador']);
+    const oro2 = semifinalResult('ORO', ['Francia', 'Portugal'], {winner: 'Portugal', loser: 'Francia'});
+    const plata1 = semifinalResult('PLATA', ['Marruecos', 'Japón']);
+    const plata2 = semifinalResult('PLATA', ['Cabo Verde', 'Egipto']);
+    renderCupTeam(document.getElementById('copa-oro-final-team-1'), oro1.winner, oro1.match, 'Ganador: Noruega vs Ecuador', 'finalista');
+    renderCupTeam(document.getElementById('copa-oro-final-team-2'), oro2.winner, oro2.match, 'Ganador: Francia vs Portugal', 'finalista');
+    renderCupTeam(document.getElementById('copa-oro-third-team-1'), oro2.loser, oro2.match, 'Perdedor: Francia vs Portugal', 'juega por el tercer puesto');
+    renderCupTeam(document.getElementById('copa-oro-third-team-2'), oro1.loser, oro1.match, 'Perdedor: Noruega vs Ecuador', 'juega por el tercer puesto');
+    renderCupTeam(document.getElementById('copa-plata-final-team-1'), plata1.winner, plata1.match, 'Ganador: Marruecos vs Japón', 'finalista');
+    renderCupTeam(document.getElementById('copa-plata-final-team-2'), plata2.winner, plata2.match, 'Ganador: Cabo Verde vs Egipto', 'finalista');
+    renderCupTeam(document.getElementById('copa-plata-third-team-1'), plata1.loser, plata1.match, 'Perdedor: Marruecos vs Japón', 'juega por el tercer puesto');
+    renderCupTeam(document.getElementById('copa-plata-third-team-2'), plata2.loser, plata2.match, 'Perdedor: Cabo Verde vs Egipto', 'juega por el tercer puesto');
+    const bronze = [
+      ['copa-bronce-final-team-1', standingCountry('BRONCE', 1, 'Uruguay'), '1.º Bronce'],
+      ['copa-bronce-final-team-2', standingCountry('B', 5, 'Colombia'), '5.º Grupo 2'],
+      ['copa-bronce-third-team-1', standingCountry('BRONCE', 2, 'España'), '2.º Bronce'],
+      ['copa-bronce-third-team-2', standingCountry('BRONCE', 3, 'Brasil'), '3.º Bronce'],
+      ['copa-bronce-world-team-1', standingCountry('BRONCE', 4, 'Alemania'), '4.º Bronce'],
+      ['copa-bronce-world-team-2', standingCountry('BRONCE', 5, 'Venezuela'), '5.º Bronce']
+    ];
+    bronze.forEach(([id, country, label]) => renderCupTeam(document.getElementById(id), country, null, '', label));
   };
   const upcoming = data.upcoming;
   const upcomingContainer = document.getElementById('mundial-proxima-partidos');
