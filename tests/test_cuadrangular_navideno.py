@@ -13,7 +13,7 @@ def test_cuadrangular_aparece_y_permite_inscribir(conn, user):
     ).fetchone()
 
     assert torneo["costo"] == 0
-    assert torneo["cupos"] == 6
+    assert torneo["cupos"] == 3
     assert torneo["abierto"] is True
     assert "12 y 19 de diciembre" in torneo["descripcion"]
 
@@ -32,6 +32,21 @@ def test_cuadrangular_aparece_y_permite_inscribir(conn, user):
     assert creada["descripcion"] == "Cuadrangular Navideño 2026 · Equipo Navideño"
     assert equipo["estado"] == "CONFIRMADO"
     assert pago is None
+
+
+def test_cuadrangular_reserva_solo_tres_cupos_web(conn):
+    conn.execute((ROOT / "sql/migrations/028_cuadrangular_navideno.sql").read_text(encoding="utf8"))
+
+    torneo = conn.execute(
+        "SELECT cupos FROM torneos WHERE nombre='Cuadrangular Navideño 2026'"
+    ).fetchone()
+    navidad = next(
+        row for row in s.catalogo(conn)["torneos"]
+        if row["nombre"] == "Cuadrangular Navideño 2026"
+    )
+
+    assert torneo["cupos"] == 3
+    assert navidad["disponibles"] == 3
 
 
 def test_admin_elimina_equipo_gratuito_de_prueba_y_libera_cupo(conn, user):
@@ -63,7 +78,7 @@ def test_admin_elimina_equipo_gratuito_de_prueba_y_libera_cupo(conn, user):
     assert conn.execute("SELECT estado FROM ordenes WHERE id=%s", (orden["id"],)).fetchone()["estado"] == "CANCELADA"
     assert conn.execute("SELECT count(*) AS n FROM jugadores WHERE equipo_id=%s", (equipo["id"],)).fetchone()["n"] == 0
     navidad = next(row for row in s.catalogo(conn)["torneos"] if row["nombre"] == "Cuadrangular Navideño 2026")
-    assert navidad["disponibles"] == 6
+    assert navidad["disponibles"] == 3
     assert s.historial(conn, user["id"])["ordenes"] == []
     report = s.reportes(conn, admin_id, {})
     assert all(row["id"] != equipo["id"] for row in report["equipos_torneo"])

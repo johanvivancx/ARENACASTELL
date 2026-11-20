@@ -169,6 +169,13 @@ def test_torneos_muestra_cruces_decisivos_y_esconde_tablas():
     assert 'copa-oro-third-team-2' in script and 'copa-plata-third-team-2' in script
 
 
+def test_torneos_muestra_tres_cupos_del_cuadrangular_navideno():
+    page=(STATIC/'pages/torneos.html').read_text(encoding='utf-8')
+    migration=(STATIC/'sql/migrations/028_cuadrangular_navideno.sql').read_text(encoding='utf-8')
+    assert '3 cupos disponibles · Inscripción gratuita' in page
+    assert 'cupos=3' in migration
+
+
 def test_http_tres_flujos_completos(conn,user):
     conn.commit()
     with client() as request:
