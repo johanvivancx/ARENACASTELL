@@ -1,0 +1,34 @@
+.finales-promo-section {
+  margin-block: 2rem 3rem;
+  scroll-margin-top: 6rem;
+}
+
+.finales-promo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  padding: clamp(1.4rem, 4vw, 3rem);
+  border: 1px solid #8b713b;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #252017, #101415 70%);
+  color: #f7f5ee;
+}
+
+.finales-promo-copy h2 {
+  margin: .5rem 0 1rem;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.08;
+}
+
+.finales-promo-copy p { line-height: 1.6; }
+.finales-promo-lead { color: #ead09a; font-size: 1.15rem; }
+.finales-promo-copy .btn { margin-top: .75rem; }
+.finales-promo-poster { display: block; max-width: 340px; margin-inline: auto; }
+.finales-promo-poster img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.finales-promo-poster:focus-visible { outline: 3px solid #f4d491; outline-offset: 4px; }
+
+@media (max-width: 700px) {
+  .finales-promo { grid-template-columns: 1fr; }
+  .finales-promo-poster { width: min(100%, 320px); }
+}
