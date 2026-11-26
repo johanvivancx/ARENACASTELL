@@ -28,7 +28,21 @@
 .finales-promo-poster img { display: block; width: 100%; height: auto; border-radius: 8px; }
 .finales-promo-poster:focus-visible { outline: 3px solid #f4d491; outline-offset: 4px; }
 
+.finales-programa { margin: 2rem 0 3rem; padding: clamp(1.25rem, 3vw, 2.5rem); border: 1px solid #776236; border-radius: 16px; background: #15191a; color: #f7f5ee; scroll-margin-top: 6rem; }
+.finales-programa-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.finales-programa-heading h2 { margin: .4rem 0 0; font-size: clamp(1.8rem, 3vw, 2.5rem); }
+.finales-programa-heading p { max-width: 30rem; margin: 0; line-height: 1.5; }
+.finales-programa-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.finales-programa-list li { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 1rem; align-items: center; padding: .85rem 1rem; border: 1px solid #3b4545; border-radius: 8px; background: #101415; }
+.finales-programa-list time, .finales-programa-time { color: #efcf83; font-weight: 750; }
+.finales-programa-list strong, .finales-programa-list span:not(.finales-programa-time) { display: block; }
+.finales-programa-list span:not(.finales-programa-time) { margin-top: .2rem; color: #cdd6d6; font-size: .9rem; }
+.finales-programa-list .finales-programa-final { border-color: #947541; background: #242014; }
+.finales-programa-list .finales-programa-show { border-color: #586d60; }
+.finales-programa-note { line-height: 1.6; color: #ead09a; }
+
 @media (max-width: 700px) {
   .finales-promo { grid-template-columns: 1fr; }
   .finales-promo-poster { width: min(100%, 320px); }
+  .finales-programa-list li { grid-template-columns: 5.5rem minmax(0, 1fr); gap: .6rem; padding: .8rem; }
 }
